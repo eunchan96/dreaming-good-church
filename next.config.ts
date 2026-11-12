@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  distDir: process.env.CHURCH_TEST_SERVER === "1" ? ".next-test" : ".next",
   /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
