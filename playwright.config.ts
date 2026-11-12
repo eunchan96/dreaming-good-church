@@ -5,7 +5,7 @@ export default defineConfig({
   workers: 1,
   timeout: 90_000,
   use: {
-    baseURL: "http://localhost:3001",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3001",
     channel: "msedge",
     headless: true,
     viewport: { width: 1280, height: 900 },

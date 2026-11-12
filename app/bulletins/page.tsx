@@ -1,3 +1,4 @@
+import PublicShell from "../public-shell";
 import PublicBulletins from "./public-bulletins";
 export const metadata = { title: "주보 | 꿈꾸는좋은교회" };
-export default function Page() { return <PublicBulletins />; }
+export default function Page() { return <PublicShell><PublicBulletins /></PublicShell>; }
