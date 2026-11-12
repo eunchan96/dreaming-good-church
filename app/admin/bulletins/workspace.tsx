@@ -6,6 +6,7 @@ import { confirmItem, createBulletin, createItem, editItem, blockNames, publicat
 import { errorMessage, loadBulletins, makeBrowserClient, saveDraft, type SavedBulletin } from "@/lib/bulletin-store";
 import { BlockFields, BlockPreview } from "./block-fields";
 import CommunityLinks from "./community-links";
+import { ImagePicker } from "./image-picker";
 import styles from "./workspace.module.css";
 
 const initialFields = ["설교 제목", "성경 본문", "찬송", "기도 담당", "교회 소식"];
@@ -25,7 +26,7 @@ export default function BulletinWorkspace() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [copyDate, setCopyDate] = useState("");
-  const [newKind, setNewKind] = useState<BlockKind>("text");
+  const [newKind, setNewKind] = useState<Exclude<BlockKind, "image">>("text");
   const [preview, setPreview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savePaused, setSavePaused] = useState(false);
@@ -178,7 +179,7 @@ export default function BulletinWorkspace() {
   }
 
   return <main className={styles.page}>
-    <nav><Link href="/admin/community" onClick={(event)=>{if(!mayLeave())event.preventDefault();}}>공지·일정 관리</Link></nav>
+    <nav><Link href="/admin/community" onClick={(event)=>{if(!mayLeave())event.preventDefault();}}>공지·일정 관리</Link> · <Link href="/admin/church" onClick={(event)=>{if(!mayLeave())event.preventDefault();}}>교회 정보·이미지 관리</Link></nav>
     <header className={styles.header}><div><span className={styles.eyebrow}>꿈꾸는좋은교회 · 관리자</span><h1>이번 주를 준비하는 시간</h1><p>지난 주의 내용을 이어 받아, 이번 주 주보를 차분히 완성하세요.</p></div>
       {session === "editor" || session === "denied" ? <button onClick={logout} disabled={busy || saving}>로그아웃</button> : null}</header>
     <p role="status" aria-live="polite" className={styles.message}>{message}</p>
@@ -195,6 +196,7 @@ export default function BulletinWorkspace() {
       <p className={styles.muted}>최근 100개 · 주보</p>
       {rows.length ? <ul className={styles.list}>{rows.map((row) => <li key={row.id}><button className={draft?.id === row.id ? styles.selected : ""} disabled={busy || saving} onClick={() => open(row)}><strong>{row.serviceDate}</strong><span>{row.issueNumber}호 · {row.status === "draft" ? "초안" : "게시됨"}</span></button></li>)}</ul> : <p>아직 저장한 주보가 없습니다.</p>}</aside>
       <section>{draft ? <>
+        <ImagePicker disabled={busy || saving || draft.status !== "draft" || draft.items.length >= 100} onAdd={(item) => { setDraft(current => current && ({ ...current, items: [...current.items, item] })); markDirty(); }} />
         <CommunityLinks key={draft.id} draft={draft} locked={dirty || busy || saving} onBusy={setBusy} onImported={(updated) => { setDraft(updated); setDirty(false); setRows((current) => current.map((row) => row.id===updated.id?updated:row)); }} />
         <section className={styles.card}><h2>{draft.status === "published" ? "게시된 주보" : "게시 전 확인"}</h2>
           <p>공개 {draft.items.filter((item) => item.webVisible).length}개 · 비공개 {draft.items.filter((item) => !item.webVisible).length}개. 비공개 항목은 웹에 표시되지 않습니다.</p>
@@ -202,7 +204,7 @@ export default function BulletinWorkspace() {
           <p><a href="/bulletins" target="_blank" rel="noreferrer">공개 주보 보기</a></p>
         </section>
         <div className={`${styles.card} ${styles.toolbar}`}><div><span className={styles.eyebrow}>주보 편집 · {dirty ? "저장 전 변경 있음" : "저장됨"}</span><h2>{draft.issueNumber}호 주보</h2><p>{saving ? "저장 중…" : savePaused ? "자동 저장 중지 · 다시 시도 필요" : draft.revision === 0 ? "처음에는 초안 저장을 눌러 주세요. 이후 변경은 자동 저장됩니다." : "입력을 멈추면 자동 저장됩니다."}</p><p>{draft.items.filter((item) => item.needsReview).length}개 항목 확인 필요</p></div><div className={styles.actions}><button disabled={busy || saving} onClick={() => setPreview(!preview)}>{preview ? "편집으로 돌아가기" : "웹 미리보기"}</button><button className={styles.primary} disabled={busy || saving || draft.status !== "draft"} onClick={() => { void save(); }}>{saving ? "저장 중…" : savePaused ? "저장 다시 시도" : "초안 저장"}</button></div></div>
-        {preview ? <section className={styles.card}><h2>웹 표시 미리보기</h2><p className={styles.muted}>{draft.status === "published" ? "게시된 주보의 공개 항목입니다." : "현재 화면의 공개 항목만 표시합니다. 아직 웹에 게시되지 않았습니다."}</p>{draft.items.filter((item) => item.webVisible).map((item) => <BlockPreview key={item.id} item={item} />)}</section> :
+        {preview ? <section className={styles.card}><h2>웹 표시 미리보기</h2><p className={styles.muted}>{draft.status === "published" ? "게시된 주보의 공개 항목입니다." : "현재 화면의 공개 항목만 표시합니다. 아직 웹에 게시되지 않았습니다."}</p>{draft.items.filter((item) => item.webVisible).map((item) => <BlockPreview key={item.id} item={item} editor />)}</section> :
         <fieldset disabled={busy || draft.status !== "draft"} className={styles.fields}>
           <div className={`${styles.card} ${styles.actions}`}><label>예배 날짜<input type="date" value={draft.serviceDate} onChange={(event) => { const value = event.target.value; setDraft((current) => current && ({ ...current, serviceDate: value })); markDirty(); }} /></label><label>호수<input type="number" min="1" step="1" value={draft.issueNumber} onChange={(event) => { const value = Number(event.target.value); setDraft((current) => current && ({ ...current, issueNumber: value })); markDirty(); }} /></label></div>
           {draft.items.map((item, index) => <article className={styles.card} key={item.id}>
@@ -225,7 +227,7 @@ export default function BulletinWorkspace() {
             <div className={styles.itemHeader}><label className={styles.check}><input type="checkbox" checked={item.webVisible} onChange={(event) => updateItem(item.id, { webVisible: event.target.checked })} />웹에 공개</label><span className={styles.muted}>인쇄에는 포함</span></div>
             <label className={styles.check}><input type="checkbox" checked={item.reviewOnCopy} onChange={(event) => { const checked = event.target.checked; setDraft((current) => current && ({ ...current, items: current.items.map((entry) => entry.id === item.id ? { ...entry, reviewOnCopy: checked } : entry) })); markDirty(); }} />다음 주 복사할 때 다시 확인</label>
           </article>)}
-          <label>추가할 항목 종류<select value={newKind} onChange={(event) => setNewKind(event.target.value as BlockKind)}>{Object.entries(blockNames).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <label>추가할 항목 종류<select value={newKind} onChange={(event) => setNewKind(event.target.value as Exclude<BlockKind, "image">)}>{Object.entries(blockNames).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           <button disabled={draft.items.length >= 100} onClick={() => { const item = createItem({ id: crypto.randomUUID(), title: newKind === "text" ? "새 공지" : blockNames[newKind], kind: newKind, reviewOnCopy: newKind !== "text" }); setDraft((current) => current && ({ ...current, items: [...current.items, item] })); markDirty(); }}>+ 항목 추가</button>
         </fieldset>}
         <section className={styles.card}><h3>이 주보로 다음 주 준비하기</h3><p>저장된 내용과 공개 설정을 복사합니다. 매주 확인할 항목은 다시 표시됩니다.</p><div className={styles.actions}><label>새 주보 날짜<input type="date" value={copyDate} onChange={(event) => setCopyDate(event.target.value)} /></label><button onClick={copy} disabled={busy || saving || dirty || draft.revision === 0 || !copyDate}>다음 주 주보 복사</button></div>{dirty || draft.revision === 0 ? <p className={styles.muted}>먼저 현재 주보를 저장해 주세요.</p> : null}</section>

@@ -10,9 +10,9 @@ export type BulletinItem = {
   content?: BlockContent;
 };
 
-export type BlockKind = "text" | "sermon" | "worship" | "offering";
-export type BlockContent = { reference?: string; preacher?: string; month?: string; rows?: string[][] };
-export const blockNames: Record<BlockKind, string> = { text: "일반 글·공지·묵상", sermon: "설교", worship: "예배 순서", offering: "헌금 내역" };
+export type BlockKind = "text" | "sermon" | "worship" | "offering" | "image";
+export type BlockContent = { reference?: string; preacher?: string; month?: string; rows?: string[][]; assetId?: string; alt?: string };
+export const blockNames: Record<Exclude<BlockKind, "image">, string> = { text: "일반 글·공지·묵상", sermon: "설교", worship: "예배 순서", offering: "헌금 내역" };
 export function blockContent(kind: BlockKind): BlockContent {
   if (kind === "sermon") return { reference: "", preacher: "" };
   if (kind === "worship") return { rows: [["", "", ""]] };
@@ -27,6 +27,7 @@ export function publicationIssues(bulletin: Bulletin): string[] {
   const issues: string[] = [];
   if (bulletin.items.some((item) => item.needsReview)) issues.push("이번 주 확인이 필요한 항목을 모두 확인해 주세요.");
   const meaningful = bulletin.items.some((item) => item.webVisible && (item.body.trim() ||
+    (item.kind === "image" && item.content?.assetId && item.content?.alt?.trim()) ||
     (item.kind === "sermon" && item.content?.reference?.trim()) ||
     ((item.kind === "worship" || item.kind === "offering") && item.content?.rows?.some((row) => row.some((cell) => cell.trim())))));
   if (!meaningful) issues.push("내용이 있는 공개 항목을 하나 이상 작성해 주세요.");
