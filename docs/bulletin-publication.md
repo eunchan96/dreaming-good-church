@@ -12,7 +12,7 @@
 
 ## 조회 계약
 
-- `GET /api/bulletins`: 최근 게시 주보 100개. id, service_date, issue_number만 반환.
+- `GET /api/bulletins`: 최신순 게시 주보 20개와 nextCursor 반환. 목록 항목에는 id, service_date, issue_number만 포함. 선택 파라미터 month(YYYY-MM), before(YYYY-MM-DD)로 전체 기록을 월별·날짜 커서로 탐색. 자세한 계약은 public-site.md 참고.
 - `GET /api/bulletins?id=<uuid>`: 게시 주보와 공개 블록만 반환. 초안·게시 취소·없는 ID는 모두 404.
 - 모든 응답은 `Cache-Control: no-store`. 서버 조회에도 no-store를 적용하며 편집자의 세션이나 서비스 역할 키를 사용하지 않는다.
 - 공개 화면은 탭 복귀와 15초 주기로 다시 조회한다. 이미 내려받은 내용을 원격 삭제할 수는 없으며, 열린 화면은 다음 조회 때 게시 취소를 반영한다.
