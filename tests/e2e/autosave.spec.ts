@@ -19,8 +19,16 @@ test("autosave preserves edits, pauses on failure, resumes after login and keeps
       await page.getByRole("button", { name: "로그인", exact: true }).click();
       await expect(page.getByRole("button", { name: "+ 새 주보 작성" })).toBeVisible();
     }
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/admin/bulletins"); await login();
     await page.getByRole("button", { name: "+ 새 주보 작성" }).click();
+    for (const width of [390, 320]) {
+      await page.setViewportSize({ width, height: 844 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      const saveButton = page.getByRole("button", { name: "초안 저장", exact: true });
+      expect((await saveButton.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.getByLabel("예배 날짜", { exact: true }).fill("2096-11-04");
     await page.getByRole("button", { name: "초안 저장", exact: true }).click();
     await expect(page.getByRole("status")).toContainText("초안을 저장했습니다");
