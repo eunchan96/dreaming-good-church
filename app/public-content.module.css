@@ -14,4 +14,11 @@
 .shortcuts a { display: flex; align-items: center; min-height: 44px; padding: 8px 0; border-bottom: 1px solid #8b9b8d; }
 .guide { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
 .guide .card:first-child { grid-column: 1 / -1; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 20px 0; }
+.controls button[aria-pressed=true], .calendar button[aria-pressed=true] { background: #253d35; color: white; }
+.calendarScroll { overflow-x: auto; margin: 16px 0; padding: 4px; }
+.calendar { display: grid; grid-template-columns: repeat(7, minmax(44px, 1fr)); gap: 4px; min-width: 332px; }
+.calendar button { min-height: 72px; background: white; padding: 8px 4px; }
+.calendar button span { display: block; min-height: 20px; font-size: 14px; }
+.weekday { text-align: center; font-weight: 650; padding: 8px 0; }
 @media(max-width: 767px) { .page { padding: 28px 20px 40px; } .card { padding: 20px; } .guide { grid-template-columns: minmax(0, 1fr); } .card h2 { font-size: 21px; } .meta { grid-template-columns: 1fr; gap: 4px; } .meta dd { margin-bottom: 8px; } }
