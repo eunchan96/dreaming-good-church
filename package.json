@@ -15,6 +15,7 @@
     "backup:create": "node --env-file=.env.local scripts/backup.mjs create --production",
     "backup:local": "node scripts/backup.mjs create --local",
     "backup:verify": "node scripts/backup.mjs verify",
+    "backup:restore-check": "node scripts/backup.mjs restore-check",
     "demo:account": "powershell -NoProfile -File scripts/demo-account.ps1",
     "dev:local": "powershell -NoProfile -File scripts/dev-local.ps1"
   },

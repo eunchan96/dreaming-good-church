@@ -1,11 +1,12 @@
 import { createInterface } from 'node:readline';
 import { Writable } from 'node:stream';
-import { mkdir, open, readFile, writeFile, unlink, stat } from 'node:fs/promises';
+import { mkdir, open, readFile, readdir, writeFile, unlink, stat } from 'node:fs/promises';
 import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { makeBundle, encryptBundle, decryptBundle, unpackNewDirectory, sha256 } from './lib/backup-archive.mjs';
 import { collectBackup, localConfiguration, PROJECT_REF } from './lib/backup-source.mjs';
+import { restoreSqlBackup } from './lib/restore-sql-backup.mjs';
 
 function hiddenInput(prompt) {
   if (!process.stdin.isTTY || !process.stdout.isTTY) throw new Error('Run from your own interactive terminal. Passphrases cannot be passed by argument, environment variable or pipe.');
@@ -45,6 +46,23 @@ async function boundedRead(path) {
   return readFile(path);
 }
 
+async function latestDriveBackup(directory) {
+  const receipts=[];
+  for(const name of await readdir(directory)) {
+    if(!/^church-zefnxczgwpsmfcixonpb-[a-zA-Z0-9-]+\.dgcb\.receipt\.json$/.test(name)) continue;
+    const receipt=JSON.parse(await readFile(join(directory,name),'utf8'));
+    if(receipt.target!==PROJECT_REF || !receipt.archiveVerified || !receipt.driveCopyVerified) continue;
+    if(receipt.archive!==name.slice(0,-13) || !/^[0-9a-f]{64}$/.test(receipt.sha256) ||
+      !/^[A-Za-z0-9_-]{10,100}$/.test(receipt.driveFileId) || !Number.isFinite(Date.parse(receipt.verifiedAt))) throw new Error('Invalid Drive backup receipt.');
+    receipts.push(receipt);
+  }
+  const receipt=receipts.sort((a,b)=>Date.parse(b.verifiedAt)-Date.parse(a.verifiedAt))[0];
+  if(!receipt) throw new Error('No verified Drive backup receipt. Specify the downloaded .dgcb file explicitly.');
+  const path=join(directory,`drive-${receipt.driveFileId}.dgcb`);
+  if(sha256(await boundedRead(path))!==receipt.sha256) throw new Error('Downloaded Drive backup does not match the receipt.');
+  return path;
+}
+
 export async function main(args) {
   const [command,...rest] = args;
   const defaultDirectory = resolve('.local/backups');
@@ -62,6 +80,20 @@ export async function main(args) {
     console.log(`암호화·복호화·저장 해시 검증 완료: ${result.path}`);
     console.log(`SHA-256: ${result.receipt.sha256}`);
     console.log('PC 사본만 생성되었습니다. 복구 암호는 별도로 보관하고, Drive 업로드/재다운로드 검증을 이어서 진행하세요.');
+  } else if(command==='restore-check') {
+    if(rest.length>1) throw new Error('Use restore-check [DOWNLOADED_BACKUP_FILE].');
+    const path=rest[0]?resolve(rest[0]):await latestDriveBackup(defaultDirectory);
+    console.log('Drive 암호화 사본을 네트워크·호스트 포트·영구 볼륨 없는 별도 PostgreSQL에 복구합니다. 기존 DB에는 쓰지 않습니다.');
+    const password=await hiddenInput('복구 암호 (표시하지 않음): ');
+    const archive=await boundedRead(path);
+    const bundle=await decryptBundle(archive,password);
+    const result=await restoreSqlBackup(bundle);
+    const directory=resolve('.local/restore-check');
+    await mkdir(directory,{recursive:true,mode:0o700});
+    const report={...result,archiveSha256:sha256(archive)};
+    const name=`result-${randomUUID()}.json`;
+    await writeFile(join(directory,name),JSON.stringify(report,null,2),{flag:'wx',mode:0o600});
+    console.log(`실제 백업 SQL 복구·자료/권한 검증 완료. 임시 컨테이너 제거 완료. 결과: ${join(directory,name)}`);
   } else if (command==='verify' || command==='unpack') {
     if ((command==='verify' && rest.length!==1) || (command==='unpack' && (rest.length!==3 || rest[1]!=='--output'))) throw new Error('Use verify FILE or unpack FILE --output NEW_DIRECTORY.');
     const password = await hiddenInput('복구 암호: ');
@@ -86,7 +118,7 @@ export async function main(args) {
     const handle = await open(receiptPath,'w',0o600);
     try { await handle.writeFile(JSON.stringify({...receipt,copyBytesVerified:true,copyVerifiedAt:new Date().toISOString()},null,2)); } finally { await handle.close(); }
     console.log('사본과 PC 원본의 SHA-256 일치. 실제 Drive 업로드·저장 위치 확인은 별도입니다.');
-  } else throw new Error('Use create --local|--production, verify FILE, unpack FILE --output NEW_DIRECTORY, or check-copy ORIGINAL DOWNLOADED_DRIVE_COPY.');
+  } else throw new Error('Use create --local|--production, restore-check [FILE], verify FILE, unpack FILE --output NEW_DIRECTORY, or check-copy ORIGINAL DOWNLOADED_DRIVE_COPY.');
 }
 
 if (process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
