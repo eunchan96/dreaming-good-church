@@ -53,6 +53,14 @@ test("edit church info, upload normalized private image, attach/publish and prot
     await expect(page.getByLabel("주보에 넣을 이미지").locator("option", { hasText: "검증용 주보 표지" })).toHaveCount(1);
     await page.getByLabel("주보에 넣을 이미지").selectOption(imageId); await page.getByRole("button", { name: "선택한 이미지 넣기", exact: true }).click();
     await expect(page.getByLabel("이미지 설명 (대체텍스트)")).toHaveValue("초록색 표지 이미지");
+    await page.getByRole("button", { name: "인쇄 미리보기", exact: true }).click();
+    const printPreview = page.getByRole("dialog", { name: "관리자 인쇄 미리보기", exact: true });
+    await expect(printPreview.getByRole("img", { name: "초록색 표지 이미지" })).toBeVisible();
+    await page.evaluate(() => { window.print = () => { document.documentElement.dataset.printInvoked = "yes"; }; });
+    await printPreview.getByRole("button", { name: "인쇄 · PDF로 저장", exact: true }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-print-invoked", "yes");
+    await printPreview.screenshot({ path: ".local/admin-print-preview.png" });
+    await printPreview.getByRole("button", { name: "미리보기 닫기", exact: true }).click();
     await expect(page.getByRole("button", { name: "주보 게시", exact: true })).toBeEnabled();
     page.once("dialog", d => d.accept()); await page.getByRole("button", { name: "주보 게시", exact: true }).click();
     await expect(page.getByRole("button", { name: "게시 취소", exact: true })).toBeVisible();

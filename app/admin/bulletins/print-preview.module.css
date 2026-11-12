@@ -1,0 +1,29 @@
+.overlay { position:fixed; inset:0; z-index:100; overflow:auto; background:#e9ede3; color:#24352c; font:16px/1.7 Arial,"Malgun Gothic",sans-serif; padding:24px; overflow-wrap:anywhere; }
+.controls { max-width:900px; margin:0 auto 24px; }
+.controls h2 { font-size:24px; font-weight:700; }
+.controls button { min-height:44px; margin:12px 12px 0 0; padding:10px 16px; background:white; border:1px solid #76837c; border-radius:8px; cursor:pointer; }
+.controls button:focus-visible { outline:3px solid #76541b; outline-offset:4px; }
+.paper { max-width:794px; min-height:1000px; margin:auto; padding:48px; background:white; }
+.paper h1 { font-size:26px; font-weight:700; margin:12px 0 24px; }
+.paper h3 { font-size:21px; font-weight:700; }
+.paper table { width:100%; border-collapse:collapse; }
+.paper th,.paper td { text-align:left; border:1px solid #aaa; padding:8px; }
+.paper p { white-space:pre-wrap; }
+.item { margin:20px 0; }
+.scope { font-size:14px; color:#526847; }
+@media(max-width:600px) { .overlay { padding:16px; } .paper { padding:20px; } }
+@media print {
+  @page { size:A4 portrait; margin:14mm; }
+  :global(body) { overflow:visible !important; display:block !important; height:auto !important; }
+  :global(body) > :not(.overlay) { display:none !important; }
+  .overlay { position:static; overflow:visible; padding:0; background:white; font-size:11pt; }
+  .controls,.scope { display:none; }
+  .paper { padding:0; max-width:none; min-height:0; }
+  .paper h1 { font-size:18pt; }
+  .paper h3 { break-after:avoid; font-size:14pt; }
+  .paper :global(article) { border:0; padding:0; }
+  .paper :global(article > div) { overflow:visible !important; }
+  .paper :global(thead) { display:table-header-group; }
+  .paper :global(tr),.paper :global(img) { break-inside:avoid; }
+  .paper :global(img) { max-height:240mm; object-fit:contain; }
+}
