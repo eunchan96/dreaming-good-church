@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { confirmItem, createBulletin, createItem, editItem, blockNames, type BlockKind, type BulletinItem } from "@/lib/bulletins";
+import { confirmItem, createBulletin, createItem, editItem, blockNames, publicationIssues, type BlockKind, type BulletinItem } from "@/lib/bulletins";
 import { errorMessage, loadBulletins, makeBrowserClient, saveDraft, type SavedBulletin } from "@/lib/bulletin-store";
 import { BlockFields, BlockPreview } from "./block-fields";
 import styles from "./workspace.module.css";
@@ -160,6 +160,21 @@ export default function BulletinWorkspace() {
     setBusy(false);
   }
 
+  async function changePublication(publish: boolean) {
+    if (!client || !draft || dirty || inFlight.current || busy) return;
+    if (publish && publicationIssues(draft).length) { setMessage(publicationIssues(draft).join(" ")); return; }
+    if (!window.confirm(publish ? "공개로 설정한 항목을 웹에 게시할까요?" : "게시를 취소하고 초안으로 돌릴까요? 공개 주보에서 제외됩니다.")) return;
+    setBusy(true); setMessage("");
+    try {
+      const { data, error } = await client.rpc("set_bulletin_publication", { p_id: draft.id, p_revision: draft.revision, p_publish: publish });
+      if (error) throw error;
+      const updated = { ...draft, status: data.status, revision: data.revision } as SavedBulletin;
+      setDraft(updated); setRows((current) => current.map((row) => row.id === updated.id ? updated : row));
+      setMessage(publish ? "주보를 게시했습니다." : "게시를 취소했습니다. 초안을 수정할 수 있습니다.");
+    } catch (error) { setMessage(errorMessage(error)); }
+    finally { setBusy(false); }
+  }
+
   return <main className={styles.page}>
     <header className={styles.header}><div><span className={styles.eyebrow}>꿈꾸는좋은교회 · 관리자</span><h1>이번 주를 준비하는 시간</h1><p>지난 주의 내용을 이어 받아, 이번 주 주보를 차분히 완성하세요.</p></div>
       {session === "editor" || session === "denied" ? <button onClick={logout} disabled={busy || saving}>로그아웃</button> : null}</header>
@@ -174,11 +189,16 @@ export default function BulletinWorkspace() {
           items: initialFields.map((title, index) => createItem({ id: crypto.randomUUID(), title, reviewOnCopy: index < 4 })) });
         markDirty(); setSavePaused(false); setMessage(""); setPreview(false);
       }}>+ 새 주보 작성</button>
-      <p className={styles.muted}>최근 100개 · 저장한 초안</p>
+      <p className={styles.muted}>최근 100개 · 주보</p>
       {rows.length ? <ul className={styles.list}>{rows.map((row) => <li key={row.id}><button className={draft?.id === row.id ? styles.selected : ""} disabled={busy || saving} onClick={() => open(row)}><strong>{row.serviceDate}</strong><span>{row.issueNumber}호 · {row.status === "draft" ? "초안" : "게시됨"}</span></button></li>)}</ul> : <p>아직 저장한 주보가 없습니다.</p>}</aside>
       <section>{draft ? <>
+        <section className={styles.card}><h2>{draft.status === "published" ? "게시된 주보" : "게시 전 확인"}</h2>
+          <p>공개 {draft.items.filter((item) => item.webVisible).length}개 · 비공개 {draft.items.filter((item) => !item.webVisible).length}개. 비공개 항목은 웹에 표시되지 않습니다.</p>
+          {draft.status === "draft" ? <><ul>{publicationIssues(draft).map((issue) => <li key={issue}>{issue}</li>)}</ul><p>게시 후 수정하려면 게시를 취소해 주세요.</p><button disabled={busy || saving || dirty || draft.revision === 0 || publicationIssues(draft).length > 0} onClick={() => changePublication(true)}>주보 게시</button></> : <button disabled={busy || saving} onClick={() => changePublication(false)}>게시 취소</button>}
+          <p><a href="/bulletins" target="_blank" rel="noreferrer">공개 주보 보기</a></p>
+        </section>
         <div className={`${styles.card} ${styles.toolbar}`}><div><span className={styles.eyebrow}>주보 편집 · {dirty ? "저장 전 변경 있음" : "저장됨"}</span><h2>{draft.issueNumber}호 주보</h2><p>{saving ? "저장 중…" : savePaused ? "자동 저장 중지 · 다시 시도 필요" : draft.revision === 0 ? "처음에는 초안 저장을 눌러 주세요. 이후 변경은 자동 저장됩니다." : "입력을 멈추면 자동 저장됩니다."}</p><p>{draft.items.filter((item) => item.needsReview).length}개 항목 확인 필요</p></div><div className={styles.actions}><button disabled={busy || saving} onClick={() => setPreview(!preview)}>{preview ? "편집으로 돌아가기" : "웹 미리보기"}</button><button className={styles.primary} disabled={busy || saving || draft.status !== "draft"} onClick={() => { void save(); }}>{saving ? "저장 중…" : savePaused ? "저장 다시 시도" : "초안 저장"}</button></div></div>
-        {preview ? <section className={styles.card}><h2>웹 표시 미리보기</h2><p className={styles.muted}>현재 화면의 공개 항목만 표시합니다. 아직 웹에 게시되지 않았습니다.</p>{draft.items.filter((item) => item.webVisible).map((item) => <BlockPreview key={item.id} item={item} />)}</section> :
+        {preview ? <section className={styles.card}><h2>웹 표시 미리보기</h2><p className={styles.muted}>{draft.status === "published" ? "게시된 주보의 공개 항목입니다." : "현재 화면의 공개 항목만 표시합니다. 아직 웹에 게시되지 않았습니다."}</p>{draft.items.filter((item) => item.webVisible).map((item) => <BlockPreview key={item.id} item={item} />)}</section> :
         <fieldset disabled={busy || draft.status !== "draft"} className={styles.fields}>
           <div className={`${styles.card} ${styles.actions}`}><label>예배 날짜<input type="date" value={draft.serviceDate} onChange={(event) => { const value = event.target.value; setDraft((current) => current && ({ ...current, serviceDate: value })); markDirty(); }} /></label><label>호수<input type="number" min="1" step="1" value={draft.issueNumber} onChange={(event) => { const value = Number(event.target.value); setDraft((current) => current && ({ ...current, issueNumber: value })); markDirty(); }} /></label></div>
           {draft.items.map((item, index) => <article className={styles.card} key={item.id}>

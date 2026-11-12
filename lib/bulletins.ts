@@ -23,6 +23,16 @@ export function offeringTotal(content: BlockContent) {
   return (content.rows ?? []).reduce((sum, row) => sum + Number(row[1] || 0), 0);
 }
 
+export function publicationIssues(bulletin: Bulletin): string[] {
+  const issues: string[] = [];
+  if (bulletin.items.some((item) => item.needsReview)) issues.push("이번 주 확인이 필요한 항목을 모두 확인해 주세요.");
+  const meaningful = bulletin.items.some((item) => item.webVisible && (item.body.trim() ||
+    (item.kind === "sermon" && item.content?.reference?.trim()) ||
+    ((item.kind === "worship" || item.kind === "offering") && item.content?.rows?.some((row) => row.some((cell) => cell.trim())))));
+  if (!meaningful) issues.push("내용이 있는 공개 항목을 하나 이상 작성해 주세요.");
+  return issues;
+}
+
 export type Bulletin = {
   id: string;
   serviceDate: string;

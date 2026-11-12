@@ -56,6 +56,8 @@ export async function saveDraft(client: BrowserClient, draft: SavedBulletin) {
 
 export function errorMessage(error: unknown): string {
   const details = error as { code?: string; message?: string };
+  if (details.message === "REVIEW_REQUIRED") return "이번 주 확인이 필요한 항목을 모두 확인해 주세요.";
+  if (details.message === "PUBLIC_CONTENT_REQUIRED") return "내용이 있는 공개 항목을 하나 이상 작성해 주세요.";
   if (details.code === "23505") return "같은 날짜의 주보가 이미 있습니다. 날짜를 확인해 주세요.";
   if (details.code === "40001") return "다른 곳에서 수정한 내용이 있습니다. 입력 내용을 복사해 보관한 뒤 다시 열어 주세요.";
   if (details.code === "42501") return "편집 권한이 없습니다. 관리자 계정을 확인해 주세요.";

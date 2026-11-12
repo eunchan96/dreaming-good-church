@@ -28,7 +28,7 @@ export function BlockFields({ item, onChange }: { item: BulletinItem; onChange: 
   </div>;
 }
 
-export function BlockPreview({ item }: { item: BulletinItem }) {
+export function BlockPreview({ item }: { item: Pick<BulletinItem, "title" | "body" | "kind" | "content"> }) {
   const content = item.content ?? {};
   return <article className={styles.preview}><h3>{item.title}</h3>
     {item.kind === "sermon" ? <p>{content.reference} · {content.preacher}</p> : null}
