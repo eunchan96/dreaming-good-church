@@ -1,5 +1,11 @@
 # 운영 준비와 복구 절차
 
+## 암호화 백업 구현 · 2026-11-13 추가
+
+백업 생성·복호화/변조 검증·사진 파일 수집·새 폴더 해제·사본 해시 비교를 구현했다. 실행은 `npm run backup:create`이며 복구 암호는 운영자가 본인 터미널에서 직접 입력한다. PC 기본 위치는 Git에서 제외한 `.local/backups`다. 상세 범위·명령·제약은 `encrypted-backups.md`에 있다.
+
+가상 사진을 포함한 실제 로컬 암호화 백업의 별도 DB 복구와 사진 파일 복구를 통과했다. **첫 운영 백업 생성과 Google Drive 업로드는 아직 하지 않았으며 아래 최초 상태 기록과 구분한다.** Auth 설정·Production/배포 롤백 등 남은 WBS42 조건은 계속 검수해야 한다.
+
 ## 현재 상태 · 2026-11-13
 
 - Supabase: `zefnxczgwpsmfcixonpb`, 서울 `ap-northeast-2`, ACTIVE_HEALTHY, Postgres 17.11.
