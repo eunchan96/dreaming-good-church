@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { confirmItem, createBulletin, createItem, editItem, blockNames, publicationIssues, type BlockKind, type BulletinItem } from "@/lib/bulletins";
 import { errorMessage, loadBulletins, makeBrowserClient, saveDraft, type SavedBulletin } from "@/lib/bulletin-store";
 import { BlockFields, BlockPreview } from "./block-fields";
+import CommunityLinks from "./community-links";
 import styles from "./workspace.module.css";
 
 const initialFields = ["설교 제목", "성경 본문", "찬송", "기도 담당", "교회 소식"];
@@ -176,6 +178,7 @@ export default function BulletinWorkspace() {
   }
 
   return <main className={styles.page}>
+    <nav><Link href="/admin/community" onClick={(event)=>{if(!mayLeave())event.preventDefault();}}>공지·일정 관리</Link></nav>
     <header className={styles.header}><div><span className={styles.eyebrow}>꿈꾸는좋은교회 · 관리자</span><h1>이번 주를 준비하는 시간</h1><p>지난 주의 내용을 이어 받아, 이번 주 주보를 차분히 완성하세요.</p></div>
       {session === "editor" || session === "denied" ? <button onClick={logout} disabled={busy || saving}>로그아웃</button> : null}</header>
     <p role="status" aria-live="polite" className={styles.message}>{message}</p>
@@ -192,6 +195,7 @@ export default function BulletinWorkspace() {
       <p className={styles.muted}>최근 100개 · 주보</p>
       {rows.length ? <ul className={styles.list}>{rows.map((row) => <li key={row.id}><button className={draft?.id === row.id ? styles.selected : ""} disabled={busy || saving} onClick={() => open(row)}><strong>{row.serviceDate}</strong><span>{row.issueNumber}호 · {row.status === "draft" ? "초안" : "게시됨"}</span></button></li>)}</ul> : <p>아직 저장한 주보가 없습니다.</p>}</aside>
       <section>{draft ? <>
+        <CommunityLinks key={draft.id} draft={draft} locked={dirty || busy || saving} onBusy={setBusy} onImported={(updated) => { setDraft(updated); setDirty(false); setRows((current) => current.map((row) => row.id===updated.id?updated:row)); }} />
         <section className={styles.card}><h2>{draft.status === "published" ? "게시된 주보" : "게시 전 확인"}</h2>
           <p>공개 {draft.items.filter((item) => item.webVisible).length}개 · 비공개 {draft.items.filter((item) => !item.webVisible).length}개. 비공개 항목은 웹에 표시되지 않습니다.</p>
           {draft.status === "draft" ? <><ul>{publicationIssues(draft).map((issue) => <li key={issue}>{issue}</li>)}</ul><p>게시 후 수정하려면 게시를 취소해 주세요.</p><button disabled={busy || saving || dirty || draft.revision === 0 || publicationIssues(draft).length > 0} onClick={() => changePublication(true)}>주보 게시</button></> : <button disabled={busy || saving} onClick={() => changePublication(false)}>게시 취소</button>}

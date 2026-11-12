@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { BlockPreview } from "../admin/bulletins/block-fields";
 import type { BulletinItem } from "@/lib/bulletins";
 import styles from "../admin/bulletins/workspace.module.css";
@@ -41,6 +42,7 @@ export default function PublicBulletins() {
     return () => { controller.abort(); window.clearInterval(timer); window.removeEventListener("focus", refresh); };
   }, [id, retry]);
   return <main className={styles.page}><header className={styles.header}><div><span>꿈꾸는좋은교회</span><h1>주일 주보</h1></div></header>
+    <nav><Link href="/notices">교회 공지</Link> · <Link href="/events">교회 일정</Link></nav>
     <p role="status">{message}</p>{message ? <button onClick={() => setRetry((value) => value + 1)}>다시 불러오기</button> : null}
     <nav aria-label="지난 주보" className={styles.actions}>{rows.map((row) => <button key={row.id} aria-pressed={bulletin?.id === row.id} onClick={() => { setBulletin(null); setMessage("주보를 불러오고 있습니다…"); setId(row.id); }}>{row.service_date} · {row.issue_number}호</button>)}</nav>
     {bulletin ? <section className={styles.card}><h2>{bulletin.service_date} · {bulletin.issue_number}호</h2>{bulletin.items.map((item) => <BlockPreview key={item.id} item={item} />)}</section> : null}

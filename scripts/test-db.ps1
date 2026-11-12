@@ -4,7 +4,7 @@ if ($LASTEXITCODE -ne 0 -or $localStatus.API_URL -ne 'http://127.0.0.1:54321') {
 $env:LOCAL_SUPABASE_ANON_KEY = $localStatus.ANON_KEY
 $env:LOCAL_SUPABASE_SERVICE_KEY = $localStatus.SERVICE_ROLE_KEY
 try {
-    node --test tests/drafts.integration.mjs tests/publication.integration.mjs
+    node --test tests/drafts.integration.mjs tests/publication.integration.mjs tests/community.integration.mjs
     $testExitCode = $LASTEXITCODE
 } finally {
     Remove-Item Env:LOCAL_SUPABASE_ANON_KEY -ErrorAction SilentlyContinue
