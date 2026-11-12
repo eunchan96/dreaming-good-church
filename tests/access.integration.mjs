@@ -11,6 +11,7 @@ test('local access acceptance: metadata cannot grant membership and revocation b
   const admin = createClient(url, process.env.LOCAL_SUPABASE_SERVICE_KEY, options);
   const editor = createClient(url, key, options);
   const outsider = createClient(url, key, options);
+  const anon = createClient(url, key, options);
   const users = [], bulletin = randomUUID();
   const args = { p_id: bulletin, p_service_date: '2088-11-07', p_issue_number: 1, p_revision: 0,
     p_items: [{ id: randomUUID(), title: '권한 검증용 비공개', body: 'private access marker', webVisible: false, reviewOnCopy: false, needsReview: false }] };
@@ -23,6 +24,25 @@ test('local access acceptance: metadata cannot grant membership and revocation b
       assert.ifError((await client.auth.signInWithPassword({ email, password })).error);
     }
     assert.ifError((await editor.rpc('save_bulletin_draft', args)).error);
+    await t.test('anonymous and outsider direct inserts, updates and deletes cannot change private rows', async () => {
+      for (const client of [anon, outsider]) {
+        assert.ok((await client.from('bulletins').insert({ id: randomUUID(), service_date: '2088-11-21', issue_number: 2 })).error);
+        assert.ok((await client.from('bulletin_items').insert({ bulletin_id: bulletin, position: 1, title: 'illegal' })).error);
+        for (const [table, id, changes] of [
+          ['bulletins', bulletin, { issue_number: 999 }],
+          ['bulletin_items', args.p_items[0].id, { body: 'illegal mutation', web_visible: true }],
+        ]) {
+          const update = await client.from(table).update(changes).eq('id', id).select('id');
+          assert.ok(update.error || update.data.length === 0);
+          const remove = await client.from(table).delete().eq('id', id).select('id');
+          assert.ok(remove.error || remove.data.length === 0);
+        }
+      }
+      assert.ok((await editor.from('church_editors').insert({ user_id: users[1] })).error);
+      const original = await editor.from('bulletins').select('issue_number,revision,items:bulletin_items(body,web_visible)').eq('id', bulletin).single();
+      assert.ifError(original.error); assert.equal(original.data.issue_number, 1); assert.equal(original.data.revision, 1);
+      assert.deepEqual(original.data.items, [{ body: 'private access marker', web_visible: false }]);
+    });
     await t.test('self-editable admin/editor metadata does not grant private reads or RPC writes', async () => {
       assert.ifError((await outsider.auth.updateUser({ data: { role: 'admin', is_admin: true, editor: true } })).error);
       assert.ifError((await outsider.auth.refreshSession()).error);

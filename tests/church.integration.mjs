@@ -24,6 +24,14 @@ test('church info atomic updates and image privacy, immutable storage, historica
   assert.ok((await anon.storage.from('bulletin-images').download(`${image}.webp`)).error);
   assert.ifError((await editor.storage.from('bulletin-images').download(`${image}.webp`)).error);
   assert.ok((await outsider.storage.from('bulletin-images').download(`${image}.webp`)).error);
+  for(const client of [anon,outsider,editor]) {
+    assert.ok((await client.storage.from('bulletin-images').upload(`${randomUUID()}.webp`,pixels,{contentType:'image/webp'})).error);
+    assert.ok((await client.storage.from('bulletin-images').update(`${image}.webp`,pixels,{contentType:'image/webp'})).error);
+    const removed=await client.storage.from('bulletin-images').remove([`${image}.webp`]);
+    assert.ok(removed.error || removed.data.length===0);
+    const unchanged=await editor.storage.from('bulletin-images').download(`${image}.webp`);
+    assert.ifError(unchanged.error);assert.deepEqual(Buffer.from(await unchanged.data.arrayBuffer()),pixels);
+  }
   const entry={id:item,title:'image',body:'',kind:'image',content:{assetId:image,alt:'snapshot description'},webVisible:true,reviewOnCopy:false,needsReview:false};
   assert.ifError((await editor.rpc('save_bulletin_draft',{p_id:bulletin,p_service_date:'2090-11-05',p_issue_number:1,p_revision:0,p_items:[entry]})).error);
   assert.ok((await anon.storage.from('bulletin-images').download(`${image}.webp`)).error);
