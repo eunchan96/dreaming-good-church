@@ -1,10 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
-import type { Bulletin, BulletinItem } from "./bulletins";
+import type { Bulletin, BulletinItem, BlockKind, BlockContent } from "./bulletins";
 
 export type SavedBulletin = Bulletin & { revision: number };
 type ItemRow = {
   id: string; title: string; body: string; position: number;
   web_visible: boolean; review_on_copy: boolean; needs_review: boolean;
+  kind: BlockKind; content: BlockContent;
 };
 type BulletinRow = {
   id: string; service_date: string; issue_number: number;
@@ -31,6 +32,7 @@ export function fromRow(row: BulletinRow): SavedBulletin {
       .map((item): BulletinItem => ({
         id: item.id, title: item.title, body: item.body, webVisible: item.web_visible,
         reviewOnCopy: item.review_on_copy, needsReview: item.needs_review,
+        ...(item.kind && item.kind !== "text" ? { kind: item.kind, content: item.content } : {}),
       })),
   };
 }
@@ -58,7 +60,7 @@ export function errorMessage(error: unknown): string {
   if (details.code === "40001") return "다른 곳에서 수정한 내용이 있습니다. 입력 내용을 복사해 보관한 뒤 다시 열어 주세요.";
   if (details.code === "42501") return "편집 권한이 없습니다. 관리자 계정을 확인해 주세요.";
   if (details.code === "23514" || details.code === "23502" || details.code === "22023") {
-    return "날짜·호수·항목 제목과 내용 길이를 확인해 주세요.";
+    return "날짜·호수·항목 제목과 내용 길이, 헌금 월·금액 및 표 형식을 확인해 주세요.";
   }
   return "처리하지 못했습니다. 연결과 로그인 상태를 확인한 뒤 다시 시도해 주세요. 입력 내용은 화면에 유지됩니다.";
 }

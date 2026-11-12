@@ -86,6 +86,22 @@ test("local DB: editor save/reopen/copy, atomic rollback, stale save, and access
       assert.ok((await anonymous.rpc("copy_bulletin_draft", { p_source: source, p_service_date: "2098-11-16", p_issue_number: 45 })).error);
       assert.ok((await outsider.from("church_editors").insert({ user_id: userIds[1] })).error);
     });
+    await t.test("structured content validates on server and survives copying", async () => {
+      const structured = { ...items[0], kind: "offering", content: { month: "2098-10", rows: [["감사헌금", "10000"]] } };
+      const saved = await editor.rpc("save_bulletin_draft", { ...args, p_revision: 2, p_items: [structured] });
+      assert.ifError(saved.error);
+      const copied = await editor.rpc("copy_bulletin_draft", { p_source: source, p_service_date: "2098-11-16", p_issue_number: 45 });
+      assert.ifError(copied.error); bulletinIds.push(copied.data.id);
+      const rows = await editor.from("bulletin_items").select("kind,content,web_visible,needs_review").eq("bulletin_id", copied.data.id);
+      assert.deepEqual(rows.data[0].content, structured.content);
+      assert.equal(rows.data[0].web_visible, false); assert.equal(rows.data[0].needs_review, true);
+      for (const content of [{ month: "2098-10", rows: [["구분", "-1"]] }, { month: "2098-13", rows: [] }, { month: "", rows: [["구분", 100]] }, { month: "", rows: [], extra: "not allowed" }]) {
+        const invalid = await editor.rpc("save_bulletin_draft", { ...args, p_revision: 3, p_items: [{ ...structured, content }] });
+        assert.equal(invalid.error?.code, "23514");
+      }
+      const unchanged = await editor.from("bulletins").select("revision").eq("id", source).single();
+      assert.equal(unchanged.data.revision, 3);
+    });
     await t.test("draft editor cannot publish through a direct database update", async () => {
       const result = await editor.from("bulletins").update({ status: "published" }).eq("id", source);
       assert.ok(result.error);

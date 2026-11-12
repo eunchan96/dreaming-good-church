@@ -6,7 +6,22 @@ export type BulletinItem = {
   webVisible: boolean;
   reviewOnCopy: boolean;
   needsReview: boolean;
+  kind?: BlockKind;
+  content?: BlockContent;
 };
+
+export type BlockKind = "text" | "sermon" | "worship" | "offering";
+export type BlockContent = { reference?: string; preacher?: string; month?: string; rows?: string[][] };
+export const blockNames: Record<BlockKind, string> = { text: "일반 글·공지·묵상", sermon: "설교", worship: "예배 순서", offering: "헌금 내역" };
+export function blockContent(kind: BlockKind): BlockContent {
+  if (kind === "sermon") return { reference: "", preacher: "" };
+  if (kind === "worship") return { rows: [["", "", ""]] };
+  if (kind === "offering") return { month: "", rows: [["", ""]] };
+  return {};
+}
+export function offeringTotal(content: BlockContent) {
+  return (content.rows ?? []).reduce((sum, row) => sum + Number(row[1] || 0), 0);
+}
 
 export type Bulletin = {
   id: string;
@@ -38,6 +53,7 @@ export function createItem(input: {
   body?: string;
   webVisible?: boolean;
   reviewOnCopy?: boolean;
+  kind?: BlockKind;
 }): BulletinItem {
   requireId(input.id);
   return {
@@ -47,6 +63,7 @@ export function createItem(input: {
     webVisible: input.webVisible ?? true,
     reviewOnCopy: input.reviewOnCopy ?? false,
     needsReview: false,
+    ...(input.kind && input.kind !== "text" ? { kind: input.kind, content: blockContent(input.kind) } : {}),
   };
 }
 
@@ -72,7 +89,7 @@ export function editItem(
   const body = changes.body ?? item.body;
   const contentChanged = title !== item.title || body !== item.body;
   return {
-    id: item.id,
+    ...item,
     title,
     body,
     webVisible: changes.webVisible ?? item.webVisible,
@@ -104,6 +121,7 @@ export function copyBulletin(
     if (usedIds.has(id)) throw new Error("항목 ID가 중복되었습니다.");
     usedIds.add(id);
     return {
+      ...structuredClone(item),
       id,
       title: item.title,
       body: item.body,
@@ -124,7 +142,8 @@ export function publicBulletin(bulletin: Bulletin) {
     issueNumber: bulletin.issueNumber,
     items: bulletin.items
       .filter((item) => item.webVisible)
-      .map((item) => ({ id: item.id, title: item.title, body: item.body })),
+      .map((item) => ({ id: item.id, title: item.title, body: item.body,
+        ...(item.kind && item.kind !== "text" ? { kind: item.kind, content: structuredClone(item.content) } : {}) })),
   };
 }
 
@@ -135,7 +154,7 @@ export function printBulletin(bulletin: Bulletin): Bulletin {
     serviceDate: bulletin.serviceDate,
     issueNumber: bulletin.issueNumber,
     status: bulletin.status,
-    items: bulletin.items.map((item) => ({ ...item })),
+    items: structuredClone(bulletin.items),
   };
 }
 
