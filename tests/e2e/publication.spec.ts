@@ -36,6 +36,16 @@ test("publish and withdraw expose only reviewed public content in API and reader
     const payload = await response.text();
     expect(payload).toContain("성도에게 보여줄 내용");
     expect(payload).not.toContain("노출되면"); expect(payload).not.toContain("숨겨진"); expect(payload).not.toContain("needs_review");
+    expect((await reader.request.get("/api/bulletins?date=2094-11-07")).status()).toBe(200);
+    const shareHtml = await (await reader.request.get("/bulletins/2094-11-07")).text();
+    expect(shareHtml).toContain('property="og:title"');
+    expect(shareHtml).not.toContain("숨겨진 제목");
+    await reader.goto("/bulletins/2094-11-07");
+    await expect(reader.getByText("성도에게 보여줄 내용", { exact: true })).toBeVisible();
+    await readerContext.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await reader.getByRole("button", { name: "링크 복사", exact: true }).click();
+    await expect(reader.getByText("주보 링크를 복사했습니다.")).toBeVisible();
+    expect(await reader.evaluate(() => navigator.clipboard.readText())).toBe("http://localhost:3001/bulletins/2094-11-07");
     await reader.goto("/bulletins");
     await reader.getByText("지난 주보 보기", { exact: false }).click();
     await reader.getByRole("button", { name: "2094-11-07 · 1호", exact: true }).click();
@@ -45,7 +55,10 @@ test("publish and withdraw expose only reviewed public content in API and reader
     await page.getByRole("button", { name: "게시 취소", exact: true }).click();
     await expect(page.getByRole("status")).toContainText("게시를 취소했습니다");
     expect((await reader.request.get(`/api/bulletins?id=${id}`)).status()).toBe(404);
-    await reader.reload();
+    expect((await reader.request.get("/api/bulletins?date=2094-11-07")).status()).toBe(404);
+    const withdrawnHtml = await (await reader.request.get("/bulletins/2094-11-07")).text();
+    expect(withdrawnHtml).not.toContain('property="og:title"');
+    await reader.goto("/bulletins/2094-11-07");
     await expect(reader.getByText("성도에게 보여줄 내용", { exact: true })).toHaveCount(0);
   } finally {
     await readerContext.close();

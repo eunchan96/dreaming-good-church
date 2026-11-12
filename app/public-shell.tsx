@@ -9,7 +9,7 @@ const links = [["/bulletins", "주보"], ["/notices", "공지"], ["/events", "�
 
 export default function PublicShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const navigation = links.map(([href, label]) => <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined}>{label}</Link>);
+  const navigation = links.map(([href, label]) => <Link key={href} href={href} aria-current={pathname === href || pathname.startsWith(`${href}/`) ? "page" : undefined}>{label}</Link>);
   return <div className={styles.site}>
     <a className={styles.skip} href="#public-content">본문으로 바로가기</a>
     <header className={styles.header}><Link href="/" className={styles.brand}>꿈꾸는<span>좋은교회</span></Link><nav className={styles.desktopNav} aria-label="주 메뉴">{navigation}</nav><Link className={styles.homeLink} href="/">홈</Link></header>
