@@ -44,4 +44,6 @@
 .empty { min-height:350px; display:flex; flex-direction:column; justify-content:center; }
 .preview { padding:20px 0; border-bottom:1px solid #dce2d6; }
 .preview p { white-space:pre-wrap; overflow-wrap:anywhere; }
+.formActions { border-top:1px solid #d5ddcf; padding-top:16px; margin-top:20px; }
+@media(max-width:760px) { .formActions { flex-direction:column; align-items:stretch; } .formActions button { width:100%; } }
 @media(max-width:760px) { .page { padding:20px 16px; } .grid { grid-template-columns:1fr; gap:8px; } .header { align-items:flex-start; flex-wrap:wrap; } .card { padding:16px; } .toolbar { align-items:stretch; } .toolbar > *, .toolbar .actions, .toolbar .actions button { width:100%; } .actions label { min-width:0; flex-basis:100%; } .actions select { width:100%; } .list { max-height:220px; overflow-y:auto; padding:4px; } .page button { max-width:100%; white-space:normal; } }

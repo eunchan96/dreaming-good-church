@@ -28,18 +28,20 @@ export default function ChurchWorkspace() {
       } catch { if (active) { setAllowed(false); setMessage("관리자 로그인이 필요합니다. 같은 계정으로 다시 로그인하면 현재 탭의 작성 내용을 이어갈 수 있습니다."); } }
     }
     void load();
-    const { data: { subscription } } = client.auth.onAuthStateChange(event => { if (event === "SIGNED_OUT") setAllowed(false); if (event === "SIGNED_IN") setReload(n => n + 1); });
+    const { data: { subscription } } = client.auth.onAuthStateChange(event => { if (event === "SIGNED_OUT") { setAllowed(false); setImages([]); setMessage("로그인이 종료되었습니다. 같은 계정으로 다시 로그인하면 작성 내용을 이어갈 수 있습니다."); } if (event === "SIGNED_IN") setReload(n => n + 1); });
     return () => { active = false; subscription.unsubscribe(); };
   }, [client, reload]);
   const unsaved = dirty || !!file || !!title || !!alt;
   useEffect(() => { if (!unsaved) return; const guard = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; }; window.addEventListener("beforeunload", guard); return () => window.removeEventListener("beforeunload", guard); }, [unsaved]);
   async function refreshImages() { const result = await client!.from("bulletin_images").select("*").order("created_at", { ascending: false }).limit(100); if (result.error) throw result.error; setImages(result.data); }
   async function save() {
+    if (!client || !allowed || busy) return;
     setBusy(true); setMessage("");
     try { const result = await client!.rpc("save_church_info", { p_fields: fields }); if (result.error) throw result.error; setFields(result.data); setDirty(false); setMessage("교회 정보를 저장했습니다."); }
     catch (error) { setMessage(errorMessage(error)); } finally { setBusy(false); }
   }
   async function imageRequest(method: "POST" | "DELETE", id?: string) {
+    if (!client || !allowed || busy) return;
     if (method === "DELETE" && !window.confirm("사용하지 않는 이미지를 삭제할까요? 주보에서 사용 중인 이미지는 삭제되지 않습니다.")) return;
     if (method === "POST" && (!file || !title.trim() || !alt.trim())) { setMessage("이미지 파일, 제목, 이미지 설명을 입력해 주세요."); return; }
     if (file && file.size > 8 * 1024 * 1024) { setMessage("8MB 이하의 이미지를 선택해 주세요."); return; }
@@ -54,13 +56,13 @@ export default function ChurchWorkspace() {
     } catch (error) { setMessage(error instanceof Error ? error.message : "처리하지 못했습니다."); } finally { setBusy(false); }
   }
   return <main className={styles.page}><h1>교회 정보·이미지 관리</h1><nav><Link href="/admin/bulletins" onClick={e => { if (unsaved && !window.confirm("저장하지 않은 입력을 버릴까요?")) e.preventDefault(); }}>주보 관리</Link> · <a href="/church" target="_blank" rel="noreferrer">공개 교회 안내</a></nav>
-    <p role="status">{message}</p>{!allowed ? <section><a href="/admin/bulletins" target="_blank" rel="noreferrer">새 탭에서 관리자 로그인</a><button onClick={() => setReload(n => n + 1)}>로그인 다시 확인</button></section> : <>
-      <section className={styles.card}><h2>교회 기본 정보</h2><p>저장하면 공개로 선택한 항목이 교회 안내에 반영됩니다. 기존 주보는 바뀌지 않습니다.</p><fieldset disabled={busy} className={styles.fields}>
-        {fields.map(field => <div key={field.key}><label htmlFor={`church-${field.key}`}>{churchLabels[field.key]}</label><textarea id={`church-${field.key}`} maxLength={10000} value={field.body} onChange={e => { setFields(current => current.map(row => row.key === field.key ? { ...row, body: e.target.value } : row)); setDirty(true); }} /><label><input type="checkbox" checked={field.web_visible} onChange={e => { setFields(current => current.map(row => row.key === field.key ? { ...row, web_visible: e.target.checked } : row)); setDirty(true); }} />{churchLabels[field.key]} 웹 공개</label></div>)}
-        <button onClick={save}>교회 정보 저장</button><button onClick={() => { if (!dirty || window.confirm("수정 중인 내용을 버리고 다시 불러올까요?")) { loaded.current = false; setReload(n => n + 1); } }}>저장된 정보 다시 불러오기</button>
+    <p role="status" className={styles.message}>{message}</p>{!allowed ? <section><a href="/admin/bulletins" target="_blank" rel="noreferrer">새 탭에서 관리자 로그인</a><button onClick={() => setReload(n => n + 1)}>로그인 다시 확인</button></section> : <>
+      <section className={styles.card}><h2>교회 기본 정보</h2><p>{busy ? "처리 중…" : dirty ? "저장 전 변경 있음" : "저장됨"}</p><p>저장하면 공개로 선택한 항목이 교회 안내에 반영됩니다. 기존 주보는 바뀌지 않습니다.</p><fieldset disabled={busy} className={styles.fields}>
+        {fields.map(field => <div key={field.key}><label htmlFor={`church-${field.key}`}>{churchLabels[field.key]}</label><textarea id={`church-${field.key}`} maxLength={10000} value={field.body} onChange={e => { setFields(current => current.map(row => row.key === field.key ? { ...row, body: e.target.value } : row)); setDirty(true); }} /><label className={styles.check}><input type="checkbox" checked={field.web_visible} onChange={e => { setFields(current => current.map(row => row.key === field.key ? { ...row, web_visible: e.target.checked } : row)); setDirty(true); }} />{churchLabels[field.key]} 웹 공개</label></div>)}
+        <div className={`${styles.actions} ${styles.formActions}`}><button onClick={save}>교회 정보 저장</button><button onClick={() => { if (!dirty || window.confirm("수정 중인 내용을 버리고 다시 불러올까요?")) { loaded.current = false; setReload(n => n + 1); } }}>저장된 정보 다시 불러오기</button></div>
       </fieldset></section>
       <section className={styles.card}><h2>주보 이미지 보관함</h2><p>JPEG·PNG·WebP, 최대 8MB. 긴 변 2400px 이하로 조정하고 위치 정보 등 부가정보를 제거합니다. 이미지는 주보에 넣고 게시해야 공개됩니다.</p>
-        <fieldset disabled={busy} className={styles.fields}><label>이미지 제목<input maxLength={200} value={title} onChange={e => setTitle(e.target.value)} /></label><label>이미지 설명 (대체텍스트)<input maxLength={500} value={alt} onChange={e => setAlt(e.target.value)} /></label><label>이미지 파일<input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" onChange={e => setFile(e.target.files?.[0] ?? null)} /></label><button onClick={() => imageRequest("POST")}>이미지 올리기</button><button onClick={() => refreshImages().catch(() => setMessage("이미지 목록을 불러오지 못했습니다."))}>이미지 목록 새로고침</button></fieldset>
+        <fieldset disabled={busy} className={styles.fields}><label>이미지 제목<input maxLength={200} value={title} onChange={e => setTitle(e.target.value)} /></label><label>이미지 설명 (대체텍스트)<input maxLength={500} value={alt} onChange={e => setAlt(e.target.value)} /></label><label>이미지 파일<input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" onChange={e => setFile(e.target.files?.[0] ?? null)} /></label><p>{file ? `선택한 파일: ${file.name}` : "선택한 이미지가 없습니다."}</p><button onClick={() => imageRequest("POST")}>이미지 올리기</button><button onClick={() => refreshImages().catch(() => setMessage("이미지 목록을 불러오지 못했습니다."))}>이미지 목록 새로고침</button></fieldset>
         <p>최근 100개. 이미지 교체는 새 파일 업로드로 처리해 과거 주보를 보존합니다.</p>{images.map(image => <article key={image.id}><h3>{image.title}</h3><BulletinImageView id={image.id} alt={image.alt} editor /><p>{image.width} × {image.height} · {Math.round(image.bytes / 1024)}KB</p><button disabled={busy} onClick={() => imageRequest("DELETE", image.id)}>{image.title} 이미지 삭제</button></article>)}
       </section></>}
   </main>;
