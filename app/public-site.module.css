@@ -36,6 +36,12 @@
 .footer { border-top: 1px solid #d9ded6; max-width: 1200px; margin: auto; padding: 32px 24px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .footer a { display: inline-flex; min-height: 44px; align-items: center; }
 .mobileNav { display: none; }
+.installArea { max-width:1200px; margin:0 auto; padding:0 24px 32px; }
+.install { border-top:1px solid #d9ded6; padding-top:12px; }
+.install summary { cursor:pointer; min-height:44px; padding:8px 0; }
+.install summary:focus-visible { outline:3px solid #956025; outline-offset:4px; }
+.install p { margin:12px 0; max-width:720px; }
+@media print { .installArea { display:none; } }
 @media (max-width: 767px) {
   .site { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
   .header { min-height: 76px; padding: 12px 20px; }

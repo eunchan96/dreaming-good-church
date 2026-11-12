@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -15,7 +15,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "꿈꾸는좋은교회",
   description: "꿈꾸는좋은교회 주보와 소식",
+  appleWebApp: { capable: true, title: "좋은교회", statusBarStyle: "default" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
 };
+export const viewport: Viewport = { themeColor: "#253d35" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
