@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  outputFileTracingIncludes: { "/api/bulletins/pdf": ["./assets/fonts/*"] },
   distDir: process.env.CHURCH_TEST_SERVER === "1" ? ".next-test" : ".next",
   /* config options here */
   cacheComponents: true,

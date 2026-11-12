@@ -16,9 +16,11 @@
     "dev:local": "powershell -NoProfile -File scripts/dev-local.ps1"
   },
   "dependencies": {
+    "@pdf-lib/fontkit": "1.1.1",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.119.0",
     "next": "16.4.6",
+    "pdf-lib": "1.17.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "sharp": "0.35.5"

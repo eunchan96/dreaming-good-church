@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
 import sharp from "sharp";
+import { PDFRawStream, PDFDocument, PDFName } from "pdf-lib";
 test("edit church info, upload normalized private image, attach/publish and protect historical use", async ({ page, context }) => {
   const admin = createClient("http://127.0.0.1:54321", process.env.LOCAL_SUPABASE_SERVICE_KEY!, { auth: { persistSession: false } });
   const email = `${randomUUID()}@example.test`, password = randomUUID(), bulletin = randomUUID();
@@ -67,6 +68,11 @@ test("edit church info, upload normalized private image, attach/publish and prot
     page.once("dialog", d => d.accept()); await page.getByRole("button", { name: "주보 게시", exact: true }).click();
     await expect(page.getByRole("button", { name: "게시 취소", exact: true })).toBeVisible();
     const published = await page.request.get(`/api/images?id=${imageId}`); expect(published.status()).toBe(200); expect(published.headers()["cache-control"]).toContain("no-store");
+    const publicPdf = await page.request.get("/api/bulletins/pdf?date=2089-11-06");
+    expect(publicPdf.status()).toBe(200);
+    expect(publicPdf.headers()["content-type"]).toBe("application/pdf");
+    const pdfDoc = await PDFDocument.load(await publicPdf.body());
+    expect(pdfDoc.context.enumerateIndirectObjects().some(([, object]) => object instanceof PDFRawStream && object.dict.get(PDFName.of("Subtype")) === PDFName.of("Image"))).toBe(true);
     await reader.goto("/bulletins"); await expect(reader.getByRole("img", { name: "초록색 표지 이미지" })).toBeVisible();
     manager.once("dialog", d => d.accept()); await manager.getByRole("button", { name: "검증용 주보 표지 이미지 삭제", exact: true }).click(); await expect(manager.getByRole("status")).toContainText("사용 중인 이미지는 삭제할 수 없습니다");
     page.once("dialog", d => d.accept()); await page.getByRole("button", { name: "게시 취소", exact: true }).click();

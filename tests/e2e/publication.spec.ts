@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
+import { mkdir, writeFile } from "node:fs/promises";
+import { PDFDocument } from "pdf-lib";
 
 test("publish and withdraw expose only reviewed public content in API and reader", async ({ page, browser }) => {
   const admin = createClient("http://127.0.0.1:54321", process.env.LOCAL_SUPABASE_SERVICE_KEY!, { auth: { persistSession: false } });
@@ -19,11 +21,14 @@ test("publish and withdraw expose only reviewed public content in API and reader
     if (seeded.error) throw seeded.error;
     const reader = await readerContext.newPage();
     expect((await reader.request.get(`/api/bulletins?id=${id}`)).status()).toBe(404);
+    expect((await reader.request.get("/api/bulletins/pdf?date=2094-11-07")).status()).toBe(404);
+    expect((await reader.request.get("/api/bulletins/pdf?date=2094-02-31")).status()).toBe(400);
     await page.goto("/admin/bulletins");
     await page.getByLabel("이메일", { exact: true }).fill(email);
     await page.getByLabel("비밀번호", { exact: true }).fill(password);
     await page.getByRole("button", { name: "로그인", exact: true }).click();
     await page.getByRole("button", { name: /2094-11-07/ }).click();
+    expect((await page.request.get("/api/bulletins/pdf?date=2094-11-07")).status()).toBe(404);
     await expect(page.getByRole("button", { name: "주보 게시", exact: true })).toBeDisabled();
     await page.getByRole("button", { name: "그대로 사용" }).click();
     await expect(page.getByRole("button", { name: "주보 게시", exact: true })).toBeEnabled();
@@ -43,6 +48,22 @@ test("publish and withdraw expose only reviewed public content in API and reader
     expect(shareHtml).not.toContain("숨겨진 제목");
     await reader.goto("/bulletins/2094-11-07");
     await expect(reader.getByText("성도에게 보여줄 내용", { exact: true })).toBeVisible();
+    const download = reader.waitForEvent("download");
+    await reader.getByRole("button", { name: "공개용 PDF 다운로드", exact: true }).click();
+    const file = await download;
+    expect(file.suggestedFilename()).toBe("bulletin-2094-11-07.pdf");
+    const pdf = await reader.request.get("/api/bulletins/pdf?date=2094-11-07");
+    expect(pdf.status()).toBe(200);
+    expect(pdf.headers()["content-type"]).toBe("application/pdf");
+    expect(pdf.headers()["cache-control"]).toContain("no-store");
+    const bytes = await pdf.body();
+    expect((await PDFDocument.load(bytes)).getPageCount()).toBeGreaterThan(0);
+    await mkdir(".local", { recursive: true });
+    await writeFile(".local/public-bulletin.pdf", bytes);
+    await reader.route("**/api/bulletins/pdf?*", route => route.fulfill({ status: 503, json: { error: "PDF를 만들지 못했습니다. 다시 시도해 주세요." } }), { times: 1 });
+    await reader.getByRole("button", { name: "공개용 PDF 다운로드", exact: true }).click();
+    await expect(reader.getByText("PDF를 만들지 못했습니다. 다시 시도해 주세요.", { exact: true })).toBeVisible();
+    await expect(reader.getByRole("button", { name: "공개용 PDF 다운로드", exact: true })).toBeEnabled();
     await readerContext.grantPermissions(["clipboard-read", "clipboard-write"]);
     await reader.getByRole("button", { name: "링크 복사", exact: true }).click();
     await expect(reader.getByText("주보 링크를 복사했습니다.")).toBeVisible();
@@ -57,6 +78,7 @@ test("publish and withdraw expose only reviewed public content in API and reader
     await expect(page.getByRole("status")).toContainText("게시를 취소했습니다");
     expect((await reader.request.get(`/api/bulletins?id=${id}`)).status()).toBe(404);
     expect((await reader.request.get("/api/bulletins?date=2094-11-07")).status()).toBe(404);
+    expect((await reader.request.get("/api/bulletins/pdf?date=2094-11-07")).status()).toBe(404);
     const withdrawnHtml = await (await reader.request.get("/bulletins/2094-11-07")).text();
     expect(withdrawnHtml).not.toContain('property="og:title"');
     await reader.goto("/bulletins/2094-11-07");

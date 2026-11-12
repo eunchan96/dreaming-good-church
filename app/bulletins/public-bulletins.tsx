@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { BlockPreview } from "../admin/bulletins/block-fields";
 import type { BulletinItem } from "@/lib/bulletins";
 import styles from "./reader.module.css";
+import PublicPdfDownload from "./public-pdf-download";
 
 type PublicItem = Pick<BulletinItem, "id" | "title" | "body" | "kind" | "content">;
 type Summary = { id: string; service_date: string; issue_number: number };
@@ -102,6 +103,7 @@ export default function PublicBulletins({ initialDate }: { initialDate?: string 
           try { await navigator.clipboard.writeText(url); setCopyMessage("주보 링크를 복사했습니다."); }
           catch { setCopyMessage("자동 복사를 사용할 수 없습니다. 고유 주소를 열고 주소창에서 복사해 주세요."); }
         }}>링크 복사</button><p role="status">{copyMessage}</p></div>
+        <PublicPdfDownload key={bulletin.id} date={bulletin.service_date} />
         {!bulletin.items.length ? <p>웹에 공개된 주보 항목이 없습니다.</p> : null}
         {bulletin.items.map(item => <section className={styles.block} id={`bulletin-item-${item.id}`} tabIndex={-1} key={item.id} aria-label={item.title || "주보 항목"}><BlockPreview item={item} /></section>)}
         <a className={styles.top} href="#public-content">주보 맨 위로 ↑</a>
