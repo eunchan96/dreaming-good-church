@@ -50,7 +50,12 @@ test("editor creates, copies, confirms, saves and reopens a draft", async ({ pag
     await page.getByRole("button", { name: "인쇄 미리보기", exact: true }).click();
     const print = page.getByRole("dialog", { name: "관리자 인쇄 미리보기", exact: true });
     await expect(print.getByText("지난주 설교 제목", { exact: true })).toBeVisible();
+    await print.getByText("항목별 면 배치", { exact: true }).click();
     await expect(print.getByText("웹 비공개 · 인쇄 포함", { exact: true })).toBeVisible();
+    await print.getByLabel("설교 제목 인쇄 면", { exact: true }).selectOption("1");
+    await expect(print.getByRole("region", { name: "1면", exact: true }).getByText("지난주 설교 제목", { exact: true })).toBeVisible();
+    expect(await print.locator('[aria-label="겉면 4·1"] > section').evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label')))).toEqual(["4면", "1면"]);
+    expect(await print.locator('[aria-label="안쪽 2·3"] > section').evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label')))).toEqual(["2면", "3면"]);
     await page.setViewportSize({ width: 390, height: 844 });
     expect(await print.evaluate(node => node.scrollWidth <= window.innerWidth)).toBe(true);
     await page.emulateMedia({ media: "print" });
@@ -83,6 +88,20 @@ test("editor creates, copies, confirms, saves and reopens a draft", async ({ pag
     await page.setViewportSize({ width: 390, height: 844 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.screenshot({ path: "test-results/editor-mobile.png", fullPage: true });
+    await page.getByLabel("내용", { exact: true }).first().fill("긴 본문\n".repeat(150));
+    await page.getByRole("button", { name: "인쇄 미리보기", exact: true }).click();
+    await expect(print.getByRole("status")).toContainText("넘침");
+    await page.evaluate(() => { window.print = () => { document.documentElement.dataset.printInvoked = "yes"; }; });
+    await print.getByRole("button", { name: "인쇄 · PDF로 저장", exact: true }).click();
+    await expect(page.locator("html")).not.toHaveAttribute("data-print-invoked", "yes");
+    await page.emulateMedia({ media: "print" });
+    await expect(print.getByText(/내용이 면을 넘쳐 인쇄를 중단했습니다/)).toBeVisible();
+    await expect(print.locator("main")).toBeHidden();
+    await page.emulateMedia({ media: "screen" });
+    await print.getByRole("button", { name: "미리보기 닫기", exact: true }).click();
+    await page.getByLabel("내용", { exact: true }).first().fill("지난주 설교 제목");
+    await page.getByRole("button", { name: "초안 저장", exact: true }).click();
+    await expect(page.getByRole("status")).toContainText("초안을 저장했습니다");
     await page.getByRole("button", { name: "로그아웃", exact: true }).click();
     await expect(page.getByRole("button", { name: "로그인", exact: true })).toBeVisible();
   } finally {

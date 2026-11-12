@@ -60,6 +60,8 @@ test("edit church info, upload normalized private image, attach/publish and prot
     await printPreview.getByRole("button", { name: "인쇄 · PDF로 저장", exact: true }).click();
     await expect(page.locator("html")).toHaveAttribute("data-print-invoked", "yes");
     await printPreview.screenshot({ path: ".local/admin-print-preview.png" });
+    const bookletPdf = await page.pdf({ path: ".local/admin-booklet.pdf", preferCSSPageSize: true });
+    expect(bookletPdf.toString("latin1").match(/\/Type\s*\/Page\b/g)).toHaveLength(2);
     await printPreview.getByRole("button", { name: "미리보기 닫기", exact: true }).click();
     await expect(page.getByRole("button", { name: "주보 게시", exact: true })).toBeEnabled();
     page.once("dialog", d => d.accept()); await page.getByRole("button", { name: "주보 게시", exact: true }).click();
