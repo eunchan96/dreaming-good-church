@@ -7,7 +7,9 @@ self.addEventListener('activate', event => event.waitUntil((async () => {
   await self.clients.claim();
 })()));
 async function publicJson(path) {
-  const response = await fetch(path, { cache: 'no-store', credentials: 'omit' });
+  // Keep this origin's deployment-access cookie. Public API handlers still read
+  // Supabase anonymously; no application bearer token is sent from this worker.
+  const response = await fetch(path, { cache: 'no-store', credentials: 'same-origin' });
   if (!response.ok) throw new Error('조회 실패');
   return response.json();
 }
