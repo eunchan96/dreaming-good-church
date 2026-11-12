@@ -1,5 +1,11 @@
 # Vercel 검수 배포
 
+## 최신 운영 준비 확인 · 2026-11-13
+
+아래 초기 검수 기록 이후 PR CI 실제 실행과 Android 사진/PDF/오프라인 검수가 통과했다. 일회성 검수 DB는 삭제했고 현재 Preview는 기존 DB로 연결을 복구했다. `temporary-preview.md`, `ci.md`에 결과가 있다.
+
+현재 배포/서울 리전/변수 메타데이터를 다시 확인했다. 환경변수 3개는 모두 Preview 대상이며 Production 변수는 아직 없다. 이전 임시 DB에 연결했던 배포를 롤백 대상으로 사용하지 않는다. 로컬 격리 DB 복구 연습과 운영/배포 복구 절차는 `operations-recovery.md`에 정리했다. 실제 운영 암호화 백업과 Production 롤백 실행 검증은 미완료다.
+
 ## 현재 검수 대상
 
 - 팀: eunchan96s-projects
