@@ -1,4 +1,9 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 꿈꾸는좋은교회
+
+주보 작성·복사·검수와 초안 저장 기능을 개발 중입니다.
+[현재 구현 범위와 로컬 실행·검증 방법](docs/bulletin-drafts.md)을 참고하세요.
+
+아래는 초기 Next.js 개발 안내입니다.
 
 ## Getting Started
 
