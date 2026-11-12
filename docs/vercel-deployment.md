@@ -4,10 +4,10 @@
 
 - 팀: eunchan96s-projects
 - 프로젝트: dreaming-good-church (`prj_1EePlmXl4ZLPoUoYKFhK0OTls86X`)
-- 소스: GitHub codex/bulletin-domain-rules의e216675
+- 소스: GitHub codex/bulletin-domain-rules의884fd07
 - 고정 검수URL: https://dreaming-good-church-git-codex-bulle-a36b08-eunchan96s-projects.vercel.app
-- 개별 배포URL: https://dreaming-good-church-pz3e4tlm9-eunchan96s-projects.vercel.app
-- 배포ID: dpl_F9RmriFh2MSuwXaaJ7uqas43ATKZ, READY, API target=staging
+- 개별 배포URL: https://dreaming-good-church-7nqjm57jr-eunchan96s-projects.vercel.app
+- 배포ID: dpl_E8mUpBSssepCoWQrw3y8Vihh2vLC, READY, API target=staging
 - Next.js16.4.6, Node24, 함수icn1. 기본 Vercel 로그인 보호 유지.
 
 사용자가 안드로이드 실기기 검수와 Vercel 배포를 요청해 생성했다. 작업 브랜치를 push했으며 main merge나 정식 출시 판정은 하지 않았다. 초기 target=preview 요청은 production으로 생성되어, 공식API의staging 대상으로 다시 배포하고 위 고유URL을 검수 대상으로 확정했다. 최초production 배포는 검수 대상이 아니며 정식 운영 URL로 안내하지 않는다.
