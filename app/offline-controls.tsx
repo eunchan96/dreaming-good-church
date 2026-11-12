@@ -3,8 +3,11 @@ import { useEffect, useState } from "react";
 export default function OfflineControls() {
   const [ready, setReady] = useState(false), [busy, setBusy] = useState(false), [message, setMessage] = useState("");
   useEffect(() => {
-    if (!('serviceWorker' in navigator)) return;
     let active = true;
+    if (!window.isSecureContext || !('serviceWorker' in navigator)) {
+      void Promise.resolve().then(() => { if (active) setMessage(!window.isSecureContext ? '오프라인 저장은 HTTPS 주소에서 사용할 수 있습니다. 현재 주소에서는 온라인으로만 볼 수 있습니다.' : '이 브라우저에서는 오프라인 저장을 사용할 수 없습니다.'); });
+      return () => { active = false; };
+    }
     navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' }).then(() => navigator.serviceWorker.ready).then(() => { if (active) setReady(true); }).catch(() => { if (active) setMessage('이 브라우저에서는 오프라인 저장을 사용할 수 없습니다.'); });
     const offline = () => setMessage('오프라인입니다. 저장한 내용 보기에서 저장 시점의 내용을 확인할 수 있습니다.');
     window.addEventListener('offline', offline); if (!navigator.onLine) offline();

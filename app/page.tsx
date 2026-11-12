@@ -4,7 +4,7 @@ import HomeUpdates from "./home-updates";
 import styles from "./public-site.module.css";
 
 export default function Home() {
-  return <PublicShell><main id="public-content" className={styles.home}>
+  return <PublicShell><main id="public-content" tabIndex={-1} className={styles.home}>
     <section className={styles.hero} aria-labelledby="welcome-title">
       <div><p className={styles.eyebrow}>꿈꾸는좋은교회</p>
         <h1 id="welcome-title">함께 예배하는 기쁨,<br />함께 나누는 일상.</h1>

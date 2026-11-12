@@ -39,6 +39,7 @@ export default function InstallGuide() {
       <p>안드로이드: Chrome 메뉴에서 ‘앱 설치’ 또는 ‘홈 화면에 추가’를 선택하세요.</p>
       <p>PC: Chrome·Edge 주소창의 설치 아이콘이나 브라우저 메뉴를 확인하세요.</p>
       <p>설치 메뉴는 브라우저와 기기에 따라 다릅니다. 최신 콘텐츠를 보려면 인터넷 연결이 필요합니다.</p>
+      <p>홈 화면 설치와 오프라인 저장은 HTTPS 보안 연결에서 이용할 수 있습니다.</p>
     </>}
     <p role="status">{message}</p>
     <OfflineControls />

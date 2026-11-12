@@ -14,7 +14,7 @@ export default function CommunityReader({kind}:{kind:"notice"|"event"}){
     void refresh();const timer=window.setInterval(refresh,15000);window.addEventListener("focus",refresh);
     return()=>{controller.abort();window.clearInterval(timer);window.removeEventListener("focus",refresh);};
   },[kind,retry,calendarMonth]);
-  return <main id="public-content" className={styles.page}>
+  return <main id="public-content" tabIndex={-1} className={styles.page}>
     <header className={styles.heading}><p>함께 나누는 교회 소식</p><h1>{kind === "notice" ? "교회 공지" : "교회 일정"}</h1><p>{kind === "notice" ? "함께 알아두면 좋은 소식을 전합니다." : "예배와 모임의 시간, 장소를 확인하세요."}</p></header>
     {message ? <div className={styles.state}><p role="status">{message}</p>{failed ? <button onClick={() => { setMessage("불러오고 있습니다…"); setFailed(false); setRetry(value => value + 1); }}>다시 불러오기</button> : null}</div> : null}
     {kind === "event" ? <EventCalendar events={rows} onMonthChange={month => { if (month !== calendarMonth) { setRows([]); setMessage("불러오고 있습니다…"); setCalendarMonth(month); } }}>{ids => renderRows(ids ? rows.filter(row => ids.has(row.id)) : rows)}</EventCalendar> : renderRows(rows)}

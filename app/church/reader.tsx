@@ -11,7 +11,7 @@ export default function ChurchReader() {
   }, [retry]);
   const order = ["introduction", "worship", "address", "directions", "phone", "name"];
   const visible = fields.filter(field => field.body.trim() && order.includes(field.key)).sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
-  return <main id="public-content" className={styles.page}>
+  return <main id="public-content" tabIndex={-1} className={styles.page}>
     <header className={styles.heading}><p>처음 오신 여러분을 환영합니다</p><h1>교회 안내</h1><p>교회 소개와 예배 시간, 오시는 길을 안내합니다.</p></header>
     {message ? <div className={styles.state}><p role="status">{message}</p>{failed ? <button onClick={() => { setMessage("교회 안내를 불러오고 있습니다…"); setFailed(false); setRetry(value => value + 1); }}>다시 불러오기</button> : null}</div> : null}
     {visible.length ? <nav className={styles.shortcuts} aria-label="교회 안내 바로가기">{visible.map(field => <a key={field.key} href={`#church-${field.key}`}>{churchLabels[field.key]}</a>)}</nav> : null}

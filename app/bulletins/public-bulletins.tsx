@@ -79,7 +79,7 @@ export default function PublicBulletins({ initialDate }: { initialDate?: string 
     window.addEventListener("focus", refresh);
     return () => { controller.abort(); window.clearInterval(timer); window.removeEventListener("focus", refresh); };
   }, [id, retry, initialDate]);
-  return <main id="public-content" className={styles.page}>
+  return <main id="public-content" tabIndex={-1} className={styles.page}>
     <header className={styles.heading}><p>함께 드리는 예배</p><h1>주일 주보</h1><p>말씀과 예배 순서, 이번 주 교회 소식을 만나보세요.</p></header>
     <details className={styles.history}>
       <summary>지난 주보 보기</summary>
