@@ -37,6 +37,7 @@ test("publish and withdraw expose only reviewed public content in API and reader
     expect(payload).toContain("성도에게 보여줄 내용");
     expect(payload).not.toContain("노출되면"); expect(payload).not.toContain("숨겨진"); expect(payload).not.toContain("needs_review");
     await reader.goto("/bulletins");
+    await reader.getByText("지난 주보 보기", { exact: false }).click();
     await reader.getByRole("button", { name: "2094-11-07 · 1호", exact: true }).click();
     await expect(reader.getByText("성도에게 보여줄 내용", { exact: true })).toBeVisible();
     await expect(reader.getByText("숨겨진 제목", { exact: true })).toHaveCount(0);
