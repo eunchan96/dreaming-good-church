@@ -139,7 +139,19 @@ export default function BulletinWorkspace() {
         {preview ? <section className={styles.card}><h2>웹 표시 미리보기</h2><p className={styles.muted}>현재 화면의 공개 항목만 표시합니다. 아직 웹에 게시되지 않았습니다.</p>{draft.items.filter((item) => item.webVisible).map((item) => <article className={styles.preview} key={item.id}><h3>{item.title}</h3><p>{item.body || "입력된 내용이 없습니다."}</p></article>)}</section> :
         <fieldset disabled={busy || draft.status !== "draft"} className={styles.fields}>
           <div className={`${styles.card} ${styles.actions}`}><label>예배 날짜<input type="date" value={draft.serviceDate} onChange={(event) => { const value = event.target.value; setDraft((current) => current && ({ ...current, serviceDate: value })); setDirty(true); }} /></label><label>호수<input type="number" min="1" step="1" value={draft.issueNumber} onChange={(event) => { const value = Number(event.target.value); setDraft((current) => current && ({ ...current, issueNumber: value })); setDirty(true); }} /></label></div>
-          {draft.items.map((item) => <article className={styles.card} key={item.id}>
+          {draft.items.map((item, index) => <article className={styles.card} key={item.id}>
+            <div className={styles.actions}>
+              <button aria-label={`${item.title} 위로 이동`} disabled={index === 0} onClick={() => {
+                setDraft((current) => { if (!current) return current; const items = [...current.items]; const at = items.findIndex((entry) => entry.id === item.id); if (at > 0) [items[at - 1], items[at]] = [items[at], items[at - 1]]; return { ...current, items }; }); setDirty(true);
+              }}>위로</button>
+              <button aria-label={`${item.title} 아래로 이동`} disabled={index === draft.items.length - 1} onClick={() => {
+                setDraft((current) => { if (!current) return current; const items = [...current.items]; const at = items.findIndex((entry) => entry.id === item.id); if (at >= 0 && at < items.length - 1) [items[at], items[at + 1]] = [items[at + 1], items[at]]; return { ...current, items }; }); setDirty(true);
+              }}>아래로</button>
+              <button aria-label={`${item.title} 삭제`} onClick={() => {
+                if (!window.confirm(`“${item.title}” 항목을 삭제할까요? 웹과 인쇄 모두에서 제외되며, 초안 저장 시 반영됩니다.`)) return;
+                setDraft((current) => current && ({ ...current, items: current.items.filter((entry) => entry.id !== item.id) })); setDirty(true);
+              }}>항목 삭제</button>
+            </div>
             <div className={styles.itemHeader}><span className={item.needsReview ? styles.badge : styles.muted}>{item.needsReview ? "이번 주 확인 필요" : item.reviewOnCopy ? "매주 확인 항목" : "일반 항목"}</span>{item.needsReview ? <button onClick={() => { setDraft((current) => current && ({ ...current, items: current.items.map((entry) => entry.id === item.id ? confirmItem(entry) : entry) })); setDirty(true); }}>그대로 사용</button> : null}</div>
             <label htmlFor={`title-${item.id}`}>항목 제목</label><input id={`title-${item.id}`} maxLength={200} value={item.title} onChange={(event) => updateItem(item.id, { title: event.currentTarget.value })} />
             <label htmlFor={`body-${item.id}`}>내용</label><textarea id={`body-${item.id}`} rows={4} maxLength={20000} value={item.body} onChange={(event) => updateItem(item.id, { body: event.currentTarget.value })} />

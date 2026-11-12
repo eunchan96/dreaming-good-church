@@ -4,6 +4,10 @@
 [현재 구현 범위와 로컬 실행·검증 방법](docs/bulletin-drafts.md)을 참고하세요.
 
 아래는 초기 Next.js 개발 안내입니다.
+현재 확인할 화면은 [관리자 주보 편집](http://localhost:3000/admin/bulletins)입니다. `/`는 아직 초기 화면입니다.
+`npm run dev`는 `.env.local`의 실제 Supabase 프로젝트에 연결합니다.
+처음에는 로컬 `.local/admin-invite.html`을 브라우저로 열어 초대 확인 후 비밀번호를 정합니다.
+자세한 [관리자 초대·실행 안내](docs/bulletin-drafts.md)를 참고하세요.
 
 ## Getting Started
 
