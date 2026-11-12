@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
+    root: __dirname,
     rules: {
       "*.css": {
         condition: { not: { path: "*.module.css" } },
