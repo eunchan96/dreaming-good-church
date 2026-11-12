@@ -1,0 +1,17 @@
+.page { max-width: 1120px; margin: auto; padding: 48px 32px 64px; line-height: 1.8; font-size: 16px; }
+.heading { margin-bottom: 32px; }
+.heading > p { color: #506057; }
+.heading h1 { font-size: clamp(30px, 4vw, 44px); font-weight: 700; letter-spacing: -.04em; margin: 8px 0; }
+.list { display: grid; gap: 24px; }
+.card { min-width: 0; background: white; border: 1px solid #d9ded6; border-radius: 8px; padding: 28px; scroll-margin-top: 24px; }
+.card h2 { font-size: 23px; font-weight: 650; line-height: 1.5; margin-bottom: 16px; }
+.body { white-space: pre-wrap; overflow-wrap: anywhere; }
+.meta { display: grid; grid-template-columns: 60px minmax(0, 1fr); gap: 8px 16px; margin-bottom: 20px; padding: 16px; background: #f1f3ec; border-radius: 6px; }
+.meta dt { font-weight: 650; }
+.state { padding: 24px; margin-bottom: 24px; border: 1px solid #d9ded6; border-radius: 8px; background: white; }
+.state button { margin-top: 16px; }
+.shortcuts { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 28px; }
+.shortcuts a { display: flex; align-items: center; min-height: 44px; padding: 8px 0; border-bottom: 1px solid #8b9b8d; }
+.guide { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.guide .card:first-child { grid-column: 1 / -1; }
+@media(max-width: 767px) { .page { padding: 28px 20px 40px; } .card { padding: 20px; } .guide { grid-template-columns: minmax(0, 1fr); } .card h2 { font-size: 21px; } .meta { grid-template-columns: 1fr; gap: 4px; } .meta dd { margin-bottom: 8px; } }
