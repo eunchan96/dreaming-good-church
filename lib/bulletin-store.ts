@@ -25,7 +25,7 @@ export function fromRow(row: BulletinRow): SavedBulletin {
     status: row.status, revision: row.revision,
     items: [...(row.bulletin_items ?? [])].sort((a, b) => a.position - b.position)
       .map((item): BulletinItem => ({
-        id: item.id, title: item.title, body: item.body, webVisible: item.web_visible,
+        id: item.id, printPage: item.print_page, title: item.title, body: item.body, webVisible: item.web_visible,
         reviewOnCopy: item.review_on_copy, needsReview: item.needs_review,
         // CHECK constraints validate block JSON; generated types cannot express those constraints.
         ...(item.kind && item.kind !== "text" ? { kind: item.kind as BlockKind, content: item.content as BlockContent } : {}),

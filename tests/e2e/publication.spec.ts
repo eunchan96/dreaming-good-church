@@ -34,6 +34,7 @@ test("publish and withdraw expose only reviewed public content in API and reader
     const response = await reader.request.get(`/api/bulletins?id=${id}`);
     expect(response.status()).toBe(200); expect(response.headers()["cache-control"]).toContain("no-store");
     const payload = await response.text();
+    expect(payload).not.toContain("print_page"); expect(payload).not.toContain("printPage");
     expect(payload).toContain("성도에게 보여줄 내용");
     expect(payload).not.toContain("노출되면"); expect(payload).not.toContain("숨겨진"); expect(payload).not.toContain("needs_review");
     expect((await reader.request.get("/api/bulletins?date=2094-11-07")).status()).toBe(200);

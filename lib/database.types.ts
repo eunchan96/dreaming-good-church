@@ -47,6 +47,7 @@ export type Database = {
                     "kind": string;
                     "needs_review": boolean;
                     "position": number;
+                    "print_page": number | null;
                     "review_on_copy": boolean;
                     "title": string;
                     "web_visible": boolean;
@@ -61,6 +62,7 @@ export type Database = {
                     "kind"?: string;
                     "needs_review"?: boolean;
                     "position": number;
+                    "print_page"?: number | null;
                     "review_on_copy"?: boolean;
                     "title": string;
                     "web_visible"?: boolean;
@@ -74,6 +76,7 @@ export type Database = {
                     "kind"?: string;
                     "needs_review"?: boolean;
                     "position"?: number;
+                    "print_page"?: number | null;
                     "review_on_copy"?: boolean;
                     "title"?: string;
                     "web_visible"?: boolean;

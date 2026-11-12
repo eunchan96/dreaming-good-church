@@ -19,7 +19,7 @@ test('publication checks review and revision; anonymous reads exclude drafts and
       if (allowed) assert.ifError((await admin.from('church_editors').insert({user_id:created.data.user.id})).error);
       assert.ifError((await client.auth.signInWithPassword({email,password})).error);
     }
-    const items = [{id:randomUUID(),title:'공개',body:'public body',webVisible:true,reviewOnCopy:true,needsReview:true},
+    const items = [{id:randomUUID(),title:'공개',body:'public body',webVisible:true,reviewOnCopy:true,needsReview:true,printPage:2},
       {id:randomUUID(),title:'private marker',body:'private body marker',webVisible:false,reviewOnCopy:false,needsReview:false}];
     const args = {p_id:id,p_service_date:'2095-11-06',p_issue_number:1,p_revision:0,p_items:items};
     assert.ifError((await editor.rpc('save_bulletin_draft',args)).error);
@@ -39,6 +39,8 @@ test('publication checks review and revision; anonymous reads exclude drafts and
     const copy = await editor.rpc('copy_bulletin_draft',{p_source:id,p_service_date:'2095-11-13',p_issue_number:2});
     assert.ifError(copy.error);copies.push(copy.data.id);
     assert.equal(copy.data.status,'draft');
+    const layout = await editor.from('bulletin_items').select('print_page').eq('bulletin_id',copy.data.id).eq('title','공개').single();
+    assert.ifError(layout.error); assert.equal(layout.data.print_page,2);
     assert.equal((await editor.from('bulletin_items').select('id').eq('bulletin_id',copy.data.id)).data.length,2);
     const visible = await anon.from('bulletins').select('id,items:bulletin_items(id,title,body,kind,content)').eq('id',id).single();
     assert.ifError(visible.error); assert.equal(visible.data.items.length,1);

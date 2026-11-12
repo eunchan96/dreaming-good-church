@@ -25,6 +25,10 @@ test("editor creates, copies, confirms, saves and reopens a draft", async ({ pag
     await page.getByLabel("웹에 공개", { exact: true }).nth(0).uncheck();
     await expect(page.getByLabel("내용", { exact: true }).nth(0)).toHaveValue("지난주 설교 제목");
     const saveRequest = page.waitForRequest((request) => request.url().includes("rpc/save_bulletin_draft"));
+    await page.getByRole("button", { name: "인쇄 미리보기", exact: true }).click();
+    await page.getByText("항목별 면 배치", { exact: true }).click();
+    await page.getByLabel("설교 제목 인쇄 면", { exact: true }).selectOption("1");
+    await page.getByRole("button", { name: "미리보기 닫기", exact: true }).click();
     await page.getByRole("button", { name: "초안 저장", exact: true }).click();
     expect((await saveRequest).postDataJSON().p_items[0].body).toBe("지난주 설교 제목");
     await expect(page.getByRole("status")).toContainText("초안을 저장했습니다");
@@ -34,6 +38,10 @@ test("editor creates, copies, confirms, saves and reopens a draft", async ({ pag
     await expect(page.getByText("4개 항목 확인 필요", { exact: true })).toBeVisible();
     await expect(page.getByLabel("내용", { exact: true }).nth(0)).toHaveValue("지난주 설교 제목");
     await expect(page.getByLabel("웹에 공개", { exact: true }).nth(0)).not.toBeChecked();
+    await page.getByRole("button", { name: "인쇄 미리보기", exact: true }).click();
+    await page.getByText("항목별 면 배치", { exact: true }).click();
+    await expect(page.getByLabel("설교 제목 인쇄 면", { exact: true })).toHaveValue("1");
+    await page.getByRole("button", { name: "미리보기 닫기", exact: true }).click();
     await page.getByRole("button", { name: "그대로 사용", exact: true }).first().click();
     await page.getByLabel("내용", { exact: true }).nth(1).fill("이번 주 본문");
     await expect(page.getByText("2개 항목 확인 필요", { exact: true })).toBeVisible();

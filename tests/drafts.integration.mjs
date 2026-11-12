@@ -29,7 +29,7 @@ test("local DB: editor save/reopen/copy, atomic rollback, stale save, and access
     }
     const source = randomUUID(); bulletinIds.push(source);
     const items = [
-      { id: randomUUID(), title: "설교", body: "이전 제목", webVisible: false, reviewOnCopy: true, needsReview: false },
+      { id: randomUUID(), title: "설교", body: "이전 제목", webVisible: false, reviewOnCopy: true, needsReview: false, printPage: 1 },
       { id: randomUUID(), title: "공지", body: "환영", webVisible: true, reviewOnCopy: false, needsReview: false },
     ];
     const args = { p_id: source, p_service_date: "2098-11-02", p_issue_number: 43, p_revision: 0, p_items: items };
@@ -38,7 +38,15 @@ test("local DB: editor save/reopen/copy, atomic rollback, stale save, and access
       assert.equal(saved.data.revision, 1);
       const opened = await editor.from("bulletins").select("*,bulletin_items(*)").eq("id", source).single();
       assert.ifError(opened.error); assert.equal(opened.data.bulletin_items.length, 2);
+      assert.equal(opened.data.bulletin_items.find(item => item.id === items[0].id).print_page, 1);
       assert.equal(opened.data.bulletin_items.find((item) => item.id === items[0].id).web_visible, false);
+    });
+    await t.test("invalid print page rolls back and anonymous users cannot select print layout", async () => {
+      const invalid = await editor.rpc("save_bulletin_draft", { ...args, p_revision: 1, p_items: [{ ...items[0], printPage: 5 }, items[1]] });
+      assert.equal(invalid.error?.code, "22023");
+      const unchanged = await editor.from("bulletins").select("revision").eq("id", source).single();
+      assert.equal(unchanged.data.revision, 1);
+      assert.equal((await anonymous.from("bulletin_items").select("print_page")).error?.code, "42501");
     });
     let copiedId;
     await t.test("copy creates draft and resets weekly review without exposing private text", async () => {
@@ -50,6 +58,8 @@ test("local DB: editor save/reopen/copy, atomic rollback, stale save, and access
       assert.equal(copied.data[0].needs_review, true); assert.equal(copied.data[0].web_visible, false);
       assert.equal(copied.data[0].body, "이전 제목"); assert.notEqual(copied.data[0].id, items[0].id);
       assert.equal(copied.data[1].needs_review, false);
+      assert.equal(copied.data[0].print_page, 1);
+      assert.equal(copied.data[1].print_page, null);
     });
     await t.test("confirmed review and edited text survive save and reopen", async () => {
       const current = await editor.from("bulletin_items").select("*").eq("bulletin_id", copiedId).order("position");

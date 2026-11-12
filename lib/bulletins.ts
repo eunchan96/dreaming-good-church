@@ -1,6 +1,7 @@
 /** Shared bulletin rules. Authentication and persistence belong to the server layer. */
 export type BulletinItem = {
   id: string;
+  printPage?: number | null;
   title: string;
   body: string;
   webVisible: boolean;

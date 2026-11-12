@@ -30,7 +30,6 @@ export default function BulletinWorkspace() {
   const [newKind, setNewKind] = useState<Exclude<BlockKind, "image">>("text");
   const [preview, setPreview] = useState(false);
   const [printPreview, setPrintPreview] = useState(false);
-  const [printPages, setPrintPages] = useState<Record<string, number>>({});
   const closePrint = useCallback(() => setPrintPreview(false), []);
   const [saving, setSaving] = useState(false);
   const [savePaused, setSavePaused] = useState(false);
@@ -200,7 +199,7 @@ export default function BulletinWorkspace() {
       <p className={styles.muted}>최근 100개 · 주보</p>
       {rows.length ? <ul className={styles.list}>{rows.map((row) => <li key={row.id}><button className={draft?.id === row.id ? styles.selected : ""} disabled={busy || saving} onClick={() => open(row)}><strong>{row.serviceDate}</strong><span>{row.issueNumber}호 · {row.status === "draft" ? "초안" : "게시됨"}</span></button></li>)}</ul> : <p>아직 저장한 주보가 없습니다.</p>}</aside>
       <section>{draft ? <>
-        {printPreview ? <PrintPreview draft={draft} dirty={dirty} onClose={closePrint} pages={printPages} onPagesChange={setPrintPages} /> : null}
+        {printPreview ? <PrintPreview draft={draft} dirty={dirty} onClose={closePrint} pages={Object.fromEntries(draft.items.filter(item => item.printPage != null).map(item => [item.id, item.printPage!]))} onPagesChange={pages => { if (draft.status !== "draft") return; setDraft(current => current && ({ ...current, items: current.items.map(item => ({ ...item, printPage: pages[item.id] ?? null })) })); markDirty(); }} /> : null}
         <div id="editor-tools" className={`${styles.card} ${styles.toolbar} ${styles.editorToolbar} ${savePaused ? styles.saveWarning : ""}`}><div><span className={styles.eyebrow}>주보 편집 · {draft.status === "published" ? "게시됨 · 읽기 전용" : saving ? "저장 중" : savePaused ? "저장 실패 · 입력 유지" : dirty ? "저장 전 변경 있음" : "저장됨"}</span><h2>{draft.issueNumber}호 주보</h2><p>{draft.status === "published" ? "수정하려면 게시를 취소해 주세요." : saving ? "저장 중…" : savePaused ? "자동 저장 중지 · 다시 시도 필요" : draft.revision === 0 ? "처음에는 초안 저장을 눌러 주세요. 이후 변경은 자동 저장됩니다." : "입력을 멈추면 자동 저장됩니다."}</p><p>{draft.items.filter((item) => item.needsReview).length}개 항목 확인 필요</p></div><div className={styles.actions}><button disabled={busy || saving} onClick={() => setPreview(!preview)}>{preview ? "편집으로 돌아가기" : "웹 미리보기"}</button><button disabled={busy || saving} onClick={() => setPrintPreview(true)}>인쇄 미리보기</button><button className={styles.primary} disabled={busy || saving || draft.status !== "draft"} onClick={() => { void save(); }}>{saving ? "저장 중…" : savePaused ? "저장 다시 시도" : "초안 저장"}</button></div></div>
         <nav className={styles.editorLinks} aria-label="편집 구역"><a href="#bulletin-fields">주보 내용으로 이동</a><a href="#publication-check">게시 전 확인으로 이동</a></nav>
         <ImagePicker disabled={busy || saving || draft.status !== "draft" || draft.items.length >= 100} onAdd={(item) => { setDraft(current => current && ({ ...current, items: [...current.items, item] })); markDirty(); }} />
