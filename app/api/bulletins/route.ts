@@ -1,3 +1,4 @@
+import type { Database } from "@/lib/database.types";
 import { createClient } from "@supabase/supabase-js";
 
 export async function GET(request: Request) {
@@ -8,7 +9,7 @@ export async function GET(request: Request) {
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) return Response.json({ error: "주보 서비스를 준비 중입니다." }, { status: 503, headers });
   // Never inherit the editor's session or use a service-role key on a public request.
-  const client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }) } });
+  const client = createClient<Database>(url, key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }) } });
   try {
     if (!id) {
       const { data, error } = await client.from("bulletins").select("id,service_date,issue_number").eq("status", "published").order("service_date", { ascending: false }).limit(100);

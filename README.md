@@ -3,6 +3,9 @@
 주보 작성·복사·검수와 초안 저장 기능을 개발 중입니다.
 [현재 구현 범위와 로컬 실행·검증 방법](docs/bulletin-drafts.md)을 참고하세요.
 
+개인정보 없는 3주 샘플로 확인하려면 [로컬 샘플 실행 안내](docs/local-samples.md)를 참고하세요.
+`npm run dev:local`은 3001번의 로컬 DB에 연결하며, `npm run dev`가 사용하는 운영 DB와 분리됩니다.
+
 아래는 초기 Next.js 개발 안내입니다.
 현재 확인할 화면은 [관리자 주보 편집](http://localhost:3000/admin/bulletins)입니다. `/`는 아직 초기 화면입니다.
 `npm run dev`는 `.env.local`의 실제 Supabase 프로젝트에 연결합니다.

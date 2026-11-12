@@ -1,10 +1,11 @@
+import type { Database } from "@/lib/database.types";
 import { createClient } from "@supabase/supabase-js";
 
 export const noStore = { "Cache-Control": "no-store, max-age=0", "Vary": "Authorization" };
 export function publicClient(token?: string) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL, key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) throw new Error("SERVICE_UNAVAILABLE");
-  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: {
+  return createClient<Database>(url, key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: {
     ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
     fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }),
   } });
@@ -22,5 +23,5 @@ export async function requireEditor(request: Request) {
 export function imageWriter() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!key) throw new Error("SERVICE_UNAVAILABLE");
-  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  return createClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }

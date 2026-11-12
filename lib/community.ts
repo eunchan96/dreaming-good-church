@@ -1,9 +1,13 @@
-export type CommunityEntry = {
-  id: string; kind: "notice" | "event"; title: string; body: string; location: string;
-  starts_at: string | null; ends_at: string | null; is_public: boolean; sensitive: boolean;
-  publish_from: string | null; publish_until: string | null;
-  status: "draft" | "published" | "archived"; revision: number;
+import type { Tables } from "./database.types";
+type CommunityRow = Tables<"community_entries">;
+export type CommunityEntry = Omit<CommunityRow, "kind" | "status" | "updated_at" | "source_bulletin_id" | "source_item_id"> & {
+  kind: "notice" | "event"; status: "draft" | "published" | "archived";
 };
+export function communityFromRow(row: CommunityRow): CommunityEntry {
+  if (row.kind !== "notice" && row.kind !== "event") throw new Error("Unknown community kind");
+  if (row.status !== "draft" && row.status !== "published" && row.status !== "archived") throw new Error("Unknown community status");
+  return { ...row, kind: row.kind, status: row.status };
+}
 export function newEntry(kind: CommunityEntry["kind"]): CommunityEntry {
   return { id: crypto.randomUUID(), kind, title: "", body: "", location: "", starts_at: null, ends_at: null,
     is_public: true, sensitive: false, publish_from: null, publish_until: null, status: "draft", revision: 0 };

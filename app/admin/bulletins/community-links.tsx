@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { loadBulletins, makeBrowserClient, type SavedBulletin } from "@/lib/bulletin-store";
-import { communityError, type CommunityEntry } from "@/lib/community";
+import { communityFromRow, communityError, type CommunityEntry } from "@/lib/community";
 import styles from "./workspace.module.css";
 
 export default function CommunityLinks({ draft, locked, onBusy, onImported }: { draft: SavedBulletin; locked: boolean; onBusy: (busy: boolean)=>void; onImported:(draft:SavedBulletin)=>void }) {
@@ -15,7 +15,7 @@ export default function CommunityLinks({ draft, locked, onBusy, onImported }: { 
   useEffect(()=>{
     if(!client)return;
     let active=true;
-    void client.from("community_entries").select("*").neq("status","archived").order("updated_at",{ascending:false}).limit(100).then(({data,error})=>{if(active){if(error)setMessage(communityError(error));else setEntries(data);}});
+    void client.from("community_entries").select("*").neq("status","archived").order("updated_at",{ascending:false}).limit(100).then(({data,error})=>{if(active){if(error)setMessage(communityError(error));else setEntries(data.map(communityFromRow));}});
     return ()=>{active=false;};
   },[client,refresh]);
   const items=draft.items.filter(item=>!item.kind||item.kind==="text");

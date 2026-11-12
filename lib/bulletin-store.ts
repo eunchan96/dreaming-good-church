@@ -1,30 +1,25 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { Database, Tables } from "./database.types";
 import type { Bulletin, BulletinItem, BlockKind, BlockContent } from "./bulletins";
 
 export type SavedBulletin = Bulletin & { revision: number };
-type ItemRow = {
-  id: string; title: string; body: string; position: number;
-  web_visible: boolean; review_on_copy: boolean; needs_review: boolean;
-  kind: BlockKind; content: BlockContent;
-};
-type BulletinRow = {
-  id: string; service_date: string; issue_number: number;
-  status: Bulletin["status"]; revision: number; bulletin_items?: ItemRow[];
-};
+type ItemRow = Tables<"bulletin_items">;
+type BulletinRow = Pick<Tables<"bulletins">, "id" | "service_date" | "issue_number" | "status" | "revision"> & { bulletin_items?: ItemRow[] };
 
-let browserClient: ReturnType<typeof createClient> | null = null;
+let browserClient: SupabaseClient<Database> | null = null;
 
 export function makeBrowserClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key || !/^https?:\/\//.test(url)) return null;
-  if (typeof window === "undefined") return createClient(url, key);
-  browserClient ??= createClient(url, key);
+  if (typeof window === "undefined") return createClient<Database>(url, key);
+  browserClient ??= createClient<Database>(url, key);
   return browserClient;
 }
 export type BrowserClient = NonNullable<ReturnType<typeof makeBrowserClient>>;
 
 export function fromRow(row: BulletinRow): SavedBulletin {
+  if (row.status !== "draft" && row.status !== "published") throw new Error("Unknown bulletin status");
   return {
     id: row.id, serviceDate: row.service_date, issueNumber: row.issue_number,
     status: row.status, revision: row.revision,
@@ -32,7 +27,8 @@ export function fromRow(row: BulletinRow): SavedBulletin {
       .map((item): BulletinItem => ({
         id: item.id, title: item.title, body: item.body, webVisible: item.web_visible,
         reviewOnCopy: item.review_on_copy, needsReview: item.needs_review,
-        ...(item.kind && item.kind !== "text" ? { kind: item.kind, content: item.content } : {}),
+        // CHECK constraints validate block JSON; generated types cannot express those constraints.
+        ...(item.kind && item.kind !== "text" ? { kind: item.kind as BlockKind, content: item.content as BlockContent } : {}),
       })),
   };
 }
@@ -42,7 +38,7 @@ export async function loadBulletins(client: BrowserClient) {
     .select("id,service_date,issue_number,status,revision,bulletin_items(*)")
     .order("service_date", { ascending: false }).limit(100);
   if (error) throw error;
-  return (data as BulletinRow[]).map(fromRow);
+  return data.map(fromRow);
 }
 
 export async function saveDraft(client: BrowserClient, draft: SavedBulletin) {
@@ -51,7 +47,7 @@ export async function saveDraft(client: BrowserClient, draft: SavedBulletin) {
     p_revision: draft.revision, p_items: draft.items,
   });
   if (error) throw error;
-  return { ...draft, revision: (data as BulletinRow).revision };
+  return { ...draft, revision: data.revision };
 }
 
 export function errorMessage(error: unknown): string {

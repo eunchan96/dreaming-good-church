@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { makeBrowserClient } from "@/lib/bulletin-store";
-import { communityError, newEntry, koreanInput, fromKoreanInput, type CommunityEntry } from "@/lib/community";
+import { communityFromRow, communityError, newEntry, koreanInput, fromKoreanInput, type CommunityEntry } from "@/lib/community";
 import styles from "../bulletins/workspace.module.css";
 
 export default function CommunityWorkspace() {
@@ -26,7 +26,7 @@ export default function CommunityWorkspace() {
         if (member.error || !member.data) throw new Error("membership");
         const list = await client!.from("community_entries").select("*").order("updated_at",{ascending:false}).limit(100);
         if (list.error) throw list.error;
-        if (active) { if(owner.current && owner.current!==data.user.id){setEntry(null);setDirty(false);}owner.current=data.user.id;setAllowed(true); setRows(list.data); setMessage(""); }
+        if (active) { if(owner.current && owner.current!==data.user.id){setEntry(null);setDirty(false);}owner.current=data.user.id;setAllowed(true); setRows(list.data.map(communityFromRow)); setMessage(""); }
       } catch { if (active) { setAllowed(false); setMessage("관리자 로그인이 필요합니다. 새 탭에서 로그인한 후 ‘로그인 다시 확인’을 눌러 주세요. 미저장 내용은 현재 탭에 유지됩니다."); } }
     }
     void load();
@@ -51,7 +51,7 @@ export default function CommunityWorkspace() {
     try {
       const {data,error}=await client.rpc("save_community_entry",{p_id:entry.id,p_revision:entry.revision,p_entry:{...entry,status}});
       if (error) throw error;
-      setEntry(data); setDirty(false); setRows((current)=>[data,...current.filter(row=>row.id!==data.id)]);
+      setEntry(communityFromRow(data)); setDirty(false); setRows((current)=>[communityFromRow(data),...current.filter(row=>row.id!==data.id)]);
       setMessage(status==="archived" ? "보관했습니다. 공개 메뉴에서 제외되며 주보의 복사본은 유지됩니다." : "저장했습니다. 기존 주보의 내용은 변경되지 않습니다.");
     } catch(error) { setMessage(communityError(error)); if((error as {code?:string;status?:number}).status===401)setAllowed(false); }
     finally { setBusy(false); }

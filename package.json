@@ -8,7 +8,11 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/*.test.mjs"
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "types:generate": "node scripts/generate-db-types.mjs",
+    "types:check": "node scripts/generate-db-types.mjs --check",
+    "demo:account": "powershell -NoProfile -File scripts/demo-account.ps1",
+    "dev:local": "powershell -NoProfile -File scripts/dev-local.ps1"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
