@@ -104,11 +104,11 @@
 .primary:hover{background:#655033}
 .mobileBreak{display:none}
 
-.footer{background:#302a24;color:#e6dfd2;padding:70px max(32px,calc((100vw - 1160px)/2)) 22px}
+.footer{background:#302a24;color:#e6dfd2;padding:38px max(32px,calc((100vw - 1160px)/2)) 14px}
 .footer a:hover{color:#edcd72}
-.footerTop{display:grid;grid-template-columns:1fr .9fr 1.25fr;gap:50px;padding-bottom:38px}
+.footerTop{display:grid;grid-template-columns:1fr .9fr 1.25fr;gap:40px;padding-bottom:22px}
 .footerStatement{font-family:var(--font-display);font-size:20px;line-height:1.8;color:#d7cbb8;margin:28px 0}
-.footerYoutube{display:flex;width:fit-content;align-items:center;gap:12px;font-size:12px;color:#c4b59b;min-height:44px;margin-top:20px}
+.footerYoutube{display:flex;width:fit-content;align-items:center;gap:12px;font-size:12px;color:#c4b59b;min-height:44px;margin-top:8px}
 .footerNavigation{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;align-content:start}
 .footerNavigation h2{font-size:13px;color:#f3ecdf;font-weight:500;margin:0 0 18px}
 .footerNavigation a{display:flex;align-items:center;font-size:13px;min-height:44px;color:#d0c5b3}
@@ -119,7 +119,16 @@
 .footerBanner{width:46%;height:auto;max-width:500px;filter:saturate(.75);opacity:.85}
 .footerBottom{border-top:1px solid #5b4d3c;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:20px 0 6px;color:#b0a18a}
 .footerBottom small{font-size:10px}
-.footerUtilities{display:flex;gap:25px;align-items:center}
+.footerUtilities{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center}
+.topRow{display:flex;justify-content:flex-end;max-width:1240px;margin:0 auto;padding:0 40px 16px}
+.topButton{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:52px;min-height:58px!important;background:transparent;border:1px solid var(--line);color:var(--ink);font-size:10px!important;letter-spacing:.1em}
+.topButton:hover{background:#eee8da}
+.weeklyReading{border-top:1px solid var(--line);padding-top:12px;margin-top:14px;color:#655239!important;font-size:13px;white-space:pre-wrap}
+.weeklyReading b{display:block;font-size:10px;font-weight:500;color:#80642f;margin-bottom:4px}
+.readingsNote{font-size:12px;color:var(--muted);margin-top:16px}
+.readingsNote a{text-decoration:underline;text-underline-offset:4px}
+.readingsNote button{background:transparent;border:0;text-decoration:underline;padding:4px 8px}
+.policyDraft{padding:16px 22px;border-left:2px solid #ac8c45;background:#f0ece2;font-size:13px;line-height:1.9;color:#655239}
 .footerUtilities a{font-size:11px;min-height:36px;display:flex;align-items:center;gap:7px}
 .installArea{font-size:11px;color:#b8a98f}
 .install summary{cursor:pointer;min-height:32px;width:fit-content}
@@ -144,8 +153,8 @@
 .worshipTimes h2{font-family:var(--font-display);font-size:30px;font-weight:500;letter-spacing:-.05em}
 .timeGrid{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #9f8d70;margin-top:25px}
 .timeGrid>div{padding:27px 20px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
-.timeGrid>div:first-child{padding-left:0}
-.timeGrid>div:last-child{border-right:0}
+.timeGrid>div:nth-child(4n + 1){padding-left:0}
+.timeGrid>div:nth-child(4n){border-right:0}
 .timeGrid span{font-size:9px;letter-spacing:.1em;color:#806a42}
 .timeGrid h3{font-size:17px;font-weight:500;margin:12px 0 8px}
 .timeGrid p{font-size:13px;color:var(--muted)}
@@ -216,14 +225,15 @@ to{opacity:1;transform:translateY(0)}
 .homeSection{padding:75px 30px}
 .welcomeInner{gap:50px}
 .welcomeSection{padding:70px 30px}
-.footerTop{grid-template-columns:1fr;gap:35px}
+.footerTop{grid-template-columns:1fr 1fr;gap:20px 30px}
+.footerContact{grid-column:1 / -1}
 .footerIdentity{display:block}
 .footerStatement{margin:0;grid-column:2;grid-row:1 / 3;font-size:19px}
-.footerYoutube{margin-top:18px}
+.footerYoutube{margin-top:8px}
 .footerContact{gap:25px}
 .timeGrid{grid-template-columns:1fr 1fr}
-.timeGrid>div:nth-child(2){border-right:0}
-.timeGrid>div:nth-child(3){padding-left:0}
+.timeGrid>div:nth-child(2n){border-right:0}
+.timeGrid>div:nth-child(2n + 1){padding-left:0}
 }
 
 @media(max-width:599px){.headerInner{height:72px;padding:0 20px}
@@ -269,20 +279,21 @@ to{opacity:1;transform:translateY(0)}
 .homeInvitation{padding:55px 24px}
 .homeInvitation h2{font-size:29px}
 .mobileBreak{display:block}
-.footer{padding:45px 22px 20px}
+.footer{padding:28px 22px 12px}
 .footerIdentity{display:block}
 .footerStatement{margin:22px 0 10px;font-size:19px}
 .footerYoutube{margin:0}
-.footerTop{padding-bottom:30px;gap:28px}
+.footerTop{padding-bottom:18px;gap:20px}
 .footerNavigation{gap:0 24px}
 .footerNavigation h2{font-size:12px;margin-bottom:12px}
 .footerNavigation a{font-size:13px;min-height:44px}
-.footerContact{flex-direction:column;align-items:flex-start;padding:24px 0;gap:25px}
+.footerContact{padding:8px 0}
 .footerBanner{width:100%;max-width:420px}
 .footerContact address{font-size:11px;max-width:290px}
 .footerBottom{align-items:flex-start;gap:10px;flex-direction:column}
 .footerBottom small{font-size:9px}
 .footerUtilities{gap:22px}
+.topRow{padding:0 22px 12px}
 .installArea{font-size:10px}
 .install button{font-size:12px}
 .subpage{padding:30px 22px 60px}
@@ -308,7 +319,7 @@ to{opacity:1;transform:translateY(0)}
 @media(prefers-reduced-motion:reduce){.site *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
 
-@media print{.header,.footer,.skip{display:none}
+@media print{.header,.footer,.skip,.topRow{display:none}
 .site{background:white}
 .heroArtwork{display:none}
 }
