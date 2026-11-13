@@ -1,0 +1,40 @@
+.shell{--ink:#342b25;--muted:#73675c;--line:#e5dfd4;min-height:100vh;background:#f5f2eb;color:var(--ink);font:400 15px/1.7 var(--font-public-sans),'Malgun Gothic',sans-serif;overflow-wrap:anywhere;word-break:keep-all}
+.shell *{box-sizing:border-box}
+.shell a{text-decoration:none}
+.shell button{font:inherit;cursor:pointer}
+.shell :is(a,button):focus-visible{outline:3px solid #9b721e;outline-offset:4px}
+.skip{position:fixed;top:-100px;left:20px;z-index:150;background:white;padding:12px 20px}
+.skip:focus{top:12px}
+.header{position:sticky;top:0;z-index:50;min-height:80px;display:flex;align-items:center;gap:32px;padding:12px 36px;background:#fbfaf7f5;backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.brand>span{display:flex;flex-direction:column;line-height:1.2}
+.brand small{font-size:10px;letter-spacing:.18em;margin-bottom:3px}
+.brand strong{font-size:21px;letter-spacing:-.06em}
+.workspaceLabel{font-size:9px;letter-spacing:.18em;color:#806a42;padding-left:28px;border-left:1px solid var(--line)}
+.headerActions{display:flex;gap:22px;align-items:center;margin-left:auto}
+.headerActions>a{display:flex;gap:8px;align-items:center;font-size:12px;min-height:44px;color:#6c5e4e}
+.headerActions>button{border:1px solid #d8cebb;background:transparent;padding:8px 15px;min-height:44px;font-size:12px;color:#5d4c36;border-radius:4px}
+.headerActions>button:disabled{opacity:.5;cursor:not-allowed}
+.headerActions .menuToggle{display:none}
+.layout{display:grid;grid-template-columns:240px minmax(0,1fr);max-width:1720px;margin:auto;min-height:calc(100vh - 141px)}
+.shell[data-auth=false] .layout{display:block}
+.sidebar{position:sticky;top:80px;align-self:start;min-height:calc(100dvh - 141px);max-height:calc(100dvh - 80px);overflow:auto;padding:36px 20px;background:#f0ece3;border-right:1px solid var(--line)}
+.menuLabel{padding:0 16px;margin:0 0 18px;font-size:11px;letter-spacing:.06em;color:#7b6440}
+.sidebar nav{display:grid;gap:8px}
+.sidebar nav a{display:flex;gap:12px;align-items:center;min-height:76px;padding:13px;border:1px solid transparent;border-radius:5px;color:#655947;transition:background .18s,border-color .18s}
+.sidebar nav a:hover{background:#f8f5ed}
+.sidebar nav a[aria-current=page]{background:#fbfaf7;border-color:#dfd3ba;color:#49391f;box-shadow:0 3px 10px #342b2505}
+.sidebar nav a[aria-current=page]>svg{color:#99752e}
+.sidebar nav strong{display:block;font-weight:500;font-size:13px}
+.sidebar nav small{display:block;font-size:10px;color:#685b48;margin-top:4px}
+.sidebarNote{margin:45px 16px 0;padding-top:22px;border-top:1px solid #dad0be;color:#796c58;font-size:11px}
+.sidebarNote>span{font-weight:500;color:#675331}
+.sidebarNote p{font-size:11px;line-height:1.9;margin-top:8px}
+.content{min-width:0}
+.footer{display:flex;justify-content:space-between;gap:20px;padding:16px 36px;border-top:1px solid var(--line);font-size:10px;color:#776853;background:#fbfaf7}
+.footer a{display:flex;align-items:center;gap:8px}
+@media(max-width:1100px){.layout{grid-template-columns:210px minmax(0,1fr)}.header{padding:12px 24px;gap:20px}.sidebar{padding:28px 12px}.workspaceLabel{padding-left:20px}}
+@media(max-width:899px){.layout{display:block}.header{padding:10px 20px;min-height:72px;gap:12px}.workspaceLabel{display:none}.headerActions{gap:12px}.headerActions>a{font-size:11px}.headerActions>button{padding:6px 10px}.headerActions .menuToggle{display:grid;place-items:center;border:0;padding:8px}.sidebar{display:none;position:fixed;z-index:45;top:72px;left:0;right:0;min-height:0;max-height:calc(100dvh - 72px);border-right:0;border-bottom:1px solid var(--line);padding:16px 20px;box-shadow:0 12px 25px #342b2510}.sidebar[data-open=true]{display:block}.sidebarNote{display:none}.menuLabel{margin-bottom:8px}.sidebar nav{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.sidebar nav a{padding:12px;gap:8px}.sidebar nav small{display:none}.footer{padding:16px 20px}}
+@media(max-width:540px){.brand img{width:34px;height:34px}.brand strong{font-size:19px}.headerActions>a{display:none}.sidebar nav{grid-template-columns:1fr}.sidebar nav a{min-height:48px}.sidebar nav small{display:block}.footer{font-size:9px}.sidebar nav a strong{font-size:14px}}
+@media(prefers-reduced-motion:reduce){.shell *{transition:none!important}}
+@media print{.header,.sidebar,.footer,.skip{display:none}.layout{display:block}.shell{background:white}}

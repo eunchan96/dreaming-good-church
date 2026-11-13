@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { makeBrowserClient } from "@/lib/bulletin-store";
 import { parseAccountHash } from "@/lib/account-links.mjs";
 import styles from "../bulletins/workspace.module.css";
+import AdminShell from '../admin-shell';
+import PasswordField from '../password-field';
 
 export default function AccountSetup() {
   const router = useRouter();
@@ -66,10 +68,10 @@ export default function AccountSetup() {
     finally { setBusy(false); }
   }
 
-  return <main className={styles.page}><section className={`${styles.card} ${styles.login}`}>
+  return <AdminShell active="account"><main id="admin-content" tabIndex={-1} className={styles.page}><div className={styles.authLayout}><section className={styles.authStory}><span className={styles.eyebrow}>YOUR CHURCH WORKSPACE</span><h1>안전하게 시작하는<br /><em>교회의 한 주.</em></h1><p>전달받은 계정 링크를 확인하고<br />나만의 비밀번호로 관리 공간을 열어 주세요.</p></section><section className={`${styles.card} ${styles.login}`}>
     <h1>관리자 비밀번호 설정</h1><p>초대 또는 재설정 링크를 확인한 뒤 비밀번호를 직접 정해 주세요.</p>
     <p role="status" aria-live="polite">{message}</p>
     {!client ? <p>서비스 연결 설정이 필요합니다.</p> : !ready ? <button disabled={busy} onClick={accept}>{busy ? "확인 중…" : "계정 링크 확인"}</button> :
-      <form action={save}><label>새 비밀번호<input name="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="new-password" minLength={12} required disabled={busy} /></label><label>비밀번호 확인<input name="confirm" type="password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} autoComplete="new-password" minLength={12} required disabled={busy} /></label><button disabled={busy}>{busy ? "저장 중…" : "비밀번호 설정하고 시작"}</button></form>}
-  </section></main>;
+      <form action={save}><PasswordField label="새 비밀번호" name="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="new-password" minLength={12} required disabled={busy} /><PasswordField label="비밀번호 확인" name="confirm" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} autoComplete="new-password" minLength={12} required disabled={busy} /><button className={styles.primary} disabled={busy}>{busy ? "저장 중…" : "비밀번호 설정하고 시작"}</button></form>}
+  </section></div></main></AdminShell>;
 }

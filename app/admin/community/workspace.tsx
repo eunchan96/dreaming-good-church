@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { makeBrowserClient } from "@/lib/bulletin-store";
 import { communityFromRow, communityError, newEntry, koreanInput, fromKoreanInput, type CommunityEntry } from "@/lib/community";
 import styles from "../bulletins/workspace.module.css";
+import AdminShell from '../admin-shell';
 
 export default function CommunityWorkspace() {
   const [client] = useState(makeBrowserClient);
@@ -42,6 +43,13 @@ export default function CommunityWorkspace() {
     window.addEventListener("beforeunload",guard); return () => window.removeEventListener("beforeunload",guard);
   },[dirty]);
   const mayLeave = () => !dirty || window.confirm("저장하지 않은 변경 내용을 버릴까요?");
+  async function logout() {
+    if (!client || busy || !mayLeave()) return;
+    setBusy(true);
+    try { const { error } = await client.auth.signOut({ scope:'local' }); if (error) throw error; }
+    catch { setMessage('로그아웃 요청을 확인하지 못했습니다. 로그인 상태를 다시 확인해 주세요.'); }
+    finally { setBusy(false); }
+  }
   function change(values: Partial<CommunityEntry>) { setEntry((current) => current && ({...current,...values})); setDirty(true); }
   async function save(status: CommunityEntry["status"]) {
     if (!client || !entry || busy) return;
@@ -58,7 +66,7 @@ export default function CommunityWorkspace() {
     } catch(error) { setMessage(communityError(error)); if((error as {code?:string;status?:number}).status===401)setAllowed(false); }
     finally { setBusy(false); }
   }
-  return <main className={styles.page}><header><h1>공지·일정 관리</h1><p><Link href="/admin/bulletins" onClick={event=>{if(!mayLeave())event.preventDefault();}}>주보 관리로 돌아가기</Link> · <Link href="/notices" target="_blank">공개 공지</Link> · <Link href="/events" target="_blank">공개 일정</Link></p></header><p role="status" className={styles.message}>{message}</p>
+  return <AdminShell active="community" authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy}><main id="admin-content" tabIndex={-1} className={styles.page}><header className={styles.header}><div><span className={styles.eyebrow}>CHURCH COMMUNITY</span><h1>공지·일정 관리</h1><p>교회 소식과 모임 일정을 한곳에서 관리하세요.</p></div><nav aria-label="공개 소식 확인"><Link href="/notices" target="_blank" rel="noreferrer">공개 공지</Link><Link href="/events" target="_blank" rel="noreferrer">공개 일정</Link></nav></header><p role="status" className={styles.message}>{message}</p>
     {allowed ? <div className={styles.grid}><aside className={styles.card}>
       <button disabled={busy} onClick={()=>{if(mayLeave()){setEntry(newEntry("event"));setDirty(true);setMessage("");}}}>새 일정</button>
       <p>공지는 주보의 ‘별도 공지로 가져오기’를 이용해 주세요.</p>
@@ -77,5 +85,5 @@ export default function CommunityWorkspace() {
       <div className={`${styles.actions} ${styles.formActions}`}><button onClick={()=>save("draft")}>{entry.status==="published"?"게시 취소하고 초안 저장":"초안 저장"}</button><button onClick={()=>save("published")}>게시 설정 저장</button><button disabled={entry.revision===0} onClick={()=>{if(window.confirm("보관하고 별도 메뉴에서 내릴까요? 기존 주보는 유지됩니다."))void save("archived");}}>보관</button>
       <button onClick={()=>{if(mayLeave()){const copy={...structuredClone(entry),id:crypto.randomUUID(),status:"draft" as const,revision:0};if(entry.kind==="event"){copy.starts_at=entry.starts_at?new Date(Date.parse(entry.starts_at)+7*86400000).toISOString():null;copy.ends_at=entry.ends_at?new Date(Date.parse(entry.ends_at)+7*86400000).toISOString():null;}copy.publish_from=null;copy.publish_until=null;setEntry(copy);setDirty(true);setMessage("복사본을 만들었습니다. 날짜와 게시 기간을 확인한 뒤 저장해 주세요.");}}}>{entry.kind==="event"?"다음 주 일정으로 복사":"새 공지 초안으로 복사"}</button></div>
     </div></fieldset> : <p>공지나 일정을 선택해 주세요.</p>}</section></div> : <><Link href="/admin/bulletins" target="_blank">새 탭에서 관리자 로그인</Link><button onClick={()=>setReload(value=>value+1)}>로그인 다시 확인</button></>}
-  </main>;
+  </main></AdminShell>;
 }

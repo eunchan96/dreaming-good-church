@@ -2,13 +2,14 @@
 import PrintPreview from "./print-preview";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { confirmItem, createBulletin, createItem, editItem, blockNames, publicationIssues, type BlockKind, type BulletinItem } from "@/lib/bulletins";
 import { errorMessage, loadBulletins, makeBrowserClient, saveDraft, type SavedBulletin } from "@/lib/bulletin-store";
 import { BlockFields, BlockPreview } from "./block-fields";
 import CommunityLinks from "./community-links";
 import { ImagePicker } from "./image-picker";
 import styles from "./workspace.module.css";
+import AdminShell from '../admin-shell';
+import PasswordField from '../password-field';
 
 const initialFields = ["설교 제목", "성경 본문", "찬송", "기도 담당", "교회 소식"];
 function nextSunday() {
@@ -181,13 +182,11 @@ export default function BulletinWorkspace() {
     finally { setBusy(false); }
   }
 
-  return <main className={styles.page}>
-    <nav><Link href="/admin/community" onClick={(event)=>{if(!mayLeave())event.preventDefault();}}>공지·일정 관리</Link> · <Link href="/admin/church" onClick={(event)=>{if(!mayLeave())event.preventDefault();}}>교회 정보·이미지 관리</Link></nav>
-    <header className={styles.header}><div><span className={styles.eyebrow}>꿈꾸는좋은교회 · 관리자</span><h1>이번 주를 준비하는 시간</h1><p>지난 주의 내용을 이어 받아, 이번 주 주보를 차분히 완성하세요.</p></div>
-      {session === "editor" || session === "denied" ? <button onClick={logout} disabled={busy || saving}>로그아웃</button> : null}</header>
-    <p role="status" aria-live="polite" className={styles.message}>{message}</p>
+  return <AdminShell active="bulletins" authenticated={session === 'editor'} canLeave={mayLeave} onLogout={session === 'editor' || session === 'denied' ? logout : undefined} busy={busy || saving}><main id="admin-content" tabIndex={-1} className={styles.page}>
+    {session === 'editor' || session === 'denied' ? <header className={styles.header}><div><span className={styles.eyebrow}>WEEKLY BULLETIN</span><h1>주보 관리</h1><p>지난 주의 내용을 이어 받아, 이번 주 주보를 차분히 완성하세요.</p></div></header> : null}
+    {session !== 'login' ? <p role="status" aria-live="polite" className={styles.message}>{message}</p> : null}
     {!client ? <section className={styles.card}>서비스 연결 설정이 필요합니다. 관리자에게 문의해 주세요.</section> : session === "loading" ? <p>로그인 상태를 확인하고 있습니다…</p> : session === "login" ?
-      <form action={login} className={`${styles.card} ${styles.login}`}><h2>관리자 로그인</h2><p>등록된 편집 계정으로 로그인해 주세요.</p><label>이메일<input name="email" type="email" autoComplete="username" required /></label><label>비밀번호<input name="password" type="password" autoComplete="current-password" required /></label><button className={styles.primary} disabled={busy || saving}>{busy ? "확인 중…" : "로그인"}</button></form>
+      <div className={styles.authLayout}><section className={styles.authStory}><span className={styles.eyebrow}>WELCOME TO CHURCH WORKSPACE</span><h1>함께 준비하는 예배,<br /><em>함께 나누는 소식.</em></h1><p>교회의 한 주를 차분히 준비하는 공간입니다.<br />주보와 소식, 교회 안내를 이곳에서 관리하세요.</p><div className={styles.authDecoration} aria-hidden="true"><span>+</span>FAITH · HOPE · LOVE</div></section><form action={login} className={`${styles.card} ${styles.login}`}><h2>관리자 로그인</h2><p>등록된 편집 계정으로 로그인해 주세요.</p><label>이메일<input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} required disabled={busy || saving} /></label><PasswordField label="비밀번호" name="password" autoComplete="current-password" required disabled={busy || saving} /><p role="status" aria-live="polite" className={styles.message}>{message}</p><button className={styles.primary} disabled={busy || saving}>{busy ? "확인 중…" : "로그인"}</button><p className={styles.loginHint}>초대받은 운영자만 사용할 수 있습니다.<br />비밀번호를 잊으셨다면 계정 관리 담당자에게 재설정 링크를 요청해 주세요.</p></form></div>
       : session === "denied" ? <section className={styles.card}><h2>편집 권한이 필요합니다</h2><p>로그인한 계정이 교회 편집자로 등록되지 않았습니다. 관리자에게 등록을 요청해 주세요.</p></section>
       : <div className={styles.grid}><aside className={styles.card}><h2>주보 보관함</h2><button className={styles.primary} disabled={busy || saving} onClick={() => {
         if (!mayLeave()) return;
@@ -238,5 +237,5 @@ export default function BulletinWorkspace() {
         </fieldset>}
         <section className={styles.card}><h3>이 주보로 다음 주 준비하기</h3><p>저장된 내용과 공개 설정을 복사합니다. 매주 확인할 항목은 다시 표시됩니다.</p><div className={styles.actions}><label>새 주보 날짜<input type="date" value={copyDate} onChange={(event) => setCopyDate(event.target.value)} /></label><button onClick={copy} disabled={busy || saving || dirty || draft.revision === 0 || !copyDate}>다음 주 주보 복사</button></div>{dirty || draft.revision === 0 ? <p className={styles.muted}>먼저 현재 주보를 저장해 주세요.</p> : null}</section>
       </> : <section className={`${styles.card} ${styles.empty}`}><span className={styles.eyebrow}>함께 준비하는 주일</span><h2>주보를 선택하거나<br />새로 작성해 주세요.</h2><p>저장한 주보는 다음 주에도 이어서 사용할 수 있습니다.</p></section>}</section></div>}
-  </main>;
+  </main></AdminShell>;
 }
