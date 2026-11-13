@@ -1,5 +1,6 @@
 import {test,expect} from '@playwright/test';
 test.beforeEach(async({page})=>{
+  await page.route('**/api/worship/videos?*',r=>r.fulfill({json:{videos:[],featured:null,next:null}}));
   await page.route('**/api/church',r=>r.fulfill({json:{fields:[]}}));
   await page.route('**/api/bulletins',r=>r.fulfill({json:{bulletins:[]}}));
   await page.route('**/api/community?*',r=>r.fulfill({json:{entries:[]}}));
@@ -25,6 +26,6 @@ test('worship defaults to a current Sunday video and all service tabs work',asyn
   await expect(page.locator('iframe[title="주일예배 영상"]')).toHaveAttribute('src',/youtube-nocookie.*OSfMkv-YWJQ/);
   await expect(page.getByRole('heading',{name:'함께 예배하는 시간'})).toBeVisible();
   await page.getByRole('navigation',{name:'예배 종류'}).getByRole('link',{name:'금요예배',exact:true}).click();
-  await expect(page.locator('iframe[title="금요예배 영상"]')).toHaveAttribute('src',/videoseries\?list=PLN8Or4tXpI5CT12uRnqPDRcqvzQbgOxO4/);
+  await expect(page.getByText('등록된 금요예배 영상을 준비하고 있습니다.')).toBeVisible();
   await page.goto('/church/offering');await expect(page.getByText('301-0223-0182-71',{exact:true})).toBeVisible();await expect(page.getByText('301-0220-0484-81',{exact:true})).toBeVisible();
 });
