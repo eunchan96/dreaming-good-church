@@ -19,16 +19,12 @@ test('sticky grouped navigation, keyboard dismissal and footer utilities',async(
   await trigger.click();await expect(page).toHaveURL(/\/church$/);
 });
 test('worship defaults to a current Sunday video and all service tabs work',async({page})=>{
-  await page.route('https://i.ytimg.com/**',r=>r.abort());
   await page.goto('/worship');
-  await expect(page.getByRole('button',{name:'주일예배 영상 열기',exact:true})).toContainText('함께 듣는 주일 말씀');
   await expect(page.getByRole('navigation',{name:'예배 종류'}).getByRole('link',{name:'주일예배',exact:true})).toHaveAttribute('aria-current','page');
-  await expect(page.locator('iframe[title="주일예배 영상"]')).toHaveCount(0);
-  await page.getByRole('button',{name:'주일예배 영상 열기',exact:true}).click();
+  await expect(page.getByRole('button',{name:'주일예배 영상 열기',exact:true})).toHaveCount(0);
   await expect(page.locator('iframe[title="주일예배 영상"]')).toHaveAttribute('src',/youtube-nocookie.*OSfMkv-YWJQ/);
   await expect(page.getByRole('heading',{name:'함께 예배하는 시간'})).toBeVisible();
   await page.getByRole('navigation',{name:'예배 종류'}).getByRole('link',{name:'금요예배',exact:true}).click();
-  await page.getByRole('button',{name:'금요예배 영상 열기',exact:true}).click();
   await expect(page.locator('iframe[title="금요예배 영상"]')).toHaveAttribute('src',/videoseries\?list=PLN8Or4tXpI5CT12uRnqPDRcqvzQbgOxO4/);
   await page.goto('/church/offering');await expect(page.getByText('301-0223-0182-71',{exact:true})).toBeVisible();await expect(page.getByText('301-0220-0484-81',{exact:true})).toBeVisible();
 });

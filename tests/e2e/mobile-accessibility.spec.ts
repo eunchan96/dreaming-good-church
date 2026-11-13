@@ -4,7 +4,7 @@ import AxeBuilder from "@axe-core/playwright";
 for (const width of [390, 1280]) {
   test(`public pages pass accessibility checks at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
-    for (const path of ["/", "/bulletins", "/church", "/notices", "/events", "/install", "/torah-tov"]) {
+    for (const path of ["/", "/bulletins", "/church", "/notices", "/events", "/install", "/torah-tov", "/legal/privacy", "/legal/photo"]) {
       await page.goto(path);
       await expect(page.locator("#public-content h1")).toBeVisible();
       await expect(page.getByText(/불러오고 있습니다/)).toHaveCount(0);
