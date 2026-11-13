@@ -17,7 +17,7 @@ test("select a bulletin notice, publish separately, include event snapshot and a
     await expect(page.getByText(/연결된 공지 초안을 준비했습니다/)).toBeVisible();
     const exported=await admin.from("community_entries").select("id").eq("source_item_id",item).single();if(exported.error)throw exported.error;entryIds.push(exported.data.id);
     const manager=await context.newPage();await manager.goto("/admin/community");
-    await manager.getByRole("button",{name:/주보 환영 공지 · 공지/}).click();
+    await manager.getByRole("button",{name:/주보 환영 공지.*공지/}).click();
     await manager.getByLabel("내용",{exact:true}).fill("별도 공지에서 수정한 문구");
     manager.once("dialog",dialog=>dialog.accept());await manager.getByRole("button",{name:"게시 설정 저장",exact:true}).click();
     await expect(manager.getByRole("status")).toContainText("저장했습니다");
@@ -55,12 +55,13 @@ test("select a bulletin notice, publish separately, include event snapshot and a
     await page.getByRole("button",{name:"선택한 내용을 주보에 복사",exact:true}).click();
     await expect(page.getByLabel("내용",{exact:true}).last()).toHaveValue(/2091-11-04 13:40/);
     await manager.getByLabel("제목",{exact:true}).fill("모임 시간 수정");
+    await manager.getByText('추가 작업',{exact:true}).click();
     manager.once("dialog",dialog=>dialog.accept());await manager.getByRole("button",{name:"보관",exact:true}).click();
     await expect(manager.getByRole("status")).toContainText("보관했습니다");
     await page.reload();await page.getByRole("button",{name:/2091-11-04/}).click();
     await expect(page.getByLabel("항목 제목",{exact:true}).last()).toHaveValue("검증용 주일 모임");
     const reader=await context.newPage();await reader.goto("/notices");await expect(reader.getByText("별도 공지에서 수정한 문구",{exact:true})).toBeVisible();
-    await manager.getByRole("button",{name:/주보 환영 공지 · 공지/}).click();await manager.getByLabel("민감정보 포함",{exact:true}).check();
+    await manager.getByRole("button",{name:/주보 환영 공지.*공지/}).click();await manager.getByLabel("민감정보 포함",{exact:true}).check();
     await expect(manager.getByLabel("별도 메뉴에 공개",{exact:true})).not.toBeChecked();
     manager.once("dialog",dialog=>dialog.accept());await manager.getByRole("button",{name:"게시 설정 저장",exact:true}).click();await expect(manager.getByRole("status")).toContainText("저장했습니다");
     expect((await page.request.get(`/api/community?kind=notice&id=${exported.data.id}`)).status()).toBe(404);
