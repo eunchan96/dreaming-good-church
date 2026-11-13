@@ -18,7 +18,18 @@ test('homepage editor previews unsaved content, publishes normalized images and 
   const preview=page.frameLocator('iframe[title="홈페이지 첫 화면 미리보기"]');await expect(preview.locator('#welcome-title')).toContainText(defaultHomeContent.title_line1);
   await expect(page.getByText('이 페이지',{exact:true})).toHaveCount(0);
   await expect(page.getByText('최신 버전',{exact:true})).toBeVisible();
-  await expect(page.getByLabel('이미지 설명',{exact:true})).not.toBeVisible();
+  await expect(page.getByLabel('이미지 설명',{exact:true})).toBeVisible();
+  await expect(page.getByLabel('이미지 설명',{exact:true})).toHaveAttribute('placeholder','이미지 설명');
+  await expect(page.getByRole('radiogroup',{name:'이미지 표시 방식'})).toHaveCount(0);
+  await expect(page.locator('summary[aria-label=\"홈페이지 설정 도움말\"]')).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'이전 설정 불러오기',exact:true})).toBeDisabled();
+  await page.getByRole('button',{name:'새 이미지 선택',exact:true}).click();
+  const picker=page.getByRole('dialog',{name:'이미지 선택',exact:true});await expect(picker).toBeVisible();
+  for(const name of ['기본 교회 일러스트','기기에서 가져오기','보관함에서 가져오기'])await expect(picker.getByRole('button',{name,exact:true})).toBeVisible();
+  for(const width of [1440,390,320]){await page.setViewportSize({width,height:900});const box=await picker.boundingBox();expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(width);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
+  expect((await new AxeBuilder({page}).include('dialog').analyze()).violations).toEqual([]);await page.screenshot({path:'.local/home-image-source-mobile.png',animations:'disabled'});await page.setViewportSize({width:1280,height:900});
+  await picker.getByRole('button',{name:'보관함에서 가져오기',exact:true}).click();await expect(page.getByRole('dialog',{name:'보관함에서 가져오기',exact:true})).toBeVisible();await page.keyboard.press('Escape');
+  await expect(picker).toHaveCount(0);await expect(page.getByRole('button',{name:'새 이미지 선택',exact:true})).toBeFocused();
   const heading=await page.getByRole('region',{name:'페이지 제목',exact:true}).boundingBox();
   const toc=await page.getByRole('navigation',{name:'페이지 목차',exact:true}).boundingBox();
   expect(heading!.y+heading!.height).toBeLessThanOrEqual(toc!.y);
@@ -34,12 +45,19 @@ test('homepage editor previews unsaved content, publishes normalized images and 
   for(const [label,width] of [['PC',1280],['모바일',390]] as const){await page.getByRole('button',{name:label,exact:true}).click();await expect.poll(()=>preview.locator('body').evaluate(()=>innerWidth)).toBe(width);await expect.poll(()=>preview.locator('#welcome-title').evaluate(el=>Math.max(...Array.from(el.children).map(child=>child.scrollWidth))-el.clientWidth)).toBeLessThanOrEqual(1);await expect.poll(()=>preview.getByRole('link',{name:'가'.repeat(24),exact:true}).evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);await expect.poll(async()=>Math.abs(await preview.locator('main').evaluate(el=>el.getBoundingClientRect().height-innerHeight))).toBeLessThanOrEqual(1);}
   const beforeHeight=await page.locator('iframe[title="홈페이지 첫 화면 미리보기"]').getAttribute('style');await page.evaluate(()=>window.postMessage({type:'homepage-preview-height',height:4000},location.origin));expect(await page.locator('iframe[title="홈페이지 첫 화면 미리보기"]').getAttribute('style')).toBe(beforeHeight);
   await preview.locator('body').evaluate((_el,content)=>window.postMessage({type:'homepage-preview',content:{...content,title_line1:'변조된 미리보기'}},location.origin),defaultHomeContent);await expect(preview.locator('#welcome-title')).toContainText(title);
-  await page.getByText('이미지 세부 설정',{exact:true}).click();
-  await page.getByLabel('새 이미지 파일',{exact:true}).setInputFiles({name:'oversize.png',mimeType:'image/png',buffer:Buffer.alloc(4*1024*1024+1)});await expect(page.getByRole('status')).toContainText('4MB 이하');await page.getByRole('button',{name:'파일 선택 취소',exact:true}).click();
+
+  await page.getByRole('button',{name:'새 이미지 선택',exact:true}).click();const choosing=page.waitForEvent('filechooser');await picker.getByRole('button',{name:'기기에서 가져오기',exact:true}).click();await (await choosing).setFiles({name:'oversize.png',mimeType:'image/png',buffer:Buffer.alloc(4*1024*1024+1)});await expect(page.getByRole('status')).toContainText('4MB 이하');await page.getByRole('button',{name:'파일 선택 취소',exact:true}).click();
   const pixels=await sharp({create:{width:900,height:600,channels:4,background:{r:20,g:100,b:60,alpha:.6}}}).png().withMetadata({exif:{IFD0:{Artist:'Synthetic test'}}}).toBuffer();
   const uploaded=page.waitForResponse(r=>r.url().endsWith('/api/images')&&r.request().method()==='POST');await page.getByLabel('새 이미지 파일',{exact:true}).setInputFiles({name:'church.png',mimeType:'image/png',buffer:pixels});const asset=await (await uploaded).json();assets.push(asset.id);await expect(page.getByRole('status')).toContainText('이미지를 올렸습니다');
   expect((await request.get(`/api/images?id=${asset.id}`)).status()).toBe(404);
   await page.getByLabel('이미지 설명',{exact:true}).fill('검수용 초록색 교회 사진');await expect(preview.getByRole('img',{name:'검수용 초록색 교회 사진'})).toHaveJSProperty('complete',true);
+  await expect(page.getByRole('radio',{name:'틀에 채우기',exact:true})).toBeChecked();
+  await page.getByRole('button',{name:'새 이미지 선택',exact:true}).click();
+  await picker.getByRole('button',{name:'기본 교회 일러스트',exact:true}).click();await expect(page.getByRole('radiogroup',{name:'이미지 표시 방식'})).toHaveCount(0);
+  await page.getByRole('button',{name:'새 이미지 선택',exact:true}).click();await picker.getByRole('button',{name:'보관함에서 가져오기',exact:true}).click();
+  const library=page.getByRole('dialog',{name:'보관함에서 가져오기',exact:true});await expect(library.getByRole('button',{name:'홈페이지 표지 선택',exact:true}).first()).toBeVisible();
+  expect((await new AxeBuilder({page}).include('dialog').analyze()).violations).toEqual([]);await page.screenshot({path:'.local/home-image-picker.png',animations:'disabled'});
+  await library.getByRole('button',{name:'홈페이지 표지 선택',exact:true}).first().click();await expect(library).toHaveCount(0);await page.getByLabel('이미지 설명',{exact:true}).fill('검수용 초록색 교회 사진');
   page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'이렇게 반영하기',exact:true}).click();await expect(page.getByRole('status')).toContainText('홈페이지에 반영되었습니다');
   const publicSettings=await request.get('/api/home-content');expect(publicSettings.headers()['cache-control']).toContain('no-store');const saved=(await publicSettings.json()).content;expect(saved.title_line1).toBe(title);expect(saved.revision).toBeUndefined();
   const image=await request.get(`/api/images?id=${asset.id}`);expect(image.status()).toBe(200);const meta=await sharp(await image.body()).metadata();expect(meta.exif).toBeUndefined();expect(meta.hasAlpha).toBe(true);
@@ -51,13 +69,13 @@ test('homepage editor previews unsaved content, publishes normalized images and 
   const old=await db.from('homepage_content').select('*').single();if(old.error)throw old.error;
   const changed=await actor.rpc('save_homepage_content',{p_revision:old.data.revision,p_content:{...old.data,footnote:'다른 탭에서 먼저 저장'}});if(changed.error)throw changed.error;
   await page.getByLabel('하단 환영 문구',{exact:true}).fill('늦게 저장하는 입력');page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'이렇게 반영하기',exact:true}).click();await expect(page.getByRole('status')).toContainText('다른 곳에서 수정');await expect(page.getByLabel('하단 환영 문구',{exact:true})).toHaveValue('늦게 저장하는 입력');
-  page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'이전 설정 불러오기',exact:true}).click();await expect(page.getByLabel('하단 환영 문구',{exact:true})).toHaveValue('다른 탭에서 먼저 저장');
+  page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'이전 설정 불러오기',exact:true}).click();await expect(page.getByLabel('하단 환영 문구',{exact:true})).toHaveValue('다른 탭에서 먼저 저장');await expect(page.getByRole('button',{name:'이전 설정 불러오기',exact:true})).toBeDisabled();await expect(page.getByRole('status')).toHaveCount(0,{timeout:6000});
   const current=await db.from('homepage_content').select('*').single();if(current.error)throw current.error;
   expect((await actor.rpc('save_homepage_content',{p_revision:current.data.revision,p_content:{...current.data,title_line1:'줄\n바꿈'}})).error?.code).toBe('23514');
   const tiny=await request.post('/api/images',{headers:{Authorization:`Bearer ${login.data.session!.access_token}`,'x-image-title':'tiny','x-image-alt':'tiny'},data:await sharp({create:{width:12,height:12,channels:3,background:'#fff'}}).png().toBuffer()});expect(tiny.status()).toBe(201);const tinyAsset=await tiny.json();assets.push(tinyAsset.id);expect((await actor.rpc('save_homepage_content',{p_revision:current.data.revision,p_content:{...current.data,image_asset_id:tinyAsset.id}})).error?.message).toBe('IMAGE_RESOLUTION_REQUIRED');expect((await (await request.get('/api/home-content')).json()).content.image_asset_id).toBe(asset.id);
-  await page.getByRole('combobox',{name:'표시 방식',exact:true}).selectOption('illustration');await expect(preview.getByRole('img',{name:'검수용 초록색 교회 사진'})).toHaveCSS('object-fit','contain');
+  await page.getByRole('radio',{name:'전체 보이기',exact:true}).check();await expect(preview.getByRole('img',{name:'검수용 초록색 교회 사진'})).toHaveCSS('object-fit','contain');
   await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>{(document.activeElement as HTMLElement)?.blur();scrollTo({top:0,behavior:'instant'});});await page.screenshot({path:'.local/home-cms-desktop.png',fullPage:true});
-  await page.getByText('이미지 세부 설정',{exact:true}).click();
+
   for(const width of [1440,1120,768,390,320]){await page.setViewportSize({width,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
   await page.getByRole('button',{name:'모바일',exact:true}).click();await expect.poll(async()=>Math.abs(await preview.locator('main').evaluate(el=>el.getBoundingClientRect().height-innerHeight))).toBeLessThanOrEqual(1);await page.screenshot({path:'.local/home-simple-mobile.png',fullPage:true,animations:'disabled'});
   const adminAxe=await new AxeBuilder({page}).exclude('iframe').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(adminAxe.violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)}))).toEqual([]);
