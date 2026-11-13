@@ -234,6 +234,44 @@ export type Database = {
                 Relationships: [
                 ];
             };
+            "worship_videos": {
+                Row: {
+                    "featured": boolean;
+                    "id": string;
+                    "revision": number;
+                    "service_date": string;
+                    "service_type": string;
+                    "status": string;
+                    "title": string;
+                    "updated_at": string;
+                    "video_id": string;
+                };
+                ComputedFields: never;
+                Insert: {
+                    "featured"?: boolean;
+                    "id"?: string;
+                    "revision"?: number;
+                    "service_date": string;
+                    "service_type": string;
+                    "status"?: string;
+                    "title": string;
+                    "updated_at"?: string;
+                    "video_id": string;
+                };
+                Update: {
+                    "featured"?: boolean;
+                    "id"?: string;
+                    "revision"?: number;
+                    "service_date"?: string;
+                    "service_type"?: string;
+                    "status"?: string;
+                    "title"?: string;
+                    "updated_at"?: string;
+                    "video_id"?: string;
+                };
+                Relationships: [
+                ];
+            };
         };
         Views: {
             [_ in never]: never;
@@ -379,6 +417,35 @@ export type Database = {
                 SetofOptions: {
                     from: "*";
                     to: "community_entries";
+                    isOneToOne: true;
+                    isSetofReturn: false;
+                };
+            };
+            "save_worship_video": {
+                Args: {
+                    "p_date": string;
+                    "p_featured": boolean;
+                    "p_id": string;
+                    "p_revision": number;
+                    "p_status": string;
+                    "p_title": string;
+                    "p_type": string;
+                    "p_video": string;
+                };
+                Returns: {
+                    "featured": boolean;
+                    "id": string;
+                    "revision": number;
+                    "service_date": string;
+                    "service_type": string;
+                    "status": string;
+                    "title": string;
+                    "updated_at": string;
+                    "video_id": string;
+                };
+                SetofOptions: {
+                    from: "*";
+                    to: "worship_videos";
                     isOneToOne: true;
                     isSetofReturn: false;
                 };
