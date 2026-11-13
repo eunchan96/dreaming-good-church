@@ -1,6 +1,6 @@
 # 교회 안내 설정과 로그인 복구
 
-WBS25.16 / PR12. 로컬 구현·검증 단계이며 원격 스키마와 Preview 연결은 새 백업/Drive 검증 뒤 진행한다. 실제 운영 안내값은 임의로 저장하지 않는다.
+WBS25.16 / PR12. 로컬·원격 추가 스키마·Preview 연결까지 완료했다. 실제 운영 안내값은 임의로 저장하지 않았다.
 
 ## 관리자 사용
 
@@ -33,3 +33,16 @@ WBS25.16 / PR12. 로컬 구현·검증 단계이며 원격 스키마와 Preview 
 암호화 백업의 테이블 목록과 SQL 복구·RLS 수용 검사에 새 테이블을 포함했다. 새 테이블이 없는 이전 백업도 지원한다.
 
 로컬 검증: 단위35건, 새 재로그인/설정/계좌 오류 복구3건 및 기존 교회 정보·주보 이미지/공개 화면6건 통과. 묶음별 저장·취소·충돌, DB 입력 거절·익명 권한, 같은/다른 계정 복구, 주소 비공개·푸터 반영,1440/390/320px 넘침/접근성 검사, lint·타입·격리 빌드·로컬 security/performance WARN 검사 통과. 운영 자료로 실행한 검증이 아니다.
+
+
+## 원격 연결 결과
+
+사용자 새 백업 생성 답변 후63061bytes/15files/사진0의 암호화 사본을 개인 Drive 폴더에 업로드하고 재다운로드했다. SHA-256은73384f7e082e30da98d748b240b396b02e871322716b9722e066526bf4d3570f로 PC 원본과 일치한다. Drive파일16edkAowsQApBEkWVJA1ThIVvnUuyKhqC의 부모 폴더·소유자만 권한·비공유를 확인하고 로컬 영수증에 기록했다.
+
+기존9개 이력과 대조 후 추가 마이그레이션20261113141024만 원격 적용했다. 설정0건, RLS활성, 익명key/payload만 읽기·revision/INSERT/RPC불가를 재조회했다. 원격 성능 WARN 없음, 보안은 기존 유출 비밀번호 보호 경고만 유지(https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection). 로컬 security/performance WARN은0이며10개 마이그레이션 shadow재현 결과차이0이다.
+
+Preview dpl_7ZpwABHvBtTJTvX5JjYiAQDd4j3G는124181f47aa83f2bf5295e61275b4bc7f414b01f에서 READY. https://dreaming-good-church-6rv6i828m-eunchan96s-projects.vercel.app/admin/church 에서 확인한다. 공개설정API200/no-store/3그룹과 기존기본값, 관리자4경로200/noindex/재로그인카드, 공개시간·헌금·오시는길·홈4경로200을 확인했다. 해당커밋CI43444262330 성공. 기존운영dpl_ASfp6HvCMXUz79hSuyEb6ssPwbAv 유지, 실제자료저장/병합/Production배포 없음.
+
+회귀검증은 고유브라우저15건(추가권한검증후 재실행포함), 단위35건이다. 새9테이블포함 로컬격리복구에서50테이블의 자료·정책/권한/소유자/함수/이력이 일치했고 원본변경없음·임시DB/덤프제거를 확인했다. 원격백업의 이번실제복구는 재실행하지 않았다.
+
+다음은WBS25.17 공지·일정 관리자 목록/편집 UI 정돈이다. 실제사진·약도와 정식정책·홈관리세부UI·인쇄는 별도후속으로 유지한다.
