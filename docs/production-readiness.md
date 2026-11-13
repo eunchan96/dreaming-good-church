@@ -9,7 +9,7 @@
 - Production 기록에는 초기 시험 `dpl_GifqnfsSQBcbrkrMbncvHdfuZ8sy` / `f5a4a2a` 1개만 있다. API에 rollback candidate로 나오더라도 현재 기능/설정·정상 검수 기준이 충족된 것은 아니므로 복구 기준점으로 채택하지 않는다.
 - 최초 Preview 요청이 Production으로 처리된 과거 이력이 있다. 새 Preview는 API target=staging을 사용한다. Production 생성은 명시적인 출시 단계에서 구분한다.
 
-## 적용안 — 사용자 선택 전
+## 적용안 — 사용자 승인 및 변수 등록 완료
 
 기준 주소는 기본 `https://dreaming-good-church.vercel.app`를 제안한다. 보유 도메인을 사용할 경우 도메인 연결·Auth 허용 주소·Origin 허용 목록을 실제 이름으로 다시 검토한다. 도메인을 임의로 구입하거나 DNS를 변경하지 않는다.
 
@@ -44,7 +44,9 @@ Hobby의 Instant Rollback은 바로 이전 Production에 한정된다. 이전 �
 
 ## 적용/검증 기록
 
-현재 사용자 선택 대기: 기준 운영 주소, Production 변수3개(서버 키 Sensitive 포함) 등록 승인. 변수 등록 뒤에는 값을 복호화하지 않고 대상/타입 메타데이터로 확인한다. 출시/병합/보호 설정 변경은 아직 실행하지 않았다.
+2026-11-13 사용자가 기본 운영 주소 사용과 Production 변수3개 등록을 명시 승인했다. 기존 로컬 설정의 해당3개를 등록했으며, 복호화하지 않은 메타데이터에서 Production URL/public key는 plain, 서버 키는 sensitive임을 확인했다. 기존 Preview 변수3개도 유지되어 있다. 키 값은 문서에 기록하지 않았다. 출시/병합/보호 설정 변경은 아직 실행하지 않았다. 변수만 등록했으므로 기존503 응답이 해결되었다고 판정하지 않는다.
+
+운영 주소는 `https://dreaming-good-church.vercel.app`로 확정했다. 앱의 운영 Origin 허용 목록과 Supabase Auth redirect 반영은 다음 출시 준비 단계에서 수행한다. 현재 Auth Site URL은 검수 주소를 유지한다.
 
 이 준비만으로 WBS42 전체나 WBS43 출시를 완료 처리하지 않는다. 백업 주기·보존/암호 별도 보관, 비상 연락체계, 실제 Production 검수/롤백 등 남은 조건은 각 작업에 유지한다.
 
