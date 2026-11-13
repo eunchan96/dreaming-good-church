@@ -37,4 +37,10 @@ YouTube watch·youtu.be·live·shorts·embed 링크 또는11자리 ID를 받는�
 - 관리자·공개 흐름 신규2건 및 기존 공통 UI/홈5건 통과: 초안/보관 비노출, 멤버십 회수/비편집자 거절, 대표 변경과 충돌 롤백,24개 동일/다른 날짜 페이지, 키보드 선택, 네트워크 실패 입력 유지, smooth 실제 호출/스크롤,1440/768/390/320px·자체 접근성. 외부 YouTube 플레이어 내부는 검사 범위에서 제외했다.
 - 단위 테스트·타입/lint·격리 출력 빌드 통과. 새 테이블 포함 SQL 백업의 격리 컨테이너 복구·값/행수·RLS 검증과 성공/실패 후 컨테이너 제거 통과.
 
-원격 연결은 최신 사용자 암호화 백업 생성 → Drive사본 검증 → 추가 마이그레이션 적용/익명 권한 검증 → Preview 연결 검증 순서다. 이 기록 시점에는 백업 답변 대기이며 운영 연결 DB 미적용이다. Production/main 병합·실제 영상 게시는 포함하지 않는다.
+2026-11-13 사용자 새 암호화 백업 생성 확인 후 기존 개인 Drive폴더에 업로드/재다운로드하여 원본 SHA-256 일치를 확인했다(54,054bytes,12files,사진0; 복구 암호를 받거나 복호화하지 않음). 로컬 영수증에 Drive사본 검증과 파일ID를 기록했다. 실제 적용된6개 이력만 백업에 포함됐으며, 이후 신규 마이그레이션20261113093440 하나를 명시적 원격 프로젝트에 적용했다.
+
+원격 RLS활성/빈 영상 테이블, 익명 공개 열 SELECT허용·상태열 SELECT/INSERT/저장함수 실행 불가, 저장함수 security invoker, 비편집자의 읽기/저장 거절을 조회/롤백 트랜잭션으로 검증했다. 실제 영상은 등록/게시하지 않았다. 기존 자료/Auth/키는 변경하지 않았다.
+
+검증 커밋684ee3b의 CI43405174038 성공. Preview `dpl_HfMKwN7VuHJnEwtYcAu48ADdc7eH`에 배포해 예배4종 목록API200(빈 목록), 잘못된 종류400, 관리자/예배2경로/홈200을 확인했다. 검수 주소: https://dreaming-good-church-kjlwbxxoc-eunchan96s-projects.vercel.app/admin/worship . 실제 운영 도메인은 기존ASfp 배포를 유지하며 main병합/Production배포를 하지 않았다.
+
+원격 advisors는 신규 영상 관련 지적 없음. 기존Auth의 유출 비밀번호 검사 비활성 경고와 기존 이미지참조 unused-index정보가 남아 있다. 인덱스를 제거하거나 Auth설정을 변경하지 않았다. 비밀번호 보호 후속 참고: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection .
