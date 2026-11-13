@@ -34,6 +34,7 @@ test('shared admin navigation protects unsaved church edits and all workspaces f
     const member=await local.from('church_editors').insert({user_id:id});if(member.error)throw member.error;
     await page.goto('/admin/bulletins');await page.getByLabel('이메일',{exact:true}).fill(email);await page.getByLabel('비밀번호',{exact:true}).fill(password);await page.getByRole('button',{name:'로그인',exact:true}).click();
     await expect(page.getByRole('navigation',{name:'관리 메뉴',exact:true})).toBeVisible();
+    await expect(page.getByRole('navigation',{name:'페이지 목차',exact:true})).toBeVisible();
     for(const [path,title] of [['/admin/bulletins','주보 관리'],['/admin/community','공지·일정 관리'],['/admin/church','교회 정보·이미지 관리']]){
       await page.goto(path);await expect(page.getByRole('button',{name:'로그아웃',exact:true})).toBeVisible();
       await expect(page.getByRole('heading',{name:title,level:1,exact:true})).toBeVisible();

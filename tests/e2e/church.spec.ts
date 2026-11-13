@@ -20,9 +20,9 @@ test("edit church info, upload normalized private image, attach/publish and prot
     await manager.getByLabel("연락처 웹 공개", { exact: true }).uncheck();
     await manager.setViewportSize({ width: 320, height: 844 });
     expect(await manager.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await manager.route("**/rpc/save_church_info", route => route.fulfill({ status: 503, json: { message: "unavailable" } }), { times: 1 });
-    await manager.getByRole("button", { name: "교회 정보 저장", exact: true }).click();
-    await expect(manager.getByRole("status")).not.toBeEmpty();
+    await manager.route("**/rest/v1/church_info?*", route => route.request().method()==='PATCH'?route.fulfill({ status: 503, json: { message: "unavailable" } }):route.continue(), { times: 1 });
+    await manager.getByRole("button", { name: "교회 이름 저장", exact: true }).click();
+    await expect(manager.getByRole('region',{name:'교회 이름 편집',exact:true}).getByRole("status")).not.toBeEmpty();
     await expect(manager.getByLabel("교회 이름", { exact: true })).toHaveValue("검증용 교회 안내");
     await expect(manager.getByLabel("연락처 웹 공개", { exact: true })).not.toBeChecked();
     const authTab = await context.newPage(); await authTab.goto("/admin/bulletins");
@@ -36,14 +36,16 @@ test("edit church info, upload normalized private image, attach/publish and prot
     await page.getByLabel("이메일", { exact: true }).fill(email);
     await page.getByLabel("비밀번호", { exact: true }).fill(password);
     await page.getByRole("button", { name: "로그인", exact: true }).click();
-    await manager.getByRole("button", { name: "교회 정보 저장", exact: true }).click(); await expect(manager.getByRole("status")).toContainText("교회 정보를 저장했습니다");
+    await manager.getByRole("button", { name: "교회 이름 저장", exact: true }).click(); await expect(manager.getByRole('region',{name:'교회 이름 편집',exact:true}).getByRole("status")).toContainText("저장했습니다");
+    await manager.getByRole("button", { name: "연락처 저장", exact: true }).click(); await expect(manager.getByRole('region',{name:'연락처 편집',exact:true}).getByRole("status")).toContainText("저장했습니다");
     const publicInfo = await page.request.get("/api/church"); expect(await publicInfo.text()).not.toContain("공개하면 안 되는 연락처");
-    const reader = await context.newPage(); await reader.goto("/church"); await expect(reader.getByText("검증용 교회 안내", { exact: true })).toBeVisible();
+    const publicName=(await publicInfo.json()).fields.find((f:{key:string})=>f.key==='name');expect(publicName.body).toBe('검증용 교회 안내');
+    const reader=await context.newPage();await reader.goto('/church');await expect(reader.getByText('검증용 교회 안내',{exact:true})).toBeVisible();
     const pixels = await sharp({ create: { width: 3000, height: 1500, channels: 3, background: "#008040" } }).png().toBuffer();
     await manager.getByLabel("이미지 제목", { exact: true }).fill("검증용 주보 표지");
     await manager.getByLabel("이미지 설명 (대체텍스트)", { exact: true }).fill("초록색 표지 이미지");
     await manager.getByLabel("이미지 파일", { exact: true }).setInputFiles({ name: "cover.png", mimeType: "image/png", buffer: pixels });
-    await manager.getByRole("button", { name: "이미지 올리기", exact: true }).click(); await expect(manager.getByRole("status")).toContainText("이미지를 올렸습니다");
+    await manager.getByRole("button", { name: "이미지 올리기", exact: true }).click(); await expect(manager.locator('[data-page-message]')).toContainText("이미지를 올렸습니다");
     const asset = await admin.from("bulletin_images").select("*").eq("title", "검증용 주보 표지").single(); if (asset.error) throw asset.error; imageId = asset.data.id;
     expect(asset.data.width).toBe(2400); expect(asset.data.height).toBe(1200);
     expect((await page.request.get(`/api/images?id=${imageId}`)).status()).toBe(404);
@@ -74,12 +76,12 @@ test("edit church info, upload normalized private image, attach/publish and prot
     const pdfDoc = await PDFDocument.load(await publicPdf.body());
     expect(pdfDoc.context.enumerateIndirectObjects().some(([, object]) => object instanceof PDFRawStream && object.dict.get(PDFName.of("Subtype")) === PDFName.of("Image"))).toBe(true);
     await reader.goto("/bulletins"); await expect(reader.getByRole("img", { name: "초록색 표지 이미지" })).toBeVisible();
-    manager.once("dialog", d => d.accept()); await manager.getByRole("button", { name: "검증용 주보 표지 이미지 삭제", exact: true }).click(); await expect(manager.getByRole("status")).toContainText("사용 중인 이미지는 삭제할 수 없습니다");
+    manager.once("dialog", d => d.accept()); await manager.getByRole("button", { name: "검증용 주보 표지 이미지 삭제", exact: true }).click(); await expect(manager.locator('[data-page-message]')).toContainText("사용 중인 이미지는 삭제할 수 없습니다");
     page.once("dialog", d => d.accept()); await page.getByRole("button", { name: "게시 취소", exact: true }).click();
     await expect(page.getByRole("button", { name: "주보 게시", exact: true })).toBeVisible(); expect((await page.request.get(`/api/images?id=${imageId}`)).status()).toBe(404);
     page.once("dialog", d => d.accept()); await page.getByRole("button", { name: "검증용 주보 표지 삭제", exact: true }).click();
     await expect.poll(async () => (await admin.from("bulletin_items").select("id").eq("bulletin_id", bulletin)).data?.length).toBe(0);
-    manager.once("dialog", d => d.accept()); await manager.getByRole("button", { name: "검증용 주보 표지 이미지 삭제", exact: true }).click(); await expect(manager.getByRole("status")).toContainText("이미지를 삭제했습니다");
+    manager.once("dialog", d => d.accept()); await manager.getByRole("button", { name: "검증용 주보 표지 이미지 삭제", exact: true }).click(); await expect(manager.locator('[data-page-message]')).toContainText("이미지를 삭제했습니다");
   } finally {
     await admin.from("bulletins").delete().eq("id", bulletin);
     if (imageId) { await admin.from("bulletin_images").delete().eq("id", imageId); await admin.storage.from("bulletin-images").remove([`${imageId}.webp`]); }
