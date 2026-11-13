@@ -4,11 +4,10 @@ import AxeBuilder from "@axe-core/playwright";
 for (const width of [390, 1280]) {
   test(`public pages pass accessibility checks at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
-    for (const path of ["/", "/bulletins", "/church", "/notices", "/events"]) {
+    for (const path of ["/", "/bulletins", "/church", "/notices", "/events", "/install", "/torah-tov"]) {
       await page.goto(path);
       await expect(page.locator("#public-content h1")).toBeVisible();
       await expect(page.getByText(/불러오고 있습니다/)).toHaveCount(0);
-      if (path === "/church") await page.getByText("홈 화면에 추가 · 설치 안내", { exact: true }).click();
       // Audit our UI; YouTube's cross-origin player markup is provider-controlled.
       // Our iframe's accessible title and destination are covered in home-redesign.spec.ts.
       const results = await new AxeBuilder({ page }).exclude('iframe[src^="https://www.youtube-nocookie.com/"]').withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();

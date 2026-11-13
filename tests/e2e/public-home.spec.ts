@@ -13,7 +13,8 @@ test("public home adapts navigation without horizontal overflow", async ({ page 
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   }
   await page.getByRole("navigation", { name: "모바일 주 메뉴" }).getByRole("link", { name: "교회 소식", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "교회 공지" })).toBeVisible();
+  await expect(page).toHaveURL(/\/notices$/);
+  await expect(page.getByRole("heading", { name: "교회 소식", level:1 })).toBeVisible();
   await page.getByRole('button', { name: '전체 메뉴 열기' }).click();
   await expect(page.getByRole("navigation", { name: "모바일 주 메뉴" }).getByRole("link", { name: "교회 소식", exact: true })).toHaveAttribute("aria-current", "page");
 });

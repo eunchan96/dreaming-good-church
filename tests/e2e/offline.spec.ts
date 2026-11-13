@@ -1,8 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test("explicit public snapshot works offline and never caches admin or API responses", async ({ page, context }) => {
-  await page.goto("/church");
-  await page.getByText("홈 화면에 추가 · 설치 안내", { exact: true }).click();
+  await page.goto("/install");
   const save = page.getByRole("button", { name: "공개 주보·안내 저장", exact: true });
   await expect(save).toBeEnabled({ timeout: 20000 });
   await save.click();
@@ -41,8 +40,7 @@ test("explicit public snapshot works offline and never caches admin or API respo
 });
 
 test("a failed snapshot refresh removes the previous saved copy", async ({ page, context }) => {
-  await page.goto('/church');
-  await page.getByText('홈 화면에 추가 · 설치 안내', { exact: true }).click();
+  await page.goto('/install');
   const save = page.getByRole('button', { name: '공개 주보·안내 저장', exact: true });
   await expect(save).toBeEnabled({ timeout: 20000 }); await save.click();
   await expect(page.getByText(/공개 주보와 안내를 저장했습니다/)).toBeVisible();
@@ -55,8 +53,7 @@ test("a failed snapshot refresh removes the previous saved copy", async ({ page,
 
 test("insecure mobile HTTP explains why offline storage is unavailable", async ({ page }) => {
   await page.addInitScript(() => Object.defineProperty(window, 'isSecureContext', { value: false }));
-  await page.goto('/church');
-  await page.getByText('홈 화면에 추가 · 설치 안내', { exact: true }).click();
+  await page.goto('/install');
   await expect(page.getByText(/오프라인 저장은 HTTPS 주소에서 사용할 수 있습니다/)).toBeVisible();
   await expect(page.getByRole('button', { name: '공개 주보·안내 저장', exact: true })).toBeDisabled();
 });
