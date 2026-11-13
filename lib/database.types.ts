@@ -234,6 +234,70 @@ export type Database = {
                 Relationships: [
                 ];
             };
+            "homepage_content": {
+                Row: {
+                    "description_line1": string;
+                    "description_line2": string;
+                    "focus_x": number;
+                    "focus_y": number;
+                    "footnote": string;
+                    "id": boolean;
+                    "image_alt": string;
+                    "image_asset_id": string | null;
+                    "image_mode": string;
+                    "image_ratio": string;
+                    "link_label": string;
+                    "revision": number;
+                    "title_line1": string;
+                    "title_line2": string;
+                };
+                ComputedFields: never;
+                Insert: {
+                    "description_line1": string;
+                    "description_line2": string;
+                    "focus_x": number;
+                    "focus_y": number;
+                    "footnote": string;
+                    "id"?: boolean;
+                    "image_alt": string;
+                    "image_asset_id"?: string | null;
+                    "image_mode": string;
+                    "image_ratio": string;
+                    "link_label": string;
+                    "revision"?: number;
+                    "title_line1": string;
+                    "title_line2": string;
+                };
+                Update: {
+                    "description_line1"?: string;
+                    "description_line2"?: string;
+                    "focus_x"?: number;
+                    "focus_y"?: number;
+                    "footnote"?: string;
+                    "id"?: boolean;
+                    "image_alt"?: string;
+                    "image_asset_id"?: string | null;
+                    "image_mode"?: string;
+                    "image_ratio"?: string;
+                    "link_label"?: string;
+                    "revision"?: number;
+                    "title_line1"?: string;
+                    "title_line2"?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "homepage_content_image_asset_id_fkey";
+                        columns: [
+                            "image_asset_id"
+                        ];
+                        isOneToOne: false;
+                        referencedRelation: "bulletin_images";
+                        referencedColumns: [
+                            "id"
+                        ];
+                    }
+                ];
+            };
             "worship_videos": {
                 Row: {
                     "featured": boolean;
@@ -417,6 +481,34 @@ export type Database = {
                 SetofOptions: {
                     from: "*";
                     to: "community_entries";
+                    isOneToOne: true;
+                    isSetofReturn: false;
+                };
+            };
+            "save_homepage_content": {
+                Args: {
+                    "p_content": Json;
+                    "p_revision": number;
+                };
+                Returns: {
+                    "description_line1": string;
+                    "description_line2": string;
+                    "focus_x": number;
+                    "focus_y": number;
+                    "footnote": string;
+                    "id": boolean;
+                    "image_alt": string;
+                    "image_asset_id": string | null;
+                    "image_mode": string;
+                    "image_ratio": string;
+                    "link_label": string;
+                    "revision": number;
+                    "title_line1": string;
+                    "title_line2": string;
+                };
+                SetofOptions: {
+                    from: "*";
+                    to: "homepage_content";
                     isOneToOne: true;
                     isSetofReturn: false;
                 };

@@ -5,12 +5,13 @@ import { useRef, useState, type ReactNode } from 'react';
 import SiteIcon from '../site-icon';
 import styles from './admin-shell.module.css';
 const links = [
+  { key:'home',href:'/admin/home',label:'홈페이지 관리' },
   { key:'worship',href:'/admin/worship',label:'예배 영상 관리' },
   { key:'bulletins',href:'/admin/bulletins',label:'주보 관리',description:'작성·검토·게시',icon:'book' as const },
   { key:'community',href:'/admin/community',label:'공지·일정 관리',description:'교회 소식과 모임',icon:'clock' as const },
   { key:'church',href:'/admin/church',label:'교회 정보·이미지 관리',description:'인사말·방문 안내·사진',icon:'pin' as const },
 ];
-export default function AdminShell({ children, active, authenticated = false, canLeave = () => true, onLogout, busy = false, sections = [] }: { children:ReactNode; active:'bulletins'|'community'|'church'|'account'|'worship'; authenticated?:boolean; canLeave?:()=>boolean; onLogout?:()=>void | Promise<void>; busy?:boolean; sections?:{id:string;label:string}[] }) {
+export default function AdminShell({ children, active, authenticated = false, canLeave = () => true, onLogout, busy = false, sections = [] }: { children:ReactNode; active:'bulletins'|'community'|'church'|'account'|'worship'|'home'; authenticated?:boolean; canLeave?:()=>boolean; onLogout?:()=>void | Promise<void>; busy?:boolean; sections?:{id:string;label:string}[] }) {
   const [menu,setMenu] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
   return <div className={styles.shell} data-auth={authenticated} onKeyDown={e=>{if(e.key==='Escape'&&menu){setMenu(false);menuButton.current?.focus();}}}>
