@@ -40,7 +40,9 @@ test('applied migration inventory is taken from history and validates optional v
  assert.deepEqual(appliedMigrationVersions('COPY supabase_migrations.schema_migrations (version, statements, name) FROM stdin;\n20261112072355\t{}\told\n20261113093440\t{}\tvideo\n\\.\n'),['20261112072355','20261113093440']);
  assert.throws(()=>appliedMigrationVersions('COPY supabase_migrations.schema_migrations (version) FROM stdin;\nbad\n\\.\n'),/Invalid/);
  const bundle=fixture();const inventoryFile=bundle.files.find(f=>f.path==='inventory.json');const inventory=JSON.parse(Buffer.from(inventoryFile.data,'base64'));inventory.tables.worship_videos=[];
+ inventory.tables.homepage_content=[];
  const bytes=Buffer.from(JSON.stringify(inventory));inventoryFile.data=bytes.toString('base64');inventoryFile.sha256=sha256(bytes);inventoryFile.bytes=bytes.length;bundle.metadata.sourceInventorySha256=sha256(bytes);
- const data=bundle.files.find(f=>f.path==='data.sql');const sql=Buffer.from(Buffer.from(data.data,'base64').toString()+'COPY public.worship_videos (id) FROM stdin;\n\\.\n');data.data=sql.toString('base64');data.sha256=sha256(sql);data.bytes=sql.length;
+ const data=bundle.files.find(f=>f.path==='data.sql');const sql=Buffer.from(Buffer.from(data.data,'base64').toString()+'COPY public.worship_videos (id) FROM stdin;\n\\.\nCOPY public.homepage_content (id) FROM stdin;\n\\.\n');data.data=sql.toString('base64');data.sha256=sha256(sql);data.bytes=sql.length;
  assert.equal(sqlBackupContents(bundle).tableKeys.worship_videos,'id');
+ assert.equal(sqlBackupContents(bundle).tableKeys.homepage_content,'id');
 });
