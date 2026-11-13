@@ -49,6 +49,27 @@
 
 ## 승인·결과 기록
 
-현재: 배포안 준비. 실제 Production 생성·도메인 전환·PR 병합·보호 설정 변경은 미실행. 이번 승인 질문은 위 지정 커밋의 Production 배포 및 검수 실패 시 기존503 배포로의 전환 철회를 함께 명시한다.
+사용자가 지정 커밋 Production 배포 및 검수 실패 시 기존503 배포로의 전환 철회를 승인했다. 2026-11-13 12:52 KST 기준 첫 정상 Production 배포와 검수를 완료했다. 실제 병합·보호·DB/자료/Auth Site URL 변경은 수행하지 않았다. 검수가 통과하여 철회는 실행하지 않았다.
+
+| 기준점 | 확인 결과 |
+| --- | --- |
+| 배포 | dpl_EMpcY533KjrfQ8M7LE43niidLKqb, READY, Production |
+| 고정 소스 | ff5cb986a57ce7184118f17825de695528ca0dbe |
+| 운영 주소 | https://dreaming-good-church.vercel.app |
+| 고유 주소 | https://dreaming-good-church-f1uepymbi-eunchan96s-projects.vercel.app |
+| 실행 환경 | 프로젝트 Node24, 함수 서울icn1, 기존 Production 변수3개 |
+| DB | 원래 zefnxczgwpsmfcixonpb, 마이그레이션6개 유지 |
+| Preview | 고정 별칭의 실제 대상이 기존 Cwg임을 get_alias로 확인 |
+| 보호 | all_except_custom_domains 설정 유지. 기본 운영 주소는 비로그인 API200, 고유 배포는 비로그인302 Vercel 인증/연결 도구로200 |
+
+배포 후 로그인/우회 없는 요청에서 API11개 검증을 통과했다. 주보·교회 안내·공지·일정200, 빈 주보/공지/일정 목록, 없는 주보/PDF/이미지404, 잘못된 날짜/월400, 비인증 이미지 POST/DELETE401 및 no-store를 확인했다. 기본 주소의 주보 API503은200 정상 빈 목록으로 바뀌었다.
+
+별도 Edge 브라우저에서 PC1440px·모바일390px 각각 홈·주보·공지·일정·교회 안내·주보 관리·계정7개 화면이200이며 가로 넘침과 처리되지 않은 JavaScript 오류가 없음을 확인했다. 사용자가 실제 운영 주소에서 기존 계정의 로그인→목록→새로고침→로그아웃을 정상 확인했다. 비밀번호는 전달받지 않았다.
+
+운영 DB 쓰기 없이 배포 전후 주보0·이미지0·Storage0·운영자1을 재확인했다. 실제 게시 주보가 없어 운영 사진/PDF 본문과 게시/취소 흐름, 실물 인쇄는 미검증이다. 과거 임시 자료 검수를 현재 운영 콘텐츠 검수로 대체하지 않는다.
+
+이 배포를 첫 정상 Production 기준점으로 채택한다. 이후 변경 배포의 복구 기준으로 보존하지만, 실제 Production 롤백 훈련까지 수행했다는 뜻은 아니다. 초기503 배포와는 구분한다. WBS42/43은 남은 운영 정책·롤백/실제 콘텐츠 조건 때문에 진행 중을 유지한다.
+
+통합 PR9의 e325d38 CI43361247053도 lint·타입·단위 테스트·빌드 및 별도 PR 자동화가 통과했다. 배포는 문서 후속 커밋이 아닌 위 ff5cb98 소스를 그대로 사용했다.
 
 관련: [설정 준비](production-readiness.md), [운영 복구](operations-recovery.md), [Vercel 배포 API](https://vercel.com/docs/rest-api/deployments/create-a-new-deployment), [Instant Rollback](https://vercel.com/docs/instant-rollback).

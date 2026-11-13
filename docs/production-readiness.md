@@ -2,6 +2,8 @@
 
 ## 확인한 현황 · 2026-11-13
 
+최신 결과: 사용자 승인 후 ff5cb98의 첫 정상 Production dpl_EMpcY533KjrfQ8M7LE43niidLKqb 배포 및 자동/실제 관리자 검수를 완료했다. 운영 주소의 주보 API는200이며 빈 목록이 정상 표시된다. [첫 배포 결과와 기준점](first-production-release.md)을 따른다. 아래 초기 점검의 변수 부재/503/기준점 부재는 배포 전 이력이다.
+
 - Vercel 프로젝트: `dreaming-good-church`, `prj_1EePlmXl4ZLPoUoYKFhK0OTls86X`, 팀 `eunchan96s-projects`.
 - 기본 주소 `https://dreaming-good-church.vercel.app`는 이 프로젝트에 연결·검증되어 있다. 새 도메인 구입은 필요하지 않다.
 - 환경변수3개는 모두 Preview 전용이다. Production 변수는 없다. 기본 운영 주소의 공개 주보 API는 현재503으로 서비스를 준비 중이라고 응답한다.
