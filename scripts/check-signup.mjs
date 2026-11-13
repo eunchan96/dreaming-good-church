@@ -1,0 +1,12 @@
+import { createClient } from "@supabase/supabase-js";
+import { randomUUID } from "node:crypto";
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+const response = await fetch(`${url}/auth/v1/settings`, { headers: { apikey: key } });
+if (!response.ok) throw new Error("Cannot read public Auth settings");
+const settings = await response.json();
+if (settings.disable_signup !== true) throw new Error("Signup is enabled; skipped signup probe to avoid creating an account.");
+const client = createClient(url, key, { auth: { persistSession: false } });
+const { error, data } = await client.auth.signUp({ email: `signup-probe-${randomUUID()}@example.test`, password: randomUUID() });
+if (!error || data.user || error.code !== "signup_disabled") throw new Error("Expected signup_disabled");
+console.log("Verified: public settings disable_signup=true; signup API rejects new registrations (signup_disabled). No account created.");
