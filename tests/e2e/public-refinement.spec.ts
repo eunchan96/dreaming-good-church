@@ -26,7 +26,7 @@ test('public weekly sections recover, render long content and follow news naviga
   await expect(page.getByRole('navigation',{name:'소식 메뉴'}).getByRole('link',{name:'토라&토브'})).toHaveAttribute('aria-current','page');
 });
 test('confirmed offering and afternoon time, zoomed directions and anonymous API contract', async ({ page, request }) => {
-  await page.route('**/api/church',r=>r.fulfill({json:{fields:[]}}));
+  await page.route('**/api/church',r=>r.fulfill({json:{fields:['name','address','phone','introduction','directions','worship'].map(key=>({key,body:''}))}}));
   await page.goto('/church/offering');
   for(const number of ['301-0223-0182-71','301-0220-0484-81'])await expect(page.getByText(number,{exact:true})).toBeVisible();
   await page.goto('/church/worship-times');await expect(page.getByText('첫째·셋째 주일 오후 1:00',{exact:true})).toBeVisible();
@@ -37,7 +37,7 @@ test('confirmed offering and afternoon time, zoomed directions and anonymous API
   const r=await request.get('/api/bulletin-sections?section=torah-tov');expect(r.ok()).toBe(true);expect(Array.isArray((await r.json()).items)).toBe(true);
 });
 test('weekly service passages sit under their own times and stay out of the introduction timetable',async({page})=>{
-  await page.route('**/api/church',r=>r.fulfill({json:{fields:[]}}));
+  await page.route('**/api/church',r=>r.fulfill({json:{fields:['name','address','phone','introduction','directions','worship'].map(key=>({key,body:''}))}}));
   let fail=false;
   await page.route('**/api/bulletin-sections?section=worship',r=>r.fulfill(fail?{status:503,json:{}}:{json:{serviceDate:'2026-11-08',readings:{dawn:'사도행전 11장',friday:'갈라디아서 1장',sunday:'사도행전 12장'}}}));
   await page.goto('/worship');
