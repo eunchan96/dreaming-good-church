@@ -1,5 +1,11 @@
 # Vercel 검수 배포
 
+## 관리자 계정 흐름 반영 · 2026-11-13 최신
+
+소스 `9e3f80b`, 새 Preview `dpl_CwgQXrLLHLVCmWuPqzFRgXkDNBeS` READY, Node24/서울icn1/API target=staging. 로컬 계정 브라우저5건 통과 후 기존 고정 검수 별칭을 새 배포로 연결했다. 고정 주소의 관리자 계정/주보 경로와 공개 주보 API200, 새 ‘계정 링크 확인’ UI를 확인했다.
+
+사용자가 기존 배포 계정 로그인·새로고침·로그아웃을 확인했다. 원격 Auth Site/Redirect URL은 사용자 대시보드 저장 후 재조회했고 가입 제한은 유지된다. 자세한 범위와 계정 링크 생성은 `deployed-accounts.md`에 있다. 기본 Vercel 보호·Preview 전용 변수는 유지하며 Production 출시/병합과 실제 계정 비밀번호 변경은 수행하지 않았다. 아래는 이전 배포의 이력이다.
+
 ## 최신 운영 준비 확인 · 2026-11-13
 
 아래 초기 검수 기록 이후 PR CI 실제 실행과 Android 사진/PDF/오프라인 검수가 통과했다. 일회성 검수 DB는 삭제했고 현재 Preview는 기존 DB로 연결을 복구했다. `temporary-preview.md`, `ci.md`에 결과가 있다.

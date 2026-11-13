@@ -100,11 +100,11 @@ DB·브라우저 테스트는 `127.0.0.1:54321`에만 접속한다. 임시 계�
 신뢰할 수 있는 로컬 터미널에서만 다음 명령을 실행한다. 메일을 보내지 않고 초대와 편집 권한을 등록한다.
 
 ```powershell
-node --env-file=.env.local scripts/invite-editor.mjs <관리자이메일>
+node --env-file=.env.local scripts/invite-editor.mjs 담당이메일 --origin https://dreaming-good-church-git-codex-bulle-a36b08-eunchan96s-projects.vercel.app --type invite
 ```
 
-생성된 `.local/admin-invite.html`을 브라우저로 열어 설정 링크를 누른다. 개발 서버는 3000번 포트여야 한다.
-링크가 만료되면 아직 수락하지 않은 계정에 위 명령으로 재발급한다. 이미 설정한 계정의 비밀번호 재설정은 별도 후속 기능이다.
+생성된 `.local/admin-invite-UUID.html`을 브라우저로 열어 설정 링크를 누른다. 링크 대상 Origin은 명시해야 하며 고정 검수 주소와 허용된 로컬 주소만 사용할 수 있다.
+링크가 만료되면 아직 수락하지 않은 계정에 재발급한다. 기존 운영자는 실제 필요할 때 `--type recovery`를 사용한다. [배포 계정 안내](deployed-accounts.md)에 범위와 주의점을 정리했다.
 `.local`은 Git에서 제외되며 링크·비밀번호·서비스 키를 Notion이나 커밋에 기록하지 않는다.
 초대 링크 생성은 [generateLink](https://supabase.com/docs/reference/javascript/auth-admin-generatelink), 수락은 [verifyOtp](https://supabase.com/docs/reference/javascript/auth-verifyotp)를 사용한다.
 
@@ -112,7 +112,7 @@ node --env-file=.env.local scripts/invite-editor.mjs <관리자이메일>
 
 1. 일정·공지의 별도 관리와 주보 연결은 [구현 문서](community.md) 참고. 공개 목록 페이지네이션·주보 예약 공개는 후속 작업.
 2. 이미지 업로드·교회 정보 관리는 [구현 문서](church-images.md) 참고. 인쇄 4면·공개용/인쇄용 PDF 분리는 후속.
-3. 배포 URL 설정 및 비밀번호 재설정 흐름. 디자인 세부 시안은 후속 검토.
+3. 배포 Auth URL과 token_hash 초대/재설정 흐름은 [배포 계정 안내](deployed-accounts.md)에 반영. 자동 복구 메일·기본 메일 템플릿 흐름 및 디자인 세부 시안은 후속 검토.
 4. HWP 원본 확보 후 인식과 검수 가져오기.
 
 운영 Auth는 이미 가입 차단 상태였으며 `scripts/check-signup.mjs`로 실제 `signup_disabled` 응답을 확인했다.
