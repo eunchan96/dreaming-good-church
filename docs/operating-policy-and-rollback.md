@@ -1,5 +1,7 @@
 # 백업 운영 정책과 Production 롤백 훈련
 
+최신 결과: 사용자 승인과 새 백업/Drive 검증 후 A→B→A 롤백→B Promote를 완료했다. 현재 정상은 B=dpl_ASfp6HvCMXUz79hSuyEb6ssPwbAv, 이전 정상은 A=EMpc다. [훈련 결과](rollback-drill-2026-11-13.md)에 실제 시각·대상·응답과 범위를 기록했다. 아래 적용안은 실행 전 작성한 절차 이력이다.
+
 ## 확정한 운영 정책 · 2026-11-13
 
 사용자가 다음 기준을 선택했다. 정책 확정과 실제 백업 실행/정리/자동화는 구분한다.
@@ -54,6 +56,6 @@ B 빌드/검수가 실패하면 정상 A를 유지/복귀한다. A로의 롤백�
 
 ## 진행 기록
 
-운영 정책은 위 사용자 선택대로 확정했다. 롤백 훈련은 이 문서 작성 시점에는 준비만 완료했으며 B 생성·실제 롤백·Promote는 미실행이다. 이전의 '첫 배포 실패 시503으로 철회' 승인을 이번 정상 상태의 전환 훈련 승인으로 재사용하지 않는다.
+운영 정책은 위 사용자 선택대로 확정했다. 적용안 작성 시점에는 훈련 준비만 했고 이후 사용자가 별도로 실행 승인했다. 새 백업/Drive 검증 후 B 생성·A 롤백·B Promote와 단계별 검수를 완료했다. 이전의 '첫 배포 실패 시503으로 철회' 승인을 재사용하지 않았다.
 
 관련: [운영 복구](operations-recovery.md), [암호화 백업](encrypted-backups.md), [첫 정상 배포](first-production-release.md), [공식 Instant Rollback](https://vercel.com/docs/instant-rollback), [공식 Promote](https://vercel.com/docs/deployments/promoting-a-deployment).
