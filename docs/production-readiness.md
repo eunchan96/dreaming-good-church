@@ -50,7 +50,7 @@ Hobby의 Instant Rollback은 바로 이전 Production에 한정된다. 이전 �
 
 ### Supabase Auth redirect 준비 · 2026-11-13
 
-원격 읽기로 현재 Site URL=고정 검수 주소, Redirect URLs=기존 localhost callback+검수 `/admin/account` 2개를 확인했다. 현재 CLI 계정은 이전 Auth 변경에서403이 확인되어, 운영 redirect 추가는 대시보드 담당자 저장을 기다린다.
+최초 원격 읽기로 Site URL=고정 검수 주소, Redirect URLs=기존 localhost callback+검수 `/admin/account` 2개를 확인했다. CLI 계정은 이전 Auth 변경에서403이 확인되어 담당자가 대시보드에서 추가·저장했다. 2026-11-13 재조회에서 기존2개와 운영 `/admin/account`가 함께 있는3개 목록 및 검수 Site URL 유지를 확인했다.
 
 [Supabase URL 설정](https://supabase.com/dashboard/project/zefnxczgwpsmfcixonpb/auth/url-configuration)에서 **Site URL과 기존 Redirect URLs를 유지**하고 다음 항목만 추가한다.
 
@@ -58,7 +58,7 @@ Hobby의 Instant Rollback은 바로 이전 Production에 한정된다. 이전 �
 https://dreaming-good-church.vercel.app/admin/account
 ```
 
-운영 Site URL 전환은 첫 정상 Production 배포 확인 뒤에 한다. 현재 운영 API503 상태에서 Site URL부터 바꾸지 않는다. `*.vercel.app` 등의 wildcard 허용도 추가하지 않는다. 사용자 저장 뒤 원격 설정을 다시 읽어 정확한 추가 여부를 검증한다.
+운영 Site URL 전환은 첫 정상 Production 배포 확인 뒤에 한다. 현재 운영 API503 상태에서 Site URL부터 바꾸지 않는다. `*.vercel.app` 등의 wildcard 허용도 추가하지 않았다. 운영 Origin의 링크 생성·거절 경계 테스트를 포함한 단위26개, lint, 타입 검사를 통과했다. 실제 운영 링크 사용은 정상 Production 배포 뒤 검수할 항목이다.
 
 첫 정상 Production 배포 전에는 아래 명령을 실행하지 않는다. 배포 검수 후 필요할 때만 실제 계정 링크를 생성하며 자동 메일 발송은 없다. 생성된 HTML은 비밀 링크이므로 저장소·Drive·노션에 올리지 않는다.
 
