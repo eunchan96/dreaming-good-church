@@ -66,13 +66,13 @@ export default function CommunityWorkspace() {
     } catch(error) { setMessage(communityError(error)); if((error as {code?:string;status?:number}).status===401)setAllowed(false); }
     finally { setBusy(false); }
   }
-  return <AdminShell active="community" authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy}><main id="admin-content" tabIndex={-1} className={styles.page}><header className={styles.header}><div><span className={styles.eyebrow}>CHURCH COMMUNITY</span><h1>공지·일정 관리</h1><p>교회 소식과 모임 일정을 한곳에서 관리하세요.</p></div><nav aria-label="공개 소식 확인"><Link href="/notices" target="_blank" rel="noreferrer">공개 공지</Link><Link href="/events" target="_blank" rel="noreferrer">공개 일정</Link></nav></header><p role="status" className={styles.message}>{message}</p>
-    {allowed ? <div className={styles.grid}><aside className={styles.card}>
+  return <AdminShell active="community" authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} sections={[{id:'community-list',label:'소식 목록'},...(entry?[{id:'community-editor',label:entry.title||'새 일정 편집'}]:[])]}><main id="admin-content" tabIndex={-1} className={styles.page}><header className={styles.header}><div><span className={styles.eyebrow}>CHURCH COMMUNITY</span><h1>공지·일정 관리</h1></div></header><p role="status" className={styles.message}>{message}</p>
+    {allowed ? <div className={`${styles.grid} ${styles.stacked}`}><aside id="community-list" tabIndex={-1} className={`${styles.card} ${styles.slimCard}`}>
       <button disabled={busy} onClick={()=>{if(mayLeave()){setEntry(newEntry("event"));setDirty(true);setMessage("");}}}>새 일정</button>
       <p>공지는 주보의 ‘별도 공지로 가져오기’를 이용해 주세요.</p>
       <button disabled={busy} onClick={()=>{if(mayLeave()){setEntry(null);setDirty(false);setReload(value=>value+1);}}}>목록 새로 불러오기</button>
       <ul className={styles.list}>{rows.map(row=><li key={row.id}><button disabled={busy} onClick={()=>{if(mayLeave()){setEntry(structuredClone(row));setDirty(false);setMessage("");}}}>{row.title} · {row.kind==="event"?"일정":"공지"} · {row.status==="published"?"게시 설정됨":row.status==="archived"?"보관":"초안"}</button></li>)}</ul>
-    </aside><section>{entry ? <fieldset disabled={busy} className={styles.fields}><div className={styles.card}>
+    </aside><section id="community-editor" tabIndex={-1}>{entry ? <fieldset disabled={busy} className={styles.fields}><div className={styles.flatSection}>
       <h2>{entry.kind==="event"?"일정 편집":"공지 편집"}</h2><p>{busy?"저장 중…":dirty?"저장 전 변경 있음":"저장됨"} · 모든 시간은 한국 시간(Asia/Seoul)입니다.</p>
       <label htmlFor="community-title">제목</label><input id="community-title" maxLength={200} value={entry.title} onChange={event=>change({title:event.target.value})}/>
       <label htmlFor="community-body">내용</label><textarea id="community-body" rows={6} maxLength={entry.kind==="event"?19000:20000} value={entry.body} onChange={event=>change({body:event.target.value})}/>

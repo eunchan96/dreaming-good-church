@@ -71,9 +71,40 @@
 .fieldHeading label{margin:0!important}
 .fieldHeading a{font-size:11px;min-height:44px;display:flex;align-items:center;color:#7a6031;text-decoration:underline;text-underline-offset:4px}
 .fieldPanel>.check{margin-top:12px!important;font-size:12px}
+.flatSection{border:0;border-bottom:1px solid #dfd6c5;padding:18px 0 24px;margin:0 0 24px;background:transparent}
+.flatSection>h2{margin-top:0}
+.fieldRow{border-bottom:1px solid #e4ddcf;padding:20px 0;scroll-margin-top:125px!important}
+.fieldRow:last-of-type{border-bottom:0}
+.fieldRow .fieldHeading{margin-bottom:4px}
+.fieldRow .fieldHeading>div{display:flex;align-items:center;gap:10px;min-width:0}
+.fieldRow .fieldHeading button{padding:7px 15px}
+.fieldRow .check{font-size:12px;margin-top:10px}
+.fieldRow textarea{margin-top:4px;padding:10px 12px}
+.savedValue{white-space:pre-wrap;font-size:12px;color:#73644d;max-height:150px;overflow:auto;line-height:1.9}
+.storedDetails{margin:8px 0;font-size:12px;color:#73644d}
+.storedDetails summary{cursor:pointer;min-height:36px;display:flex;align-items:center}
+.defaultValue{font-size:12px;color:#73644d;margin:8px 0;white-space:pre-wrap;max-height:130px;overflow:auto}
+.defaultValue>span{display:block;font-size:10px;color:#80642f}
+.page .textButton{min-height:36px;border:0;background:transparent;padding:4px 0;text-decoration:underline;text-underline-offset:4px;font-size:11px}
+.fieldStatus{font-size:10px;color:#80642f;font-weight:400}
+.compactTitle{display:flex;align-items:center;gap:12px;margin:0 0 12px}
+.compactTitle h2,.compactTitle h3{margin:0}
+.infoTip{position:relative;display:inline-block;vertical-align:middle;flex-shrink:0}
+.infoTip>summary{list-style:none;cursor:pointer;width:36px;height:36px;display:grid;place-items:center;color:#80642f;font:italic 16px Georgia,serif;border-radius:50%}
+.infoTip>summary::before{content:'';position:absolute;width:22px;height:22px;border:1px solid #c7b58f;border-radius:50%;pointer-events:none}
+.infoTip>summary::-webkit-details-marker{display:none}
+.infoBody{position:fixed;z-index:65;top:130px;left:22px;width:min(320px,calc(100vw - 44px));padding:16px 20px;background:#fffefa;border:1px solid #ded1b8;box-shadow:0 8px 30px #342b251c;border-radius:4px;font-size:12px;font-weight:400;color:#5d503f;line-height:1.9}
+.infoBody p{margin:0 0 8px}
+.infoBody p:last-child{margin-bottom:0}
+.page .blockRow{border:0;border-bottom:1px solid #ded3bf;border-radius:0;background:transparent;box-shadow:none;padding:22px 0;margin-bottom:4px}
+.page .slimCard{padding:18px 20px;box-shadow:none}
+.grid.stacked{display:block}
+.stacked>aside .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:8px;max-height:230px;overflow:auto;padding:4px}
+.stacked>aside .list button{margin:0;height:100%}
 @media(max-width:1200px){.grid{grid-template-columns:210px minmax(0,1fr);gap:18px}.page{padding:28px 24px 44px}.card{padding:20px}.authLayout{gap:45px}}
 @media(max-width:1050px) and (min-width:900px){.grid{grid-template-columns:1fr}.list{max-height:220px;overflow:auto}}
 @media(max-width:760px){.authLayout{grid-template-columns:1fr;gap:24px;min-height:0;padding:15px 0 40px}.authStory{padding:10px 8px}.authStory h1{font-size:34px;margin:10px 0}.authStory>p{font-size:12px}.authDecoration{display:none}.login{max-width:480px;padding:28px}.page h2{font-size:21px}}
 @media(prefers-reduced-motion:reduce){.page *{transition:none!important}}
 @media(max-width:760px) { .formActions { flex-direction:column; align-items:stretch; } .formActions button { width:100%; } }
 @media(max-width:760px) { .page { padding:20px 16px; } .grid { grid-template-columns:1fr; gap:8px; } .header { align-items:flex-start; flex-wrap:wrap; } .card { padding:16px; } .toolbar { align-items:stretch; } .toolbar > *, .toolbar .actions, .toolbar .actions button { width:100%; } .actions label { min-width:0; flex-basis:100%; } .actions select { width:100%; } .list { max-height:220px; overflow-y:auto; padding:4px; } .page button { max-width:100%; white-space:normal; } }
+.infoBody{max-height:calc(100dvh - 32px);overflow:auto}
