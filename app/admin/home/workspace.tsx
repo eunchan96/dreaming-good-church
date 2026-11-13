@@ -5,6 +5,7 @@ import {makeBrowserClient,errorMessage} from '@/lib/bulletin-store';
 import {defaultHomeContent,homeTextLimits,validHomeContent,type HomeContent} from '@/lib/home-content';
 import type {BulletinImage} from '@/lib/church';
 import AdminShell from '../admin-shell';
+import ReauthPanel from '../reauth-panel';
 import InfoTip from '../info-tip';
 import styles from '../bulletins/workspace.module.css';
 type Draft=HomeContent&{revision:number};
@@ -54,8 +55,8 @@ export default function HomeWorkspace(){
  const selected=images.find(image=>image.id===draft.image_asset_id);
  return <AdminShell active="home" authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} sections={[{id:'home-copy',label:'첫 화면 문구'},{id:'home-image',label:'사진·일러스트'},{id:'home-preview',label:'PC·모바일 미리보기'},{id:'home-save',label:'홈페이지 반영'}]}><main id="admin-content" tabIndex={-1} className={styles.page}>
   <header className={styles.header}><div><span className={styles.eyebrow}>HOMEPAGE CONTENT</span><h1>홈페이지 관리</h1></div><InfoTip label="홈페이지 설정"><p>첫 화면의 문구와 사진을 바꿉니다. 제목은 줄마다 권장8자·최대12자입니다. 실제 글꼴과 너비에 따라 크기를 맞추며 미리보기로 확인해 주세요.</p><p>사진은 잘라 채우기, 일러스트는 전체 보이기를 사용합니다. 누끼 이미지만으로 제한하지 않습니다. 새 파일은 4MB 이하이며 긴 변 2400px로 정규화하고 위치 정보를 제거합니다. 파일 업로드만으로는 공개되지 않습니다.</p><p>인사말·주소·연락처는 교회 정보에서 수정합니다. 저장 시 공개 화면에 반영되므로 사진 게시 동의와 이미지 설명을 확인해 주세요.</p></InfoTip></header>
-  {message?<p role="status" className={styles.message}>{message}</p>:null}
-  {!allowed?<><Link href="/admin/bulletins" target="_blank">새 탭에서 관리자 로그인</Link><button onClick={()=>setReload(n=>n+1)}>로그인 다시 확인</button></>:<>
+  {allowed&&message?<p role="status" className={styles.message}>{message}</p>:null}
+  {!allowed?<ReauthPanel message={message} hasDraft={unsaved} onRetry={()=>{setMessage("로그인 상태를 확인하고 있습니다…");setReload(n=>n+1);}}/>:<>
    <fieldset disabled={busy} className={styles.fields}><section id="home-copy" tabIndex={-1} className={styles.flatSection}><h2>첫 화면 문구</h2><p className={styles.muted}>{dirty?'수정 중':'현재 공개 설정'} · <Link href="/admin/church" onClick={e=>{if(!mayLeave())e.preventDefault();}}>인사말·교회 정보 관리</Link></p>
    {(Object.keys(labels) as (keyof typeof labels)[]).map(key=><label key={key}>{labels[key]}<span className={styles.fieldStatus}> {draft[key].length}/{homeTextLimits[key]}</span><input aria-label={labels[key]} value={draft[key]} maxLength={homeTextLimits[key]} onChange={e=>change({[key]:e.target.value.replace(/[\r\n]/g,'')})}/></label>)}</section>
    <section id="home-image" tabIndex={-1} className={styles.flatSection}><h2>사진·일러스트</h2><label>표시 방식<select value={draft.image_mode} onChange={e=>change({image_mode:e.target.value as HomeContent['image_mode'],...(e.target.value==='art'?{image_asset_id:null}:{})})}><option value="art">기본 교회 일러스트</option><option value="photo">사진 · 잘라 채우기</option><option value="illustration">일러스트 · 전체 보이기</option></select></label>

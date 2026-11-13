@@ -7,10 +7,18 @@ import { CHURCH_ADDRESS, CHURCH_PHONE, siteNavigation, YOUTUBE_CHANNEL } from '@
 import SiteIcon from './site-icon';
 import styles from './public-site.module.css';
 import { rememberInstallPrompt, clearInstallPrompt } from '@/lib/install-prompt';
+import ChurchContentProvider,{useChurchContent,publicChurchField} from './church-content';
 export function ChurchBrand() {
   return <><Image src="/brand/church-mark.svg" width={46} height={46} alt="" /><span className={styles.brandText}><span>꿈꾸는</span><strong>좋은교회</strong></span></>;
 }
 export default function PublicShell({ children }: { children: ReactNode }) {
+  return <ChurchContentProvider><ShellContent>{children}</ShellContent></ChurchContentProvider>;
+}
+function ShellContent({children}:{children:ReactNode}){
+  const {fields,fieldsFailed}=useChurchContent();
+  const address=fieldsFailed?null:publicChurchField(fields,'address',CHURCH_ADDRESS)?.replace('선인빌딩','선아빌딩');
+  const phone=fieldsFailed?null:publicChurchField(fields,'phone',CHURCH_PHONE);
+  const name=publicChurchField(fields,'name','꿈꾸는좋은교회');
   const pathname = usePathname();
   const [open, setOpen] = useState<string | null>(null), [mobile, setMobile] = useState(false);
   const header = useRef<HTMLElement>(null);
@@ -30,7 +38,7 @@ export default function PublicShell({ children }: { children: ReactNode }) {
     </div><nav id="mobile-site-menu" className={styles.mobileMenu} aria-label="모바일 주 메뉴" hidden={!mobile}>{siteNavigation.map(group => <div key={group.name}><Link className={styles.mobileGroupTitle} href={group.href} onClick={close}>{group.name}</Link><div className={styles.mobileSublinks}>{group.links.map(link => <Link key={link.href} href={link.href} onClick={close} aria-current={pathname === link.href ? 'page' : undefined}>{link.label}</Link>)}</div></div>)}</nav></header>
     {children}
     <div className={styles.topRow}><button className={styles.topButton} aria-label="맨 위로 이동" onClick={() => window.scrollTo({ top:0, behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })}><SiteIcon size={16} style={{ transform:'rotate(-90deg)' }} />TOP</button></div>
-    <footer className={styles.footer}><div className={styles.footerTop}><div className={styles.footerIdentity}><Link href="/" className={styles.brand}><ChurchBrand /></Link><a className={styles.footerYoutube} href={YOUTUBE_CHANNEL} target="_blank" rel="noreferrer"><SiteIcon name="youtube" />YouTube<SiteIcon name="diagonal" size={16} /></a></div><nav className={styles.footerNavigation} aria-label="하단 메뉴">{[{ label: '교회 소개', href: '/church' }, { label: '온라인 헌금', href: '/church/offering' }, { label: '예배', href: '/worship' }, { label: '소식', href: '/notices' }, { label: '앱 추가', href: '/install' }].map(link => <Link key={link.href} href={link.href}>{link.label}</Link>)}</nav><div className={styles.footerContact}><span>꿈꾸는좋은교회</span><address>{CHURCH_ADDRESS}</address><a href={`tel:${CHURCH_PHONE.replaceAll('-', '')}`}>T. {CHURCH_PHONE}</a></div></div>
+    <footer className={styles.footer}><div className={styles.footerTop}><div className={styles.footerIdentity}><Link href="/" className={styles.brand}><ChurchBrand /></Link><a className={styles.footerYoutube} href={YOUTUBE_CHANNEL} target="_blank" rel="noreferrer"><SiteIcon name="youtube" />YouTube<SiteIcon name="diagonal" size={16} /></a></div><nav className={styles.footerNavigation} aria-label="하단 메뉴">{[{ label: '교회 소개', href: '/church' }, { label: '온라인 헌금', href: '/church/offering' }, { label: '예배', href: '/worship' }, { label: '소식', href: '/notices' }, { label: '앱 추가', href: '/install' }].map(link => <Link key={link.href} href={link.href}>{link.label}</Link>)}</nav><div className={styles.footerContact}>{name?<span>{name}</span>:null}{address?<address>{address}</address>:null}{phone?<a href={`tel:${phone.replace(/[^+\d]/g, '')}`}>T. {phone}</a>:null}</div></div>
       <div className={styles.footerBottom}><small>© 2026 꿈꾸는좋은교회. All rights reserved.</small><div className={styles.footerUtilities}><Link href="/legal/privacy">개인정보처리방침</Link><Link href="/legal/photo">사진 게시정책</Link><Link href="/admin/bulletins">로그인</Link></div></div>
     </footer>
   </div>;

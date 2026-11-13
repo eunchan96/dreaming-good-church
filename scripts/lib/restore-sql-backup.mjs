@@ -44,7 +44,7 @@ export function sqlBackupContents(bundle) {
     if(!Object.hasOwn(counts,name)) throw new Error(`Backup COPY section missing: ${name}.`);
   }
   const inventory=JSON.parse(files.get('inventory.json').toString());
-  const tableKeys={...KEYS,...(Object.hasOwn(counts,'public.worship_videos')?{worship_videos:'id'}:{}),...(Object.hasOwn(counts,'public.homepage_content')?{homepage_content:'id'}:{})};
+  const tableKeys={...KEYS,...(Object.hasOwn(counts,'public.worship_videos')?{worship_videos:'id'}:{}),...(Object.hasOwn(counts,'public.homepage_content')?{homepage_content:'id'}:{}),...(Object.hasOwn(counts,'public.church_page_settings')?{church_page_settings:'key'}:{})};
   if(sha256(files.get('inventory.json'))!==bundle.metadata.sourceInventorySha256) throw new Error('Backup inventory checksum mismatch.');
   if(!inventory.tables || !Array.isArray(inventory.objects) || inventory.bucket?.id!=='bulletin-images' || inventory.bucket.public!==false) throw new Error('Invalid private photo inventory.');
   if(Object.keys(inventory.tables).some(name=>!Object.hasOwn(tableKeys,name)))throw new Error('Unknown application inventory table.');

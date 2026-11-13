@@ -1,10 +1,11 @@
 "use client";
-import Link from "next/link";
+
 import { useEffect, useRef, useState } from "react";
 import { makeBrowserClient } from "@/lib/bulletin-store";
 import { communityFromRow, communityError, newEntry, koreanInput, fromKoreanInput, type CommunityEntry } from "@/lib/community";
 import styles from "../bulletins/workspace.module.css";
 import AdminShell from '../admin-shell';
+import ReauthPanel from '../reauth-panel';
 
 export default function CommunityWorkspace() {
   const [client] = useState(makeBrowserClient);
@@ -66,7 +67,7 @@ export default function CommunityWorkspace() {
     } catch(error) { setMessage(communityError(error)); if((error as {code?:string;status?:number}).status===401)setAllowed(false); }
     finally { setBusy(false); }
   }
-  return <AdminShell active="community" authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} sections={[{id:'community-list',label:'소식 목록'},...(entry?[{id:'community-editor',label:entry.title||'새 일정 편집'}]:[])]}><main id="admin-content" tabIndex={-1} className={styles.page}><header className={styles.header}><div><span className={styles.eyebrow}>CHURCH COMMUNITY</span><h1>공지·일정 관리</h1></div></header><p role="status" className={styles.message}>{message}</p>
+  return <AdminShell active="community" authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} sections={[{id:'community-list',label:'소식 목록'},...(entry?[{id:'community-editor',label:entry.title||'새 일정 편집'}]:[])]}><main id="admin-content" tabIndex={-1} className={styles.page}><header className={styles.header}><div><span className={styles.eyebrow}>CHURCH COMMUNITY</span><h1>공지·일정 관리</h1></div></header>{allowed&&message?<p role="status" className={styles.message}>{message}</p>:null}
     {allowed ? <div className={`${styles.grid} ${styles.stacked}`}><aside id="community-list" tabIndex={-1} className={`${styles.card} ${styles.slimCard}`}>
       <button disabled={busy} onClick={()=>{if(mayLeave()){setEntry(newEntry("event"));setDirty(true);setMessage("");}}}>새 일정</button>
       <p>공지는 주보의 ‘별도 공지로 가져오기’를 이용해 주세요.</p>
@@ -84,6 +85,6 @@ export default function CommunityWorkspace() {
       <p>게시 기간을 비우면 제한이 없습니다. 민감정보 표시는 별도 메뉴의 공개를 막으며, 기존 주보 복사본의 공개 설정은 별도로 확인해야 합니다.</p>
       <div className={`${styles.actions} ${styles.formActions}`}><button onClick={()=>save("draft")}>{entry.status==="published"?"게시 취소하고 초안 저장":"초안 저장"}</button><button onClick={()=>save("published")}>게시 설정 저장</button><button disabled={entry.revision===0} onClick={()=>{if(window.confirm("보관하고 별도 메뉴에서 내릴까요? 기존 주보는 유지됩니다."))void save("archived");}}>보관</button>
       <button onClick={()=>{if(mayLeave()){const copy={...structuredClone(entry),id:crypto.randomUUID(),status:"draft" as const,revision:0};if(entry.kind==="event"){copy.starts_at=entry.starts_at?new Date(Date.parse(entry.starts_at)+7*86400000).toISOString():null;copy.ends_at=entry.ends_at?new Date(Date.parse(entry.ends_at)+7*86400000).toISOString():null;}copy.publish_from=null;copy.publish_until=null;setEntry(copy);setDirty(true);setMessage("복사본을 만들었습니다. 날짜와 게시 기간을 확인한 뒤 저장해 주세요.");}}}>{entry.kind==="event"?"다음 주 일정으로 복사":"새 공지 초안으로 복사"}</button></div>
-    </div></fieldset> : <p>공지나 일정을 선택해 주세요.</p>}</section></div> : <><Link href="/admin/bulletins" target="_blank">새 탭에서 관리자 로그인</Link><button onClick={()=>setReload(value=>value+1)}>로그인 다시 확인</button></>}
+    </div></fieldset> : <p>공지나 일정을 선택해 주세요.</p>}</section></div> : <ReauthPanel message={message} hasDraft={dirty} onRetry={()=>{setMessage("로그인 상태를 확인하고 있습니다…");setReload(value=>value+1);}}/>}
   </main></AdminShell>;
 }

@@ -6,7 +6,7 @@ import { MAX_FILE_BYTES, sha256 } from './backup-archive.mjs';
 
 export const PROJECT_REF = 'zefnxczgwpsmfcixonpb';
 const CLI = resolve('node_modules/supabase/dist/supabase.js');
-const TABLE_KEYS = { bulletins: 'id', bulletin_items: 'id', community_entries: 'id', church_info: 'key', bulletin_images: 'id', church_editors: 'user_id',worship_videos:'id',homepage_content:'id' };
+const TABLE_KEYS = { bulletins: 'id', bulletin_items: 'id', community_entries: 'id', church_info: 'key', bulletin_images: 'id', church_editors: 'user_id',worship_videos:'id',homepage_content:'id',church_page_settings:'key' };
 export function appliedMigrationVersions(sql){
  const match=/COPY\s+"?supabase_migrations"?\."?schema_migrations"?\s*\(([^)]+)\) FROM stdin;\r?\n([\s\S]*?)\r?\n\\\./.exec(sql);
  if(!match)throw new Error('Migration history COPY missing.');
@@ -70,7 +70,7 @@ async function snapshot(client) {
     for (let offset=0;;offset+=500) {
       const result = await client.from(table).select('*').order(key).range(offset,offset+499);
       // Backups taken before the additive video migration remain supported.
-      if(result.error&&['worship_videos','homepage_content'].includes(table)&&offset===0&&['PGRST205','42P01'].includes(result.error.code)){available=false;break;}
+      if(result.error&&['worship_videos','homepage_content','church_page_settings'].includes(table)&&offset===0&&['PGRST205','42P01'].includes(result.error.code)){available=false;break;}
       if (result.error) throw new Error('Application inventory could not be read.');
       inventoryBytes+=Buffer.byteLength(JSON.stringify(result.data));
       if(inventoryBytes>16*1024*1024) throw new Error('Application inventory exceeds supported size.');

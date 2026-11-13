@@ -175,6 +175,26 @@ export type Database = {
                 Relationships: [
                 ];
             };
+            "church_page_settings": {
+                Row: {
+                    "key": string;
+                    "payload": NonNullable<Json>;
+                    "revision": number;
+                };
+                ComputedFields: never;
+                Insert: {
+                    "key": string;
+                    "payload": NonNullable<Json>;
+                    "revision"?: number;
+                };
+                Update: {
+                    "key"?: string;
+                    "payload"?: NonNullable<Json>;
+                    "revision"?: number;
+                };
+                Relationships: [
+                ];
+            };
             "community_entries": {
                 Row: {
                     "body": string;
@@ -454,6 +474,24 @@ export type Database = {
                     isSetofReturn: true;
                 };
             };
+            "save_church_page_setting": {
+                Args: {
+                    "p_key": string;
+                    "p_payload": Json;
+                    "p_revision": number;
+                };
+                Returns: {
+                    "key": string;
+                    "payload": NonNullable<Json>;
+                    "revision": number;
+                };
+                SetofOptions: {
+                    from: "*";
+                    to: "church_page_settings";
+                    isOneToOne: true;
+                    isSetofReturn: false;
+                };
+            };
             "save_community_entry": {
                 Args: {
                     "p_entry": Json;
@@ -567,6 +605,13 @@ export type Database = {
                 Args: {
                     "content": Json;
                     "kind": string;
+                };
+                Returns: boolean;
+            };
+            "valid_church_page_setting": {
+                Args: {
+                    "p_key": string;
+                    "p_payload": Json;
                 };
                 Returns: boolean;
             };

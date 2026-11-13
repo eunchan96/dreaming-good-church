@@ -1,10 +1,11 @@
 'use client';
-import Link from 'next/link';
+
 import {useEffect,useRef,useState} from 'react';
 import {makeBrowserClient,errorMessage} from '@/lib/bulletin-store';
 import {worshipTypes,YOUTUBE_CHANNEL} from '@/lib/site-content';
 import {youtubeId,type WorshipEntry} from '@/lib/worship-library';
 import AdminShell from '../admin-shell';
+import ReauthPanel from '../reauth-panel';
 import InfoTip from '../info-tip';
 import styles from '../bulletins/workspace.module.css';
 type Draft=Omit<WorshipEntry,'updated_at'>;
@@ -45,8 +46,8 @@ export default function WorshipWorkspace(){
  const id=youtubeId(link);
  return <AdminShell active="worship" authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} sections={[{id:'video-library',label:'영상 목록'},...(entry?[{id:'video-details',label:'예배·영상 정보'},{id:'video-preview',label:'영상 확인'},{id:'video-publication',label:'공개·대표 설정'}]:[])]}><main id="admin-content" tabIndex={-1} className={styles.page}>
   <header className={styles.header}><div><span className={styles.eyebrow}>WORSHIP & WORD</span><h1>예배 영상 관리</h1></div><InfoTip label="예배 영상"><p>채널에서 영상 링크를 복사해 등록합니다. 제목이나 썸네일만으로 예배 종류를 자동 확정하지 않습니다.</p><p>예배별 대표 영상은 하나입니다. 대표를 지정하지 않으면 가장 최근 날짜의 공개 영상이 먼저 나옵니다. 보관한 영상은 목록에서 내려갑니다.</p><p>현재 입력을 공개하려면 공개 저장을 누릅니다. 초안 저장은 공개하지 않습니다.</p></InfoTip></header>
-  {message?<p role="status" className={styles.message}>{message}</p>:null}
-  {!allowed?<><Link href="/admin/bulletins" target="_blank">새 탭에서 관리자 로그인</Link><button onClick={()=>setReload(n=>n+1)}>로그인 다시 확인</button></>:<>
+  {allowed&&message?<p role="status" className={styles.message}>{message}</p>:null}
+  {!allowed?<ReauthPanel message={message} hasDraft={dirty} onRetry={()=>{setMessage("로그인 상태를 확인하고 있습니다…");setReload(n=>n+1);}}/>:<>
    <section id="video-library" tabIndex={-1} className={`${styles.card} ${styles.slimCard}`}><div className={styles.actions}><button className={styles.primary} disabled={busy} onClick={()=>{if(!mayLeave())return;setEntry({id:crypto.randomUUID(),service_type:'sunday',service_date:new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()),video_id:'',title:'',status:'draft',featured:false,revision:0});setLink('');setDirty(true);setMessage('');}}>새 영상 등록</button><a href={YOUTUBE_CHANNEL} target="_blank" rel="noreferrer">교회 YouTube에서 찾기</a><button disabled={busy} onClick={()=>{if(mayLeave()){setEntry(null);setDirty(false);setReload(n=>n+1);}}}>목록 새로 불러오기</button></div>
    <ul className={styles.videoAdminList}>{rows.map(row=><li key={row.id}><button disabled={busy} aria-pressed={entry?.id===row.id} onClick={()=>{if(mayLeave()){setEntry({...row});setLink(`https://www.youtube.com/watch?v=${row.video_id}`);setDirty(false);setMessage('');}}}><span>{row.service_date} · {worshipTypes.find(w=>w.key===row.service_type)?.name}</span><strong>{row.title}</strong><small>{row.status==='published'?'공개':row.status==='archived'?'보관':'초안'}{row.featured?' · 대표':''}</small></button></li>)}</ul>{!rows.length?<p className={styles.muted}>등록된 영상이 없습니다.</p>:null}{more?<button disabled={busy} onClick={()=>void loadMore()}>이전 등록 영상 더 보기</button>:null}</section>
    {entry?<fieldset disabled={busy} className={styles.fields}><section id="video-details" tabIndex={-1} className={styles.flatSection}><h2>예배·영상 정보</h2><p className={styles.muted}>{dirty?'수정 중':'저장됨'} · {entry.status==='published'?'공개 중':entry.status==='archived'?'보관':'초안'}</p><label>예배 종류<select value={entry.service_type} onChange={e=>change({service_type:e.target.value})}>{worshipTypes.map(w=><option key={w.key} value={w.key}>{w.name}</option>)}</select></label><label>예배 날짜<input type="date" min="1900-01-01" max="2199-12-31" value={entry.service_date} onChange={e=>change({service_date:e.target.value})}/></label><label>YouTube 영상 링크<input type="text" maxLength={2048} value={link} placeholder="https://www.youtube.com/watch?v=…" onChange={e=>{setLink(e.target.value);setDirty(true);setMessage('');}}/></label><label>영상 제목<input maxLength={200} value={entry.title} onChange={e=>change({title:e.target.value})}/></label></section>
