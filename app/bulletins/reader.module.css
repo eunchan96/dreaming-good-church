@@ -2,7 +2,7 @@
 .heading { margin-bottom: 32px; }
 .heading h1 { font-size: clamp(30px, 4vw, 44px); font-weight: 700; margin: 8px 0; letter-spacing: -.04em; }
 .heading p { color: #506057; }
-.history { background: #fff; border: 1px solid #cad2c8; border-radius: 8px; margin-bottom: 32px; padding: 12px 20px; }
+.history { background: #f3efe6; border: 1px solid #e3ded5; border-radius: 2px; margin-bottom: 32px; padding: 12px 20px; }
 .history summary { cursor: pointer; min-height: 44px; padding: 8px 0; font-weight: 650; }
 .history summary span { margin-left: 12px; color: #506057; font-weight: 400; }
 .history summary:focus-visible, .filters input:focus-visible { outline: 3px solid #956025; outline-offset: 4px; }
@@ -11,15 +11,15 @@
 .filters input { min-height: 44px; min-width: 0; max-width: 100%; border: 1px solid #76837c; padding: 8px; border-radius: 4px; font: inherit; }
 .historyList { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 8px; max-height: 288px; overflow-y: auto; padding: 8px; margin: 12px -8px; }
 .historyList button { text-align: left; background: #faf9f5; }
-.historyList button[aria-pressed=true] { background: #253d35; color: white; }
+.historyList button[aria-pressed=true] { background: #493d2e; color: white; }
 .reading { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; align-items: start; }
-.contents { position: sticky; top: 24px; max-height: calc(100dvh - 48px); overflow-y: auto; padding: 8px; }
+.contents { position: sticky; top: 116px; max-height: calc(100dvh - 132px); overflow-y: auto; padding: 8px; }
 .contents h2 { font-size: 18px; font-weight: 650; margin-bottom: 12px; }
 .contents ul { list-style: none; padding: 0; }
 .contents a { display: block; min-height: 44px; padding: 10px 6px; border-bottom: 1px solid #d9ded6; }
-.paper { background: white; border: 1px solid #d9ded6; padding: 32px; border-radius: 8px; min-width: 0; }
+.paper { background: #fffefd; border: 1px solid #e3ded5; padding: 32px; border-radius: 2px; min-width: 0; }
 .paper > h2 { font-size: 24px; font-weight: 650; padding-bottom: 24px; border-bottom: 2px solid #8b9b8d; }
-.block { scroll-margin-top: 24px; padding-top: 16px; min-width: 0; }
+.block { scroll-margin-top: 120px; padding-top: 16px; min-width: 0; }
 .block:focus { outline: 2px solid #956025; outline-offset: 4px; }
 .block h3 { font-size: 22px; }
 .block table { width: 100%; border-collapse: collapse; }

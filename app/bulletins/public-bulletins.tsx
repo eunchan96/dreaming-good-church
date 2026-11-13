@@ -4,6 +4,8 @@ import { BlockPreview } from "../admin/bulletins/block-fields";
 import type { BulletinItem } from "@/lib/bulletins";
 import styles from "./reader.module.css";
 import PublicPdfDownload from "./public-pdf-download";
+import NewsNavigation from '../news-navigation';
+import site from '../public-site.module.css';
 
 type PublicItem = Pick<BulletinItem, "id" | "title" | "body" | "kind" | "content">;
 type Summary = { id: string; service_date: string; issue_number: number };
@@ -79,8 +81,8 @@ export default function PublicBulletins({ initialDate }: { initialDate?: string 
     window.addEventListener("focus", refresh);
     return () => { controller.abort(); window.clearInterval(timer); window.removeEventListener("focus", refresh); };
   }, [id, retry, initialDate]);
-  return <main id="public-content" tabIndex={-1} className={styles.page}>
-    <header className={styles.heading}><p>함께 드리는 예배</p><h1>주일 주보</h1><p>말씀과 예배 순서, 이번 주 교회 소식을 만나보세요.</p></header>
+  return <main id="public-content" tabIndex={-1} className={site.subpage}>
+    <header className={site.pageHeading}><p className={site.eyebrow}>WEEKLY BULLETIN</p><h1>주일 주보</h1><p>말씀과 예배 순서, 이번 주 교회 소식을 만나보세요.</p></header><NewsNavigation />
     <details className={styles.history}>
       <summary>지난 주보 보기</summary>
       <div className={styles.filters}><label>주보 발행 월<input type="month" value={month} onChange={event => changeHistory(event.target.value, null, [])} /></label>{month ? <button onClick={() => changeHistory("", null, [])}>전체 월 보기</button> : null}</div>

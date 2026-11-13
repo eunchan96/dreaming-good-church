@@ -17,14 +17,15 @@
 .brandText>span{font-size:12px;letter-spacing:.18em;margin-bottom:3px}
 .brandText strong{font-size:23px;font-weight:700;letter-spacing:-.07em}
 .desktopNav{display:flex;align-items:center;gap:55px;margin-left:70px}
-.navGroup>button{display:flex;align-items:center;gap:13px;padding:24px 0;border:0;background:transparent;font-size:16px;font-weight:600;position:relative}
-.navGroup>button::after{content:'';position:absolute;bottom:12px;left:0;right:0;height:2px;background:#b99132;transform:scaleX(0);transition:transform .2s}
-.navGroup>button[aria-expanded=true]::after{transform:scaleX(1)}
-.dropdown{position:absolute;top:100%;left:0;right:0;background:var(--paper);border-bottom:1px solid var(--line);box-shadow:0 20px 30px #342b2510;display:flex;gap:36px;align-items:center;justify-content:center;min-height:126px;padding:24px 48px}
-.dropdown[hidden],.mobileMenu[hidden]{display:none}
-.dropdownTitle{font-size:24px;font-family:var(--font-display);padding-right:42px;border-right:1px solid var(--line)}
-.dropdown a{display:inline-flex;align-items:center;gap:15px;padding:10px 0}
-.dropdown a:hover{color:#88641b}
+.navGroup{position:relative}
+.navGroup>a{display:flex;align-items:center;min-height:96px;padding:24px 8px;font-size:16px;font-weight:600;position:relative}
+.navGroup>a::after{content:'';position:absolute;bottom:24px;left:8px;right:8px;height:2px;background:#b99132;transform:scaleX(0);transition:transform .2s}
+.navGroup>a[aria-expanded=true]::after{transform:scaleX(1)}
+.dropdown{position:absolute;top:calc(100% - 8px);left:50%;width:188px;transform:translate(-50%,-6px);background:var(--paper);border:1px solid var(--line);border-radius:4px;box-shadow:0 12px 28px #342b2512;display:grid;padding:10px;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,transform .18s ease,visibility .18s}
+.dropdown[data-open=true]{opacity:1;visibility:visible;transform:translate(-50%,0);pointer-events:auto}
+.mobileMenu[hidden]{display:none}
+.dropdown a{display:flex;align-items:center;min-height:44px;padding:8px 14px;font-size:14px;border-radius:2px;transition:background .15s}
+.dropdown a:hover,.dropdown a[aria-current=page]{color:#73551c;background:#f0ebdf}
 .headerActions{display:flex;gap:20px;align-items:center}
 .youtubeLink{display:flex;gap:8px;align-items:center;font-size:12px;letter-spacing:.02em;min-height:44px}
 .youtubeLink svg{color:#985c41}
@@ -49,7 +50,7 @@
 .archCross::after{content:'';width:70px;height:8px;background:#f2e8d7;position:absolute;top:35px;left:-31px}
 .archLight{position:absolute;width:130px;height:300px;bottom:-75px;right:-40px;transform:rotate(37deg);background:#f5e5b955;box-shadow:-35px 0 0 #f2ddb621}
 .heroArtworkCaption{position:absolute;bottom:0;right:0;display:flex;align-items:center;gap:25px;font-size:9px;letter-spacing:.16em;color:#72624c;writing-mode:vertical-rl;line-height:1.8}
-.heroFootnote{max-width:1312px;margin:auto;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#746654;padding:22px 0 28px;border-top:1px solid #d9d0c2;position:relative;z-index:1}
+.heroFootnote{max-width:1312px;margin:0 max(64px,calc((100% - 1312px)/2));display:flex;align-items:center;justify-content:space-between;gap:24px;font-size:11px;color:#746654;padding:22px 0 28px;border-top:1px solid #d9d0c2;position:relative;z-index:1}
 .heroFootnote>a{display:flex;align-items:center;gap:22px;font-size:9px;letter-spacing:.15em}
 
 .homeSection{max-width:1240px;margin:auto;padding:110px 40px}
@@ -60,6 +61,14 @@
 .textLink{display:inline-flex;align-items:center;gap:30px;padding:10px 0;border-bottom:1px solid #c6bba8;font-size:13px;margin-top:15px}
 .videoFrame{aspect-ratio:16/9;background:#28241f;position:relative;overflow:hidden}
 .videoFrame iframe{position:absolute;width:100%;height:100%;border:0;inset:0}
+.videoPoster{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;background:#e9e1d0;color:#493d2e;display:grid;place-items:center;overflow:hidden}
+.videoPoster>img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.posterPlay{position:relative;z-index:1;display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:#fbfaf7ed;color:#493d2e;box-shadow:0 2px 20px #0002;transition:transform .2s}
+.videoPoster:hover .posterPlay{transform:scale(1.08)}
+.posterLabel{position:absolute;bottom:20px;right:20px;padding:4px 12px;font-size:12px;background:#302a24dd;color:#fff}
+.playlistPoster{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;background:radial-gradient(ellipse at top right,#ead48a,transparent 65%),#eee8dc}
+.playlistPoster>span{font-size:12px;letter-spacing:.1em}
+.playlistPoster>strong{font-family:var(--font-display);font-size:clamp(25px,4vw,45px);font-weight:500;margin-bottom:110px}
 .videoCaption{display:flex;justify-content:space-between;gap:25px;padding:24px 0;border-bottom:1px solid var(--line);align-items:center}
 .videoCaption p{font-size:11px;color:#7d6336;margin:0 0 7px;letter-spacing:.04em}
 .videoCaption h3{font-size:clamp(17px,2vw,23px);font-weight:500;margin:0;letter-spacing:-.04em}
@@ -75,9 +84,11 @@
 .welcomeLinks>a>svg:last-child{margin-left:auto}
 .welcomeLinks h3{font-weight:500;font-size:19px;margin:0}
 .welcomeLinks p{font-size:12px!important;margin:3px 0 0!important}
-.feeds{display:grid;grid-template-columns:1fr 1fr;gap:35px 55px}
+.feeds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:35px 55px;align-items:stretch}
 .feed{border-top:1px solid #8d7c63;padding:24px 0;min-width:0}
-.feedHeading{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:20px}
+.feedHeading{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:20px;min-height:44px}
+.feedHeading h2{margin:0}
+.feed li>a{overflow-wrap:anywhere}
 .feedHeading h2{font-size:20px;font-weight:500}
 .feedHeading>a{min-height:44px;display:flex;align-items:center;gap:14px;font-size:12px;color:var(--muted)}
 .feed ul{list-style:none;padding:0;margin:0}
@@ -95,18 +106,18 @@
 
 .footer{background:#302a24;color:#e6dfd2;padding:70px max(32px,calc((100vw - 1160px)/2)) 22px}
 .footer a:hover{color:#edcd72}
-.footerTop{display:grid;grid-template-columns:1fr 1fr;gap:80px;padding-bottom:55px}
+.footerTop{display:grid;grid-template-columns:1fr .9fr 1.25fr;gap:50px;padding-bottom:38px}
 .footerStatement{font-family:var(--font-display);font-size:20px;line-height:1.8;color:#d7cbb8;margin:28px 0}
-.footerYoutube{display:inline-flex;align-items:center;gap:12px;font-size:12px;color:#c4b59b;min-height:44px}
-.footerNavigation{display:grid;grid-template-columns:repeat(3,1fr);gap:35px}
+.footerYoutube{display:flex;width:fit-content;align-items:center;gap:12px;font-size:12px;color:#c4b59b;min-height:44px;margin-top:20px}
+.footerNavigation{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;align-content:start}
 .footerNavigation h2{font-size:13px;color:#f3ecdf;font-weight:500;margin:0 0 18px}
-.footerNavigation a{display:block;font-size:12px;min-height:37px;color:#bfb3a0}
-.footerContact{border-top:1px solid #5b4d3c;border-bottom:1px solid #5b4d3c;padding:28px 0;display:flex;align-items:center;justify-content:space-between;gap:40px}
+.footerNavigation a{display:flex;align-items:center;font-size:13px;min-height:44px;color:#d0c5b3}
+.footerContact{padding:4px 0;display:block}
 .footerContact>div>span{font-size:13px}
 .footerContact address{font-style:normal;color:#baad96;font-size:12px;line-height:1.8;margin:9px 0 3px}
 .footerContact a{color:#c8bca9;font-size:12px;min-height:30px;display:inline-flex;align-items:center}
 .footerBanner{width:46%;height:auto;max-width:500px;filter:saturate(.75);opacity:.85}
-.footerBottom{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:20px 0 6px;color:#b0a18a}
+.footerBottom{border-top:1px solid #5b4d3c;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:20px 0 6px;color:#b0a18a}
 .footerBottom small{font-size:10px}
 .footerUtilities{display:flex;gap:25px;align-items:center}
 .footerUtilities a{font-size:11px;min-height:36px;display:flex;align-items:center;gap:7px}
@@ -114,15 +125,17 @@
 .install summary{cursor:pointer;min-height:32px;width:fit-content}
 .install[open]{border-top:1px solid #5b4d3c;padding-top:14px;margin-top:10px}
 .install p{margin:15px 0;max-width:780px;line-height:1.9}
-.install h2{font-size:16px;color:#f3e9d4;margin-top:20px}
-.install button{border:1px solid #89775a;color:#f4ead7;background:transparent;padding:6px 12px;margin:4px}
+.install h2{font-size:20px;color:var(--ink);margin-top:28px}
+.install button{border:1px solid #b9a98a;color:var(--ink);background:transparent;padding:8px 16px;margin:4px}
 .install a{text-decoration:underline;text-underline-offset:4px}
 .install button:disabled{opacity:.6}
 
-.subpage{max-width:1240px;margin:auto;padding:65px 40px 100px}
-.pageHeading{padding:20px 0 45px;border-bottom:1px solid var(--line)}
+.subpage{max-width:1240px;margin:auto;padding:30px 40px 80px}
+.pageHeading{position:relative;isolation:isolate;padding:24px 30px 28px;margin-bottom:0;background:#f0ece2;border-bottom:1px solid var(--line);overflow:hidden}
+.pageHeading::after{content:'';position:absolute;z-index:-1;width:210px;height:270px;right:30px;top:15px;border:30px solid #e5dccb66;border-radius:130px 130px 0 0;transform:rotate(15deg)}
+.pageHeading .eyebrow{margin-bottom:8px}
 .pageHeading h1{font-family:var(--font-display);font-size:clamp(34px,4vw,52px);font-weight:500;letter-spacing:-.06em;margin:10px 0}
-.pageHeading>p:last-child{font-size:14px;color:var(--muted);margin-top:15px}
+.pageHeading>p:last-child{font-size:14px;color:#6e6254;margin-top:15px}
 .subnav{display:flex;gap:32px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:50px}
 .subnav a{min-height:65px;display:flex;align-items:center;font-size:14px;position:relative;color:var(--muted)}
 .subnav a[aria-current=page]{color:var(--ink);font-weight:600}
@@ -147,6 +160,15 @@
 .contactRow a{font-size:13px;display:inline-flex;align-items:center;gap:12px;min-height:44px}
 .unconfirmed{padding:35px;background:#f0ede5;border-left:3px solid #b69a56;margin:40px 0;color:#6e6254}
 .unconfirmed h2{font-size:22px;font-weight:500;margin-bottom:12px}
+.accountGrid{display:grid;gap:16px;margin:32px 0}
+.accountCard{padding:24px 28px;background:#f0ece2;border-top:2px solid #b39757;min-width:0}
+.accountCard h3{margin:0;font-size:18px;font-weight:500}
+.accountCard p{margin:8px 0;font-size:14px}
+.accountCard strong{font-size:clamp(19px,3vw,27px);letter-spacing:.025em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.bulletinExcerpt{margin:55px 0 25px}
+.bulletinExcerpt>h2{font-family:var(--font-display);font-size:30px;font-weight:500;margin-bottom:24px}
+.bulletinExcerpt p{white-space:pre-wrap}
+.excerptDate{font-size:13px;color:var(--muted);margin-bottom:24px}
 
 @keyframes appear{from{opacity:0;transform:translateY(18px)}
 to{opacity:1;transform:translateY(0)}
@@ -195,7 +217,7 @@ to{opacity:1;transform:translateY(0)}
 .welcomeInner{gap:50px}
 .welcomeSection{padding:70px 30px}
 .footerTop{grid-template-columns:1fr;gap:35px}
-.footerIdentity{display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
+.footerIdentity{display:block}
 .footerStatement{margin:0;grid-column:2;grid-row:1 / 3;font-size:19px}
 .footerYoutube{margin-top:18px}
 .footerContact{gap:25px}
@@ -252,9 +274,9 @@ to{opacity:1;transform:translateY(0)}
 .footerStatement{margin:22px 0 10px;font-size:19px}
 .footerYoutube{margin:0}
 .footerTop{padding-bottom:30px;gap:28px}
-.footerNavigation{gap:12px}
+.footerNavigation{gap:0 24px}
 .footerNavigation h2{font-size:12px;margin-bottom:12px}
-.footerNavigation a{font-size:11px;min-height:35px}
+.footerNavigation a{font-size:13px;min-height:44px}
 .footerContact{flex-direction:column;align-items:flex-start;padding:24px 0;gap:25px}
 .footerBanner{width:100%;max-width:420px}
 .footerContact address{font-size:11px;max-width:290px}
@@ -264,7 +286,7 @@ to{opacity:1;transform:translateY(0)}
 .installArea{font-size:10px}
 .install button{font-size:12px}
 .subpage{padding:30px 22px 60px}
-.pageHeading{padding:15px 0 25px}
+.pageHeading{padding:22px 20px}
 .pageHeading h1{font-size:35px}
 .pageHeading>p:last-child{font-size:13px}
 .subnav{gap:5px 22px;margin-bottom:30px}
