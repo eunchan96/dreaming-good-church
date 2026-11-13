@@ -1,20 +1,26 @@
-"use client";
-import { useEffect, useState } from "react";
-import { churchLabels } from "@/lib/church";
-import styles from "../public-content.module.css";
-export default function ChurchReader() {
-  const [fields, setFields] = useState<{ key: string; body: string }[]>([]), [message, setMessage] = useState("교회 안내를 불러오고 있습니다…");
+'use client';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { CHURCH_ADDRESS, CHURCH_PHONE, YOUTUBE_CHANNEL, siteNavigation } from '@/lib/site-content';
+import SiteIcon from '../site-icon';
+import WorshipTimes from '../worship-times';
+import styles from '../public-site.module.css';
+type Section = 'greeting' | 'directions' | 'worship-times' | 'offering';
+export default function ChurchReader({ section = 'greeting' }: { section?: Section }) {
+  const [fields, setFields] = useState<Record<string, string>>({});
   const [failed, setFailed] = useState(false), [retry, setRetry] = useState(0);
   useEffect(() => { const controller = new AbortController(); let sequence = 0;
-    async function load() { const current = ++sequence; try { const response = await fetch("/api/church", { cache: "no-store", signal: controller.signal }); const data = await response.json(); if (!response.ok) throw new Error(data.error); if (!controller.signal.aborted && current === sequence) { setFields(data.fields); setFailed(false); setMessage(data.fields.some((f: { body: string }) => f.body.trim()) ? "" : "교회 안내를 준비 중입니다."); } } catch { if (!controller.signal.aborted && current === sequence) { setFields([]); setFailed(true); setMessage("교회 안내를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."); } } }
-    void load(); const timer = window.setInterval(load, 15000); window.addEventListener("focus", load); return () => { controller.abort(); clearInterval(timer); window.removeEventListener("focus", load); };
+    async function load() { const current = ++sequence; try { const r = await fetch('/api/church', { cache: 'no-store', signal: controller.signal }); if (!r.ok) throw new Error(); const data = await r.json(); if (!controller.signal.aborted && current === sequence) { setFields(Object.fromEntries(data.fields.map((f: { key: string; body: string }) => [f.key, f.body]))); setFailed(false); } } catch { if (!controller.signal.aborted && current === sequence) setFailed(true); } }
+    void load(); const timer = window.setInterval(load, 15000); window.addEventListener('focus', load); return () => { controller.abort(); clearInterval(timer); window.removeEventListener('focus', load); };
   }, [retry]);
-  const order = ["introduction", "worship", "address", "directions", "phone", "name"];
-  const visible = fields.filter(field => field.body.trim() && order.includes(field.key)).sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
-  return <main id="public-content" tabIndex={-1} className={styles.page}>
-    <header className={styles.heading}><p>처음 오신 여러분을 환영합니다</p><h1>교회 안내</h1><p>교회 소개와 예배 시간, 오시는 길을 안내합니다.</p></header>
-    {message ? <div className={styles.state}><p role="status">{message}</p>{failed ? <button onClick={() => { setMessage("교회 안내를 불러오고 있습니다…"); setFailed(false); setRetry(value => value + 1); }}>다시 불러오기</button> : null}</div> : null}
-    {visible.length ? <nav className={styles.shortcuts} aria-label="교회 안내 바로가기">{visible.map(field => <a key={field.key} href={`#church-${field.key}`}>{churchLabels[field.key]}</a>)}</nav> : null}
-    <div className={styles.guide}>{visible.map(field => <section id={`church-${field.key}`} tabIndex={-1} className={styles.card} key={field.key}><h2>{churchLabels[field.key]}</h2><p className={styles.body}>{field.body}</p></section>)}</div>
+  const address = fields.address?.trim() || CHURCH_ADDRESS;
+  return <main id="public-content" tabIndex={-1} className={styles.subpage}>
+    <header className={styles.pageHeading}><p className={styles.eyebrow}>ABOUT OUR CHURCH</p><h1>교회 소개</h1><p>예배로 모이고, 사랑으로 살아가는 꿈꾸는좋은교회입니다.</p></header>
+    <nav className={styles.subnav} aria-label="교회 소개 메뉴">{siteNavigation[0].links.map(link => <Link key={link.href} href={link.href} aria-current={(section === 'greeting' ? '/church' : `/church/${section}`) === link.href ? 'page' : undefined}>{link.label}</Link>)}</nav>
+    {failed ? <div className={styles.unconfirmed}><p role="status">등록된 교회 안내를 불러오지 못했습니다. 기본 안내를 표시하고 있습니다.</p><button onClick={() => setRetry(x => x + 1)}>다시 불러오기</button></div> : null}
+    {section === 'greeting' ? <section className={styles.prose}><p className={styles.eyebrow}>WELCOME TO DREAMING GOOD CHURCH</p><h2>함께 예배하는 기쁨,<br />함께 걸어가는 믿음.</h2><p>{fields.introduction?.trim() || '꿈꾸는좋은교회에 오신 여러분을 주님의 이름으로 환영합니다.\n하나님 앞에서 더 나은 예배를 드리고, 일상에서 사랑을 나누는 공동체를 함께 꿈꿉니다.'}</p><p>온라인에서도 말씀과 교회의 소식을 만나보세요.<br />예배의 자리에서 여러분을 기다립니다.</p><a href={YOUTUBE_CHANNEL} target="_blank" rel="noreferrer"><SiteIcon name="youtube" />교회 YouTube 채널<SiteIcon name="diagonal" size={16} /></a></section> : null}
+    {section === 'directions' ? <section aria-label="오시는 길"><h2 className={styles.eyebrow}>VISIT OUR CHURCH</h2><iframe className={styles.mapFrame} title="꿈꾸는좋은교회 위치 지도" src={`https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" /><div className={styles.contactRow}><div><h2>꿈꾸는좋은교회</h2><p>{address}</p>{fields.directions?.trim() ? <p style={{ whiteSpace: 'pre-wrap' }}>{fields.directions}</p> : null}</div><a href={`https://map.naver.com/p/search/${encodeURIComponent(address)}`} target="_blank" rel="noreferrer">네이버 지도에서 보기<SiteIcon name="diagonal" /></a></div><div className={styles.contactRow}><div><h2>방문 문의</h2><p>{fields.phone?.trim() || CHURCH_PHONE}</p></div><a href={`tel:${CHURCH_PHONE.replaceAll('-', '')}`}><SiteIcon name="phone" size={18} />전화 문의</a></div></section> : null}
+    {section === 'worship-times' ? <><WorshipTimes />{fields.worship?.trim() ? <div className={styles.prose}><h2>예배 안내</h2><p>{fields.worship}</p></div> : null}<Link href="/worship" className={styles.textLink}>온라인으로 예배 함께하기<SiteIcon /></Link></> : null}
+    {section === 'offering' ? <section className={styles.prose}><p className={styles.eyebrow}>ONLINE OFFERING</p><h2>감사의 마음을<br />함께 나눕니다.</h2><div className={styles.unconfirmed}><h3>온라인 헌금 안내</h3><p>정확한 헌금 계좌를 확인하고 있습니다.<br />헌금 안내가 필요하시면 교회로 문의해 주세요.</p><a href={`tel:${CHURCH_PHONE.replaceAll('-', '')}`}><SiteIcon name="phone" size={18} />교회에 문의하기</a></div></section> : null}
   </main>;
 }
