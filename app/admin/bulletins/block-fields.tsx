@@ -2,6 +2,8 @@
 
 import { offeringTotal, type BulletinItem, type BlockContent } from "@/lib/bulletins";
 import styles from "./workspace.module.css";
+import ui from '../management.module.css';
+import SiteIcon from '@/app/site-icon';
 import { BulletinImageView } from "@/app/bulletin-image";
 
 export function BlockFields({ item, onChange }: { item: BulletinItem; onChange: (content: BlockContent) => void }) {
@@ -16,14 +18,14 @@ export function BlockFields({ item, onChange }: { item: BulletinItem; onChange: 
   const labels = item.kind === "worship" ? ["예배 순서", "진행 내용", "담당자"] : ["헌금 구분", "금액"];
   return <div>
     {item.kind === "offering" ? <label>헌금 집계 월<input type="month" value={content.month ?? ""} onChange={(e) => onChange({ ...content, month: e.target.value })} /></label> : null}
-    {rows.map((row, index) => <div className={styles.actions} key={index}>
+    {rows.map((row, index) => <div className={ui.structureRow} data-kind={item.kind} key={index}>
       {labels.map((label, column) => <label key={label}>{label}<input aria-label={`${item.title} ${index + 1}행 ${label}`} maxLength={column === 1 && item.kind === "offering" ? 12 : 500} inputMode={column === 1 && item.kind === "offering" ? "numeric" : "text"} value={row[column] ?? ""} onChange={(event) => {
         const value = event.target.value;
         if (item.kind === "offering" && column === 1 && !/^\d{0,12}$/.test(value)) return;
         onChange({ ...content, rows: rows.map((r, at) => at === index ? r.map((cell, col) => col === column ? value : cell) : r) });
       }} /></label>)}
-      <button aria-label={`${item.title} ${index + 1}행 위로`} disabled={index === 0} onClick={() => { const next = [...rows]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; onChange({ ...content, rows: next }); }}>행 위로</button>
-      <button aria-label={`${item.title} ${index + 1}행 삭제`} onClick={() => onChange({ ...content, rows: rows.filter((_, at) => at !== index) })}>행 삭제</button>
+      <button aria-label={`${item.title} ${index + 1}행 위로`} disabled={index === 0} onClick={() => { const next = [...rows]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; onChange({ ...content, rows: next }); }}><SiteIcon name="chevron" style={{transform:'rotate(180deg)'}}/></button>
+      <button aria-label={`${item.title} ${index + 1}행 삭제`} onClick={() => onChange({ ...content, rows: rows.filter((_, at) => at !== index) })}><SiteIcon name="close"/></button>
     </div>)}
     <button disabled={rows.length >= 100} onClick={() => onChange({ ...content, rows: [...rows, labels.map(() => "")] })}>{item.title} 행 추가</button>
     {item.kind === "offering" ? <p>합계: {offeringTotal(content).toLocaleString("ko-KR")}원</p> : null}
