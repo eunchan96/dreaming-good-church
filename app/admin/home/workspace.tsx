@@ -3,6 +3,7 @@ import {useEffect,useRef,useState} from 'react';
 import {makeBrowserClient,errorMessage} from '@/lib/bulletin-store';
 import {defaultHomeContent,homeTextLimits,validHomeContent,type HomeContent} from '@/lib/home-content';
 import type {BulletinImage} from '@/lib/church';
+import SaveButton from '../save-button';
 import AdminShell from '../admin-shell';
 import ReauthPanel from '../reauth-panel';
 import ImagePicker from './image-picker';
@@ -58,22 +59,22 @@ export default function HomeWorkspace(){
    setImages(current=>[data,...current]);setDraft(current=>({...current,image_asset_id:data.id,image_alt:imageAlt,image_mode:current.image_mode==='art'?'photo':current.image_mode}));setFile(null);if(fileInput.current)fileInput.current.value='';setMessage('이미지를 올렸습니다. 미리보기를 확인한 뒤 홈페이지에 반영해 주세요.');
   }catch(e){setMessage(e instanceof Error?e.message:'이미지를 올리지 못했습니다. 기존 선택은 유지됩니다.');}finally{setBusy(false);}
  }
- const copyDirty=(Object.keys(labels) as (keyof typeof labels)[]).some(key=>draft[key]!==saved[key]);
+
  const textInput=(key:keyof typeof labels,placeholder?:string)=><div className={ui.countedInput}><input id={`home-${key}`} aria-label={labels[key]} placeholder={placeholder} value={draft[key]} maxLength={homeTextLimits[key]} onChange={e=>change({[key]:e.target.value.replace(/[\r\n]/g,'')})}/><span aria-hidden="true">{draft[key].length}/{homeTextLimits[key]}</span></div>;
  const intro=<header className={ui.intro}><div><span className={styles.eyebrow}>HOMEPAGE CONTENT</span><h1 id="home-management-title">홈페이지 관리</h1><p>문구와 사진을 바꾸고 미리보기로 확인한 뒤 반영해 주세요.</p></div></header>;
  return <AdminShell active="home" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} sections={[{id:'home-preview',label:'미리보기'},{id:'home-copy',label:'첫 화면 문구'},{id:'home-image',label:'사진·일러스트'}]}><main id="admin-content" aria-labelledby="home-management-title" tabIndex={-1} className={`${styles.page} ${ui.editor}`}>
   {!allowed?<ReauthPanel message={message} hasDraft={unsaved} onRetry={()=>{setMessage("로그인 상태를 확인하고 있습니다…");setReload(n=>n+1);}}/>:<>
    <section id="home-preview" tabIndex={-1} className={ui.previewSection} aria-label="미리보기"><div className={ui.sectionHeading}><h2>미리보기</h2><div className={ui.deviceSwitch}>{[[1280,'PC'],[390,'모바일']].map(([value,label])=><button key={value} aria-pressed={width===value} onClick={()=>setWidth(Number(value))}>{label}</button>)}</div></div><div ref={previewBox} className={`${styles.homePreviewBox} ${ui.previewBox}`} style={{height:previewHeight*scale}}><iframe ref={frame} title="홈페이지 첫 화면 미리보기" src="/admin/home/preview" onLoad={sendPreview} style={{width,height:previewHeight,left:'50%',marginLeft:-width*scale/2,transform:`scale(${scale})`}}/></div>
-    <div className={ui.publishActions}><button disabled={busy||!dirty||!!file} className={styles.primary} onClick={()=>void save()}>이렇게 반영하기</button><button disabled={busy||!unsaved} onClick={()=>void restore()}>이전 설정 불러오기</button></div>
+    <div className={ui.publishActions}><SaveButton disabled={busy||!dirty||!!file} disabledHint={busy?'처리 중입니다.':file?'선택한 파일을 먼저 올리거나 선택을 취소해 주세요.':'현재 최신 상태입니다.'} className={styles.primary} onClick={()=>void save()}>이렇게 반영하기</SaveButton><SaveButton disabled={busy||!unsaved} disabledHint={busy?'처리 중입니다.':'불러올 변경 사항이 없습니다.'} onClick={()=>void restore()}>이전 설정 불러오기</SaveButton></div>
     {message?<p role="status" className={ui.feedback}>{message}</p>:null}
    </section>
-   <fieldset disabled={busy} className={styles.fields}><section id="home-copy" tabIndex={-1} className={ui.section} aria-label="첫 화면 문구"><div className={ui.sectionHeading}><h2>첫 화면 문구</h2><span className={ui.editStatus}>{copyDirty?'수정 중':'최신 버전'}</span></div>
+   <fieldset disabled={busy} className={styles.fields}><section id="home-copy" tabIndex={-1} className={ui.section} aria-label="첫 화면 문구"><div className={ui.sectionHeading}><h2>첫 화면 문구</h2><SaveButton className={styles.primary} disabled={busy||!dirty||!!file} disabledHint={busy?"처리 중입니다.":file?"선택한 파일을 먼저 올리거나 선택을 취소해 주세요.":"현재 최신 상태입니다."} onClick={()=>void save()}>저장</SaveButton></div>
     <div className={ui.textRow} role="group" aria-labelledby="title-label"><div className={ui.rowLabel}><label id="title-label" htmlFor="home-title_line1">제목</label></div><div className={ui.inputPair}>{textInput('title_line1','첫째 줄')}{textInput('title_line2','둘째 줄')}</div></div>
     <div className={ui.textRow} role="group" aria-labelledby="description-label"><div className={ui.rowLabel}><label id="description-label" htmlFor="home-description_line1">설명</label></div><div className={ui.inputPair}>{textInput('description_line1','첫째 줄')}{textInput('description_line2','둘째 줄')}</div></div>
     <div className={ui.textRow}><div className={ui.rowLabel}><label htmlFor="home-link_label">교회 소개 버튼 문구</label></div>{textInput('link_label')}</div>
     <div className={ui.textRow}><div className={ui.rowLabel}><label htmlFor="home-footnote">하단 환영 문구</label></div>{textInput('footnote')}</div>
    </section>
-   <section id="home-image" tabIndex={-1} className={ui.section} aria-label="사진·일러스트"><div className={ui.sectionHeading}><h2>사진·일러스트</h2></div><div className={ui.imageRow}><div className={ui.thumbnail}>{draft.image_mode!=='art'&&imageSrc?<>
+   <section id="home-image" tabIndex={-1} className={`${ui.section} ${ui.imageSection}`} aria-label="사진·일러스트"><div className={ui.sectionHeading}><h2>사진·일러스트</h2></div><div className={ui.imageRow}><div className={ui.thumbnail}>{draft.image_mode!=='art'&&imageSrc?<>
     {/* Authenticated local blob, never a public URL for unsaved assets. */}
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img src={imageSrc} alt={draft.image_alt} style={{objectFit:draft.image_mode==='illustration'?'contain':'cover',objectPosition:`${draft.focus_x}% ${draft.focus_y}%`}}/></>:<div className={ui.artThumbnail} aria-label={draft.image_mode==='art'?'기본 교회 일러스트':'선택한 이미지 준비 중'} role="img"><span>{draft.image_mode==='art'?'✝':'…'}</span></div>}</div><div className={ui.imageControls}><button ref={imageButton} aria-haspopup="dialog" onClick={()=>setPicker(true)}>새 이미지 선택</button><input hidden aria-label="새 이미지 파일" ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>{const next=e.target.files?.[0];if(next)void upload(next);}}/>

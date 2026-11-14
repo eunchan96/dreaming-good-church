@@ -27,7 +27,7 @@ test("publish and withdraw expose only reviewed public content in API and reader
     await page.getByLabel("이메일", { exact: true }).fill(email);
     await page.getByLabel("비밀번호", { exact: true }).fill(password);
     await page.getByRole("button", { name: "로그인", exact: true }).click();
-    await page.getByRole("button", { name: /2094-11-07/ }).click();
+    await page.getByRole("button", { name: /2094-11-07/ }).click();await page.getByRole("button",{name:"수정",exact:true}).click();
     expect((await page.request.get("/api/bulletins/pdf?date=2094-11-07")).status()).toBe(404);
     await expect(page.getByRole("button", { name: "주보 게시", exact: true })).toBeDisabled();
     await page.getByRole("button", { name: "그대로 사용" }).click();

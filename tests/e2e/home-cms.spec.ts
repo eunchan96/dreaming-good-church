@@ -17,7 +17,7 @@ test('homepage editor previews unsaved content, publishes normalized images and 
   await page.goto('/admin/bulletins');await page.getByLabel('이메일',{exact:true}).fill(email);await page.getByLabel('비밀번호',{exact:true}).fill(password);await page.getByRole('button',{name:'로그인',exact:true}).click();await page.getByRole('navigation',{name:'관리 메뉴'}).getByRole('link',{name:'홈페이지 관리',exact:true}).click();
   const preview=page.frameLocator('iframe[title="홈페이지 첫 화면 미리보기"]');await expect(preview.locator('#welcome-title')).toContainText(defaultHomeContent.title_line1);
   await expect(page.getByText('이 페이지',{exact:true})).toHaveCount(0);
-  await expect(page.getByText('최신 버전',{exact:true})).toBeVisible();
+  await expect(page.getByText('최신 버전',{exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:'저장',exact:true})).toBeDisabled();
   await expect(page.getByLabel('이미지 설명',{exact:true})).toBeVisible();
   await expect(page.getByLabel('이미지 설명',{exact:true})).toHaveAttribute('placeholder','이미지 설명');
   await expect(page.getByRole('radiogroup',{name:'이미지 표시 방식'})).toHaveCount(0);
@@ -40,7 +40,7 @@ test('homepage editor previews unsaved content, publishes normalized images and 
   await page.screenshot({path:'.local/home-simple-desktop.png',fullPage:true,animations:'disabled'});
   const title='가나다라마바사아자차카타';await page.getByLabel('제목 첫째 줄',{exact:true}).fill(title);await page.getByLabel('제목 둘째 줄',{exact:true}).fill('함께하는 예배');await page.getByLabel('교회 소개 버튼 문구',{exact:true}).fill('가'.repeat(24));await page.getByLabel('설명 첫째 줄',{exact:true}).fill('A'.repeat(48));
   await expect(preview.locator('#welcome-title')).toContainText(title);
-  await expect(page.getByText('수정 중',{exact:true})).toBeVisible();
+  await expect(page.getByText('수정 중',{exact:true})).toHaveCount(0);await expect(page.getByRole('button',{name:'저장',exact:true})).toBeEnabled();
   const before=await (await request.get('/api/home-content')).json();expect(before.content?.title_line1).not.toBe(title);
   for(const [label,width] of [['PC',1280],['모바일',390]] as const){await page.getByRole('button',{name:label,exact:true}).click();await expect.poll(()=>preview.locator('body').evaluate(()=>innerWidth)).toBe(width);await expect.poll(()=>preview.locator('#welcome-title').evaluate(el=>Math.max(...Array.from(el.children).map(child=>child.scrollWidth))-el.clientWidth)).toBeLessThanOrEqual(1);await expect.poll(()=>preview.getByRole('link',{name:'가'.repeat(24),exact:true}).evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);await expect.poll(async()=>Math.abs(await preview.locator('main').evaluate(el=>el.getBoundingClientRect().height-innerHeight))).toBeLessThanOrEqual(1);}
   const beforeHeight=await page.locator('iframe[title="홈페이지 첫 화면 미리보기"]').getAttribute('style');await page.evaluate(()=>window.postMessage({type:'homepage-preview-height',height:4000},location.origin));expect(await page.locator('iframe[title="홈페이지 첫 화면 미리보기"]').getAttribute('style')).toBe(beforeHeight);

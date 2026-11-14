@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { BlockPreview } from "../admin/bulletins/block-fields";
+import {printOnlyItem} from '@/lib/bulletin-editor';
 import type { BulletinItem } from "@/lib/bulletins";
 import styles from "./reader.module.css";
 import PublicPdfDownload from "./public-pdf-download";
@@ -70,7 +71,7 @@ export default function PublicBulletins({ initialDate }: { initialDate?: string 
         const content = await detail.json();
         if (controller.signal.aborted || currentRequest !== requestNumber) return;
         if (!detail.ok) throw new Error(content.error);
-        setBulletin(content); setMessage(""); setFailed(false);
+        setBulletin({...content,items:content.items.filter((item:PublicItem)=>!printOnlyItem(item))}); setMessage(""); setFailed(false);
       } catch (error) {
         if (controller.signal.aborted || currentRequest !== requestNumber) return;
         setBulletin(null); setFailed(true); setMessage(error instanceof Error ? error.message : "주보를 불러오지 못했습니다.");

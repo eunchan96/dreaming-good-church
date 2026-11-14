@@ -13,7 +13,7 @@ test("select a bulletin notice, publish separately, include event snapshot and a
     await admin.from("bulletins").insert({id:bulletin,service_date:"2091-11-04",issue_number:1});
     const seeded=await admin.from("bulletin_items").insert({id:item,bulletin_id:bulletin,position:0,title:"주보 환영 공지",body:"이번 주 환영합니다",web_visible:true});if(seeded.error)throw seeded.error;
     await page.goto("/admin/bulletins");await page.getByLabel("이메일",{exact:true}).fill(email);await page.getByLabel("비밀번호",{exact:true}).fill(password);await page.getByRole("button",{name:"로그인",exact:true}).click();
-    await page.getByRole("button",{name:/2091-11-04/}).click();
+    await page.getByRole("button",{name:/2091-11-04/}).click();await page.getByRole("button",{name:"수정",exact:true}).click();
     await page.getByText("공지·일정 연결",{exact:true}).first().click();await page.getByRole("button",{name:"별도 공지로 가져오기",exact:true}).click();
     await expect(page.getByText(/연결된 공지 초안을 준비했습니다/)).toBeVisible();
     const exported=await admin.from("community_entries").select("id").eq("source_item_id",item).single();if(exported.error)throw exported.error;entryIds.push(exported.data.id);
@@ -59,7 +59,7 @@ test("select a bulletin notice, publish separately, include event snapshot and a
 
     manager.once("dialog",dialog=>dialog.accept());await manager.getByRole("button",{name:"공개 목록에서 내리기",exact:true}).click();
     await expect(manager.getByRole("status")).toContainText("보관했습니다");
-    await page.reload();await page.getByRole("button",{name:/2091-11-04/}).click();
+    await page.reload();await page.getByRole("button",{name:/2091-11-04/}).click();await page.getByRole("button",{name:"수정",exact:true}).click();
     await expect(page.getByLabel("항목 제목",{exact:true}).last()).toHaveValue(eventTitle);
     const reader=await context.newPage();await reader.goto("/notices");await expect(reader.getByText("별도 공지에서 수정한 문구",{exact:true})).toBeVisible();
     await manager.getByRole("button",{name:"소식 목록",exact:true}).click();await manager.getByRole("button",{name:/주보 환영 공지.*공지/}).click();await manager.getByLabel("민감정보 포함",{exact:true}).check();

@@ -14,7 +14,7 @@ test("edit church info, upload normalized private image, attach/publish and prot
     await admin.from("church_editors").insert({ user_id: user.data.user.id });
     await admin.from("bulletins").insert({ id: bulletin, service_date: "2089-11-06", issue_number: 1 });
     await page.goto("/admin/bulletins"); await page.getByLabel("이메일", { exact: true }).fill(email); await page.getByLabel("비밀번호", { exact: true }).fill(password); await page.getByRole("button", { name: "로그인", exact: true }).click();
-    await page.getByRole("button", { name: /2089-11-06/ }).click();
+    await page.getByRole("button", { name: /2089-11-06/ }).click();await page.getByRole("button",{name:"수정",exact:true}).click();
     const manager = await context.newPage(); await manager.goto("/admin/church");
     await manager.getByLabel("교회 이름", { exact: true }).fill("검증용 교회 안내");
     await manager.getByLabel("연락처", { exact: true }).fill("010-5678-1234");

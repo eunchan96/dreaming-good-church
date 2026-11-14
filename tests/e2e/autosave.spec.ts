@@ -18,7 +18,7 @@ test("autosave preserves edits, pauses on failure, resumes after login and keeps
       await page.getByLabel("이메일", { exact: true }).fill(email);
       await page.getByLabel("비밀번호", { exact: true }).fill(password);
       await page.getByRole("button", { name: "로그인", exact: true }).click();
-      await expect(page.getByRole("button", { name: "+ 새 주보 작성" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "로그아웃",exact:true })).toBeVisible();
     }
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/admin/bulletins"); await login();
@@ -44,7 +44,7 @@ test("autosave preserves edits, pauses on failure, resumes after login and keeps
     await page.getByLabel("내용", { exact: true }).first().fill("저장 중 추가 입력");
     release();
     await expect.poll(async () => {
-      const result = await admin.from("bulletin_items").select("body").eq("title", "설교 제목").eq("body", "저장 중 추가 입력");
+      const result = await admin.from("bulletin_items").select("body").eq("title", "표지").eq("body", "저장 중 추가 입력");
       return result.data?.length;
     }).toBe(1);
 
@@ -70,23 +70,19 @@ test("autosave preserves edits, pauses on failure, resumes after login and keeps
     await login();
     await expect(page.getByLabel("내용", { exact: true }).first()).toHaveValue("재로그인 후 이어쓰기");
 
-    await page.getByRole("group",{name:"추가할 항목 종류"}).getByRole("button",{name:"예배 순서",exact:true}).click();
-    await page.getByRole("button", { name: "+ 항목 추가", exact: true }).click();
     await page.getByLabel("예배 순서 1행 예배 순서", { exact: true }).fill("찬송");
     await page.getByLabel("예배 순서 1행 진행 내용", { exact: true }).fill("369장");
     await page.getByLabel("예배 순서 1행 담당자", { exact: true }).fill("다 같이");
-    await page.getByRole("group",{name:"추가할 항목 종류"}).getByRole("button",{name:"헌금 내역",exact:true}).click();
-    await page.getByRole("button", { name: "+ 항목 추가", exact: true }).click();
-    await page.getByLabel("헌금 집계 월").fill("2096-10");
+    await selectCalendar(page,calendarControl(page,"헌금 집계 월"),"2096-10-01");
     await page.getByLabel("헌금 내역 1행 헌금 구분", { exact: true }).fill("감사헌금");
     await page.getByLabel("헌금 내역 1행 금액", { exact: true }).fill("120000");
-    await expect(page.getByText("합계: 120,000원", { exact: true })).toBeVisible();
+    await expect(page.getByText("합계 120,000원", { exact: true })).toBeVisible();
     await page.getByLabel("웹에 공개", { exact: true }).last().uncheck();
     await expect.poll(async () => {
       const r = await admin.from("bulletin_items").select("content,web_visible").eq("kind", "offering");
       return r.data?.some((item) => item.content.month === "2096-10" && item.web_visible === false);
     }).toBe(true);
-    await page.reload(); await page.getByRole("button", { name: /2096-11-04/ }).click();
+    await page.reload(); await page.getByRole("button", { name: /2096-11-04/ }).click();await page.getByRole("button",{name:"수정",exact:true}).click();
     await expect(page.getByLabel("헌금 내역 1행 금액", { exact: true })).toHaveValue("120000");
     await expect(page.getByLabel("예배 순서 1행 진행 내용", { exact: true })).toHaveValue("369장");
     await page.getByRole("button", { name: "웹 미리보기", exact: true }).click();

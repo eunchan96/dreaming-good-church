@@ -29,12 +29,13 @@ test("one bulletin travels from published source through copy, print, public PDF
       await page.getByLabel("비밀번호", { exact: true }).fill(password);
       await page.getByRole("button", { name: "로그인", exact: true }).click();
       await page.getByRole("button", { name: /2086-11-03/ }).click();
-      await expect(page.getByLabel("내용", { exact: true }).first()).toBeDisabled();
+      await expect(page.getByLabel("내용", { exact: true })).toHaveCount(0);
       await selectCalendar(page,calendarControl(page,"새 주보 날짜"),"2086-11-10");
       const response = page.waitForResponse(r => r.url().includes("rpc/copy_bulletin_draft"));
       await page.getByRole("button", { name: "다음 주 주보 복사", exact: true }).click();
       const copied = await (await response).json(); ids.push(copied.id);
       await expect(page.getByText("2개 항목 확인 필요", { exact: true })).toBeVisible();
+      await page.getByRole("button",{name:"수정",exact:true}).click();
       await expect(page.getByLabel("웹에 공개", { exact: true }).first()).toBeChecked();
       await expect(page.getByLabel("웹에 공개", { exact: true }).nth(1)).not.toBeChecked();
       expect((await reader.request.get("/api/bulletins?date=2086-11-10")).status()).toBe(404);
@@ -45,10 +46,10 @@ test("one bulletin travels from published source through copy, print, public PDF
       await page.getByLabel("내용", { exact: true }).nth(1).fill("이번 주 인쇄 전용 비공개 내용");
       await page.getByRole("button", { name: "초안 저장", exact: true }).click();
       await expect(page.getByRole("status")).toContainText("초안을 저장했습니다");
-      await page.reload(); await page.getByRole("button", { name: /2086-11-10/ }).click();
+      await page.reload(); await page.getByRole("button", { name: /2086-11-10/ }).click();await page.getByRole("button",{name:"수정",exact:true}).click();
       await expect(page.getByLabel("내용", { exact: true }).nth(1)).toHaveValue("이번 주 인쇄 전용 비공개 내용");
       await expect(page.getByLabel("웹에 공개", { exact: true }).nth(1)).not.toBeChecked();
-      await expect(page.getByText("0개 항목 확인 필요", { exact: true })).toBeVisible();
+      await expect(page.getByText("0개 항목 확인 필요", { exact: true })).toHaveCount(0);
       await page.getByRole("button", { name: "웹 미리보기", exact: true }).click();
       await expect(page.getByText("이번 주 성도 공개 안내", { exact: true })).toBeVisible();
       await expect(page.getByText("이번 주 인쇄 전용 비공개 내용", { exact: true })).toHaveCount(0);
@@ -88,9 +89,9 @@ test("one bulletin travels from published source through copy, print, public PDF
       await reader.reload();
       await expect(reader.getByText("이번 주 성도 공개 안내", { exact: true })).toHaveCount(0);
       await expect(reader.getByRole("button", { name: "공개용 PDF 다운로드", exact: true })).toHaveCount(0);
-      await page.getByRole("button", { name: /2086-11-03/ }).click();
-      await expect(page.getByLabel("내용", { exact: true }).first()).toHaveValue("지난주 공개 안내");
-      await expect(page.getByLabel("내용", { exact: true }).nth(1)).toHaveValue("지난주 비공개 안내");
+      await page.getByRole("button",{name:"주보 보관함",exact:true}).click();await page.getByRole("button", { name: /2086-11-03/ }).click();
+      await expect(page.getByText("지난주 공개 안내", { exact: true })).toBeVisible();
+      await expect(page.getByText("지난주 비공개 안내", { exact: true })).toHaveCount(0);
       expect(errors).toEqual([]);
     });
   } finally {
