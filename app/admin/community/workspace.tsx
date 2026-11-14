@@ -63,7 +63,7 @@ export default function CommunityWorkspace() {
   }
   function change(values: Partial<CommunityEntry>) { setEntry((current) => current && ({...current,...values})); setDirty(true);setMessage(''); }
   async function save(status: CommunityEntry["status"]) {
-    if (!client || !entry || busy) return;
+    if (!client || !entry || busy || loading) return;
     if (!entry.title.trim() || (entry.kind==="event" && !entry.starts_at) || (status==="published" && entry.kind==="notice" && !entry.body.trim())) { setMessage("제목과 필수 내용·일정 시작 시간을 입력해 주세요."); return; }
     if (entry.kind === "event" && entry.starts_at && entry.ends_at && Date.parse(entry.ends_at) <= Date.parse(entry.starts_at)) { setMessage("종료 시간은 시작 시간보다 늦게 입력해 주세요. 작성 내용은 유지됩니다."); return; }
     if (entry.publish_from && entry.publish_until && Date.parse(entry.publish_until) <= Date.parse(entry.publish_from)) { setMessage("게시 기간 종료는 게시 기간 시작보다 늦게 입력해 주세요. 작성 내용은 유지됩니다."); return; }
@@ -88,7 +88,7 @@ export default function CommunityWorkspace() {
       {loading?<p role="status" className={ui.empty}>목록을 불러오고 있습니다.</p>:listError?<div className={ui.empty}><p role="status">목록을 불러오지 못했습니다. 작성 중인 내용은 유지됩니다.</p><button onClick={()=>setReload(n=>n+1)}>목록 다시 불러오기</button></div>:<><ul className={ui.entries}>{filtered.map(row=><li key={row.id}><button disabled={busy} aria-pressed={entry?.id===row.id} onClick={()=>{if(mayLeave()){setEntry(structuredClone(row));setDirty(false);setMessage('');}}}><div><strong>{row.title}</strong><span>{row.kind==='event'?'일정':'공지'}{row.kind==='event'&&row.starts_at?` · ${koreanInput(row.starts_at).replace('T',' ')}`:row.publish_from?` · ${koreanInput(row.publish_from).replace('T',' ')}부터`:''}</span></div><span className={ui.badge} data-state={statusLabel(row)}>{statusLabel(row)}</span></button></li>)}</ul>{!filtered.length?<p className={ui.empty}>{rows.length?'검색 조건에 맞는 소식이 없습니다.':'등록된 소식이 없습니다.'}</p>:null}</>}
       <div className={ui.listNote}><Link href="/admin/bulletins" onClick={e=>{if(busy||!mayLeave())e.preventDefault();}}>주보에서 공지 가져오기</Link>{rows.length===100?<span>최근 100개에서 찾습니다.</span>:null}</div>
       </section>
-      {entry?<fieldset disabled={busy} className={styles.fields}>
+      {entry?<fieldset disabled={busy||loading} className={styles.fields}>
         <section id="community-editor" tabIndex={-1} aria-label="내용 편집" className={ui.section}><div className={ui.sectionHeading}><h2>{entry.kind==='event'?'일정 편집':'공지 편집'}</h2><span className={ui.editStatus}>{busy?'저장 중…':dirty?'수정 중':'최신 버전'}</span></div>
         <div className={ui.fieldRow}><label htmlFor="community-title">제목</label><div className={ui.counted}><input id="community-title" maxLength={200} placeholder="제목" value={entry.title} onChange={e=>change({title:e.target.value})}/><span aria-hidden="true">{entry.title.length}/200</span></div></div>
         <div className={ui.fieldRow}><label htmlFor="community-body">내용</label><div><textarea id="community-body" rows={6} maxLength={entry.kind==='event'?19000:20000} placeholder="내용" value={entry.body} onChange={e=>change({body:e.target.value})}/><span className={ui.textCount} aria-hidden="true">{entry.body.length}/{entry.kind==='event'?19000:20000}</span></div></div>
