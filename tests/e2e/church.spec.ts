@@ -21,9 +21,9 @@ test("edit church info, upload normalized private image, attach/publish and prot
     await manager.getByLabel("연락처 웹 공개", { exact: true }).uncheck();
     await manager.setViewportSize({ width: 320, height: 844 });
     expect(await manager.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await manager.route("**/rest/v1/church_info?*", route => route.request().method()==='PATCH'?route.fulfill({ status: 503, json: { message: "unavailable" } }):route.continue(), { times: 1 });
-    await manager.getByRole("button", { name: "교회 이름 저장", exact: true }).click();
-    await expect(manager.getByRole('region',{name:'교회 이름 편집',exact:true}).getByRole("status")).not.toBeEmpty();
+    await manager.route("**/rest/v1/rpc/save_church_info", route => route.fulfill({ status: 503, json: { message: "unavailable" } }), { times: 1 });
+    await manager.getByRole("button", { name: "교회 안내 저장", exact: true }).click();
+    await expect(manager.getByRole('region',{name:'교회 안내',exact:true}).getByRole("status")).not.toBeEmpty();
     await expect(manager.getByLabel("교회 이름", { exact: true })).toHaveValue("검증용 교회 안내");
     await expect(manager.getByLabel("연락처 웹 공개", { exact: true })).not.toBeChecked();
     const authTab = await context.newPage(); await authTab.goto("/admin/bulletins");
@@ -37,8 +37,8 @@ test("edit church info, upload normalized private image, attach/publish and prot
     await page.getByLabel("이메일", { exact: true }).fill(email);
     await page.getByLabel("비밀번호", { exact: true }).fill(password);
     await page.getByRole("button", { name: "로그인", exact: true }).click();
-    await manager.getByRole("button", { name: "교회 이름 저장", exact: true }).click(); await expect(manager.getByRole('region',{name:'교회 이름 편집',exact:true}).getByRole("status")).toContainText("저장했습니다");
-    await manager.getByRole("button", { name: "연락처 저장", exact: true }).click(); await expect(manager.getByRole('region',{name:'연락처 편집',exact:true}).getByRole("status")).toContainText("저장했습니다");
+    await manager.getByRole("button", { name: "교회 안내 저장", exact: true }).click(); await expect(manager.getByRole('region',{name:'교회 안내',exact:true}).getByRole("status")).toContainText("저장했습니다");
+
     const publicInfo = await page.request.get("/api/church"); expect(await publicInfo.text()).not.toContain("공개하면 안 되는 연락처");
     const publicName=(await publicInfo.json()).fields.find((f:{key:string})=>f.key==='name');expect(publicName.body).toBe('검증용 교회 안내');
     const reader=await context.newPage();await reader.goto('/church');await expect(reader.getByRole('main').getByText('검증용 교회 안내',{exact:true})).toBeVisible();

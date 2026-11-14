@@ -1,9 +1,8 @@
-import type { BrowserClient } from './bulletin-store';
-import type { ChurchField } from './church';
-/** Update exactly one row under existing editor RLS and compare-and-swap revision. */
-export async function saveChurchField(client:BrowserClient, field:ChurchField) {
-  const { data,error }=await client.from('church_info').update({body:field.body,web_visible:field.web_visible,revision:field.revision+1}).eq('key',field.key).eq('revision',field.revision).select('*').maybeSingle();
-  if(error)throw error;
-  if(!data)throw Object.assign(new Error('다른 곳에서 이 항목이 변경되었습니다. 저장된 내용을 다시 확인해 주세요.'),{code:'40001'});
-  return data;
+import type {BrowserClient} from './bulletin-store';
+import type {ChurchField} from './church';
+/** Save all six fields in one existing transaction; a revision conflict rolls back the entire group. */
+export async function saveChurchInfo(client:BrowserClient,fields:ChurchField[]){
+ const {data,error}=await client.rpc('save_church_info',{p_fields:fields.map(({key,body,web_visible,revision})=>({key,body,web_visible,revision}))});
+ if(error)throw error;
+ return data;
 }
