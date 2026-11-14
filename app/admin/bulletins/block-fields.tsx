@@ -2,6 +2,7 @@
 
 import {useRef,useState} from "react";
 import rowStyle from "./structured-rows.module.css";
+import {sectionFor} from '@/lib/bulletin-editor';
 import {DatePicker} from "../calendar";
 import { offeringTotal, type BulletinItem, type BlockContent } from "@/lib/bulletins";
 import styles from "./workspace.module.css";
@@ -20,6 +21,7 @@ export function BlockFields({ item, onChange }: { item: BulletinItem; onChange: 
 }
 function StructuredRows({item,onChange}:{item:BulletinItem;onChange:(content:BlockContent)=>void}) {
   const content=item.content??{},rows=content.rows??[];
+  const standingControl=item.kind==='worship'&&sectionFor(item)==='예배 순서';
   const labels=item.kind==='worship'?['예배 순서','진행 내용','담당자']:['헌금 구분','금액'];
   const root=useRef<HTMLDivElement>(null),source=useRef<number|null>(null),destination=useRef<number|null>(null);
   const [over,setOver]=useState<number|null>(null),[announcement,setAnnouncement]=useState('');
@@ -32,15 +34,16 @@ function StructuredRows({item,onChange}:{item:BulletinItem;onChange:(content:Blo
   function finish(){if(source.current!==null&&destination.current!==null)move(source.current,destination.current);source.current=null;destination.current=null;setOver(null);}
   return <div ref={root} className={rowStyle.editor}>
     {item.kind==='offering'?<label className={rowStyle.month}>집계 월<DatePicker label="헌금 집계 월" value={content.month?`${content.month}-01`:''} onChange={value=>onChange({...content,month:value.slice(0,7)})}/></label>:null}
-    {rows.map((row,index)=><div data-row={index} data-over={over===index} className={rowStyle.row} data-kind={item.kind} key={index}>
+    {rows.map((row,index)=><div data-row={index} data-over={over===index} className={rowStyle.row} data-order={standingControl} data-kind={item.kind} key={index}>
       <button type="button" data-handle className={rowStyle.handle} aria-label={`${item.title} ${index+1}행 이동`} title="드래그하거나 위아래 방향키로 이동" onKeyDown={e=>{if(e.key!=='ArrowUp'&&e.key!=='ArrowDown')return;e.preventDefault();move(index,index+(e.key==='ArrowUp'?-1:1));}}
         onPointerDown={e=>{if(e.button!==0)return;source.current=index;destination.current=index;e.currentTarget.setPointerCapture(e.pointerId);}}
         onPointerMove={e=>{if(source.current===null)return;const target=document.elementFromPoint(e.clientX,e.clientY)?.closest<HTMLElement>('[data-row]');if(!target||!root.current?.contains(target))return;destination.current=Number(target.dataset.row);setOver(destination.current);}}
         onPointerUp={e=>{if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);finish();}}
         onPointerCancel={()=>{source.current=null;destination.current=null;setOver(null);}}>≡</button>
-      {labels.map((label,column)=><input key={label} aria-label={`${item.title} ${index+1}행 ${label}`} placeholder={label} maxLength={column===1&&item.kind==='offering'?12:500} inputMode={column===1&&item.kind==='offering'?'numeric':'text'} value={row[column]??''} onChange={e=>{
+      {standingControl?<button type="button" className={rowStyle.standing} aria-label={`${item.title} ${index+1}행 일어서서`} title="일어서서 진행" aria-pressed={/^\s*↑/.test(row[0]??'')} onClick={()=>{const marked=/^\s*↑/.test(row[0]??'');onChange({...content,rows:rows.map((r,at)=>at===index?[`${marked?'':'↑ '}${(r[0]??'').replace(/^\s*↑\s*/,'')}`,...r.slice(1)]:r)});}}>↑</button>:null}
+      {labels.map((label,column)=><input key={label} aria-label={`${item.title} ${index+1}행 ${label}`} placeholder={label} maxLength={column===1&&item.kind==='offering'?12:500} inputMode={column===1&&item.kind==='offering'?'numeric':'text'} value={column===0&&standingControl?(row[column]??'').replace(/^\s*↑\s*/,''):row[column]??''} onChange={e=>{
         const value=e.target.value;if(item.kind==='offering'&&column===1&&!/^\d{0,12}$/.test(value))return;
-        onChange({...content,rows:rows.map((r,at)=>at===index?labels.map((_,col)=>col===column?value:r[col]??''):r)});
+        onChange({...content,rows:rows.map((r,at)=>at===index?labels.map((_,col)=>col===column?(column===0&&standingControl&&/^\s*↑/.test(row[0]??'')?'↑ '+value:value):r[col]??''):r)});
       }}/>)}
       <button type="button" className={rowStyle.remove} aria-label={`${item.title} ${index+1}행 삭제`} onClick={()=>onChange({...content,rows:rows.filter((_,at)=>at!==index)})}><SiteIcon name="close"/></button>
     </div>)}
