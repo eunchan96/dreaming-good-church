@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 const paths = {
+  refresh: <><path d="M20 7v5h-5M4 17v-5h5M6 7a7 7 0 0 1 12-1l2 6M4 12l2 6a7 7 0 0 0 12-1" /></>,
   arrow: <><path d="M4 12h15M13 5l7 7-7 7" /></>,
   diagonal: <><path d="M5 19 19 5M5 5h14v14" /></>,
   chevron: <path d="m6 9 6 6 6-6" />,

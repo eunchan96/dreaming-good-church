@@ -56,18 +56,19 @@ test('individual church settings save publicly, enforce permissions/conflicts an
   manager.once('dialog',d=>d.accept());await times.getByRole('button',{name:'예배시간 설정 저장',exact:true}).click();await expect(times.getByRole('status')).toContainText('저장했습니다');
   await expect(location.getByLabel('주변 위치 안내',{exact:true})).toHaveValue('미저장 위치 초안');
   const rows=await service.from('church_page_settings').select('*');expect(rows.data?.map(row=>row.key)).toEqual(['worship_times']);
-  await accounts.getByRole('group',{name:'일반 헌금',exact:true}).getByLabel('계좌번호',{exact:true}).fill('123-456-789');
+  await accounts.getByRole('group',{name:'온라인 헌금',exact:true}).getByLabel('계좌번호',{exact:true}).fill('123-456-789');
   manager.once('dialog',async d=>{expect(d.message()).toContain('농협 123-456-789 / 좋은교회');await d.dismiss();});await accounts.getByRole('button',{name:'온라인 헌금계좌 설정 저장',exact:true}).click();
   expect((await service.from('church_page_settings').select('*').eq('key','offering_accounts')).data).toEqual([]);
   manager.once('dialog',d=>d.accept());await accounts.getByRole('button',{name:'온라인 헌금계좌 설정 저장',exact:true}).click();await expect(accounts.getByRole('status')).toContainText('저장했습니다');
-  await location.getByLabel('지도 확대 단계',{exact:true}).fill('17');
+  for(const label of ['위도','경도','지도 확대 단계'])await expect(location.getByLabel(label,{exact:true})).toHaveCount(0);
   manager.once('dialog',d=>d.accept());await location.getByRole('button',{name:'지도·방문안내 설정 저장',exact:true}).click();await expect(location.getByRole('status')).toContainText('저장했습니다');
+  const savedLocation=await service.from('church_page_settings').select('payload').eq('key','location').single();expect(savedLocation.data?.payload).toMatchObject({latitude:defaultPageSettings.location.latitude,longitude:defaultPageSettings.location.longitude,zoom:defaultPageSettings.location.zoom});
   const publicResult=await anon.from('church_page_settings').select('key,payload');expect(publicResult.error).toBeNull();expect(publicResult.data).toHaveLength(3);
   const reader=await context.newPage();await reader.goto('/church/worship-times');await expect(reader.getByText('첫째·셋째 주일 오후 1:30',{exact:true})).toBeVisible();
   await reader.goto('/worship');await expect(reader.getByText('첫째·셋째 주일 오후 1:30',{exact:true})).toBeVisible();
   await reader.goto('/church/offering');await expect(reader.getByText('123-456-789',{exact:true})).toBeVisible();
   const api=await reader.request.get('/api/church-settings');expect(api.headers()['cache-control']).toContain('no-store');expect(await api.text()).not.toContain('revision');
-  await reader.goto('/church/directions');await expect(reader.locator('iframe[title="꿈꾸는좋은교회 위치 지도"]')).toHaveAttribute('src',/z=17/);await expect(reader.getByText('미저장 위치 초안',{exact:true})).toBeVisible();
+  await reader.goto('/church/directions');await expect(reader.locator('iframe[title="꿈꾸는좋은교회 위치 지도"]')).toHaveAttribute('src',/z=16/);await expect(reader.getByText('미저장 위치 초안',{exact:true})).toBeVisible();
   await service.from('church_info').update({body:'공개 검증 주소'}).eq('key','address');await reader.reload();await expect(reader.locator('footer address')).toHaveText('공개 검증 주소');
   await service.from('church_info').update({web_visible:false}).eq('key','address');await reader.reload();await expect(reader.locator('footer address')).toHaveCount(0);await expect(reader.locator('iframe[title="꿈꾸는좋은교회 위치 지도"]')).toHaveCount(0);
   // A competing editor advances the version. Current input stays visible after conflict.

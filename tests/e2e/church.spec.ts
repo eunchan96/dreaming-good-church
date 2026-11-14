@@ -17,15 +17,14 @@ test("edit church info, upload normalized private image, attach/publish and prot
     await page.getByRole("button", { name: /2089-11-06/ }).click();
     const manager = await context.newPage(); await manager.goto("/admin/church");
     await manager.getByLabel("교회 이름", { exact: true }).fill("검증용 교회 안내");
-    await manager.getByLabel("연락처", { exact: true }).fill("공개하면 안 되는 연락처");
-    await manager.getByLabel("연락처 웹 공개", { exact: true }).uncheck();
+    await manager.getByLabel("연락처", { exact: true }).fill("010-5678-1234");
+    await expect(manager.getByRole('region',{name:'교회 안내',exact:true}).getByRole('checkbox')).toHaveCount(0);
     await manager.setViewportSize({ width: 320, height: 844 });
     expect(await manager.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await manager.route("**/rest/v1/rpc/save_church_info", route => route.fulfill({ status: 503, json: { message: "unavailable" } }), { times: 1 });
     await manager.getByRole("button", { name: "교회 안내 저장", exact: true }).click();
     await expect(manager.getByRole('region',{name:'교회 안내',exact:true}).getByRole("status")).not.toBeEmpty();
     await expect(manager.getByLabel("교회 이름", { exact: true })).toHaveValue("검증용 교회 안내");
-    await expect(manager.getByLabel("연락처 웹 공개", { exact: true })).not.toBeChecked();
     const authTab = await context.newPage(); await authTab.goto("/admin/bulletins");
     await authTab.getByRole("button", { name: "로그아웃", exact: true }).click();
     await expect(manager.getByRole("button", { name: "로그인 다시 확인", exact: true })).toBeVisible();
@@ -39,7 +38,7 @@ test("edit church info, upload normalized private image, attach/publish and prot
     await page.getByRole("button", { name: "로그인", exact: true }).click();
     await manager.getByRole("button", { name: "교회 안내 저장", exact: true }).click(); await expect(manager.getByRole('region',{name:'교회 안내',exact:true}).getByRole("status")).toContainText("저장했습니다");
 
-    const publicInfo = await page.request.get("/api/church"); expect(await publicInfo.text()).not.toContain("공개하면 안 되는 연락처");
+    const publicInfo = await page.request.get("/api/church"); expect(await publicInfo.text()).toContain("010-5678-1234");
     const publicName=(await publicInfo.json()).fields.find((f:{key:string})=>f.key==='name');expect(publicName.body).toBe('검증용 교회 안내');
     const reader=await context.newPage();await reader.goto('/church');await expect(reader.getByRole('main').getByText('검증용 교회 안내',{exact:true})).toBeVisible();
     const pixels = await sharp({ create: { width: 3000, height: 1500, channels: 3, background: "#008040" } }).png().toBuffer();
