@@ -12,10 +12,10 @@ test('all management pages share concise headings, mobile layouts and accessible
   await page.getByRole('button',{name:'+ 새 주보 작성',exact:true}).click();await page.getByLabel('추가할 항목 종류').selectOption('worship');await page.getByRole('button',{name:'+ 항목 추가',exact:true}).click();
   await page.getByRole('button',{name:/행 추가$/}).click();
   await expect(page.getByLabel('예배 순서 1행 예배 순서',{exact:true})).toBeVisible();
-  for(const [path,label,section] of [['bulletins','주보 관리','게시 전 확인'],['worship','예배 영상 관리','공개·대표 설정'],['church','교회 정보·이미지 관리','이미지 보관함']] as const){
+  for(const [path,label,section] of [['bulletins','주보 관리','게시 전 확인'],['worship','예배 영상 관리','저장'],['church','교회 정보·이미지 관리','이미지 보관함']] as const){
    if(path!=='bulletins'){
     await page.setViewportSize({width:1440,height:1000});page.once('dialog',d=>d.accept());await page.getByRole('navigation',{name:'관리 메뉴'}).getByRole('link',{name:label,exact:true}).click();
-    if(path==='worship'){await page.getByRole('button',{name:'새 영상 등록',exact:true}).click();await page.getByLabel('YouTube 영상 링크',{exact:true}).fill('https://youtu.be/OSfMkv-YWJQ');await page.getByLabel('영상 제목',{exact:true}).fill('관리자 화면 검수용 영상');}
+    if(path==='worship'){await page.getByRole('button',{name:'영상 등록',exact:true}).click();await page.getByLabel('링크',{exact:true}).fill('https://youtu.be/OSfMkv-YWJQ');await page.getByLabel('제목',{exact:true}).fill('관리자 화면 검수용 영상');}
    }
    await expect(page.getByRole('heading',{name:label,level:1,exact:true})).toBeVisible();await expect(page.locator('[data-tip-panel]')).toHaveCount(0);
    const title=await page.getByRole('region',{name:'페이지 제목'}).boundingBox(),toc=await page.getByRole('navigation',{name:'페이지 목차'}).boundingBox();expect(title!.y+title!.height).toBeLessThanOrEqual(toc!.y);
