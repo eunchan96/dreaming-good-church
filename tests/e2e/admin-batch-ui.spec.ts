@@ -9,7 +9,7 @@ test('all management pages share concise headings, mobile layouts and accessible
  const user=await db.auth.admin.createUser({email,password,email_confirm:true});if(user.error)throw user.error;
  try{
   await db.from('church_editors').insert({user_id:user.data.user.id});await page.goto('/admin/bulletins');await page.getByLabel('이메일',{exact:true}).fill(email);await page.getByLabel('비밀번호',{exact:true}).fill(password);await page.getByRole('button',{name:'로그인',exact:true}).click();
-  await page.getByRole('button',{name:'+ 새 주보 작성',exact:true}).click();await page.getByLabel('추가할 항목 종류').selectOption('worship');await page.getByRole('button',{name:'+ 항목 추가',exact:true}).click();
+  await page.getByRole('button',{name:'+ 새 주보 작성',exact:true}).click();await page.getByRole('group',{name:'추가할 항목 종류'}).getByRole('button',{name:'예배 순서',exact:true}).click();await page.getByRole('button',{name:'+ 항목 추가',exact:true}).click();
   await page.getByRole('button',{name:/행 추가$/}).click();
   await expect(page.getByLabel('예배 순서 1행 예배 순서',{exact:true})).toBeVisible();
   for(const [path,label,section] of [['bulletins','주보 관리','게시 전 확인'],['worship','예배 영상 관리','저장'],['church','교회 정보·이미지 관리','이미지 보관함']] as const){

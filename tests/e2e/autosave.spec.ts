@@ -70,12 +70,12 @@ test("autosave preserves edits, pauses on failure, resumes after login and keeps
     await login();
     await expect(page.getByLabel("내용", { exact: true }).first()).toHaveValue("재로그인 후 이어쓰기");
 
-    await page.getByLabel("추가할 항목 종류").selectOption("worship");
+    await page.getByRole("group",{name:"추가할 항목 종류"}).getByRole("button",{name:"예배 순서",exact:true}).click();
     await page.getByRole("button", { name: "+ 항목 추가", exact: true }).click();
     await page.getByLabel("예배 순서 1행 예배 순서", { exact: true }).fill("찬송");
     await page.getByLabel("예배 순서 1행 진행 내용", { exact: true }).fill("369장");
     await page.getByLabel("예배 순서 1행 담당자", { exact: true }).fill("다 같이");
-    await page.getByLabel("추가할 항목 종류").selectOption("offering");
+    await page.getByRole("group",{name:"추가할 항목 종류"}).getByRole("button",{name:"헌금 내역",exact:true}).click();
     await page.getByRole("button", { name: "+ 항목 추가", exact: true }).click();
     await page.getByLabel("헌금 집계 월").fill("2096-10");
     await page.getByLabel("헌금 내역 1행 헌금 구분", { exact: true }).fill("감사헌금");

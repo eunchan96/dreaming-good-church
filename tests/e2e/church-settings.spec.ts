@@ -1,3 +1,4 @@
+import {timeControl,selectTime} from './time-helpers';
 import {test,expect} from '@playwright/test';
 import {createClient} from '@supabase/supabase-js';
 import {randomUUID} from 'node:crypto';
@@ -51,7 +52,7 @@ test('individual church settings save publicly, enforce permissions/conflicts an
   const accounts=manager.getByRole('region',{name:'온라인 헌금계좌 설정',exact:true});
   const location=manager.getByRole('region',{name:'지도·방문안내 설정',exact:true});
   await expect(times).toBeVisible();
-  await times.getByRole('group',{name:'주일오후예배',exact:true}).getByLabel('예배 시각').fill('13:30');
+  await selectTime(manager,timeControl(manager,'주일오후예배 시간'),'13:30');
   await location.getByLabel('주변 위치 안내',{exact:true}).fill('미저장 위치 초안');
   manager.once('dialog',d=>d.accept());await times.getByRole('button',{name:'예배시간 설정 저장',exact:true}).click();await expect(times.getByRole('status')).toContainText('저장했습니다');
   await expect(location.getByLabel('주변 위치 안내',{exact:true})).toHaveValue('미저장 위치 초안');
@@ -74,14 +75,14 @@ test('individual church settings save publicly, enforce permissions/conflicts an
   // A competing editor advances the version. Current input stays visible after conflict.
   const current=(await service.from('church_page_settings').select('*').eq('key','worship_times').single()).data!;
   expect((await editor.rpc('save_church_page_setting',{p_key:'worship_times',p_revision:current.revision,p_payload:current.payload})).error).toBeNull();
-  await times.getByRole('group',{name:'주일예배',exact:true}).getByLabel('예배 시각').fill('11:00');
-  manager.once('dialog',d=>d.accept());await times.getByRole('button',{name:'예배시간 설정 저장',exact:true}).click();await expect(times.getByRole('status')).not.toContainText('저장했습니다');await expect(times.getByRole('status')).not.toBeEmpty();await expect(times.getByRole('group',{name:'주일예배',exact:true}).getByLabel('예배 시각')).toHaveValue('11:00');
+  await selectTime(manager,timeControl(manager,'주일예배 시간'),'11:00');
+  manager.once('dialog',d=>d.accept());await times.getByRole('button',{name:'예배시간 설정 저장',exact:true}).click();await expect(times.getByRole('status')).not.toContainText('저장했습니다');await expect(times.getByRole('status')).not.toBeEmpty();await expect(timeControl(manager,'주일예배 시간')).toHaveAttribute('data-value','11:00');
   await page.getByRole('button',{name:'로그아웃',exact:true}).click();await expect(manager.getByRole('heading',{name:'작성하던 내용을 이어가세요'})).toBeVisible();
-  await page.getByLabel('이메일',{exact:true}).fill(email);await page.getByLabel('비밀번호',{exact:true}).fill(password);await page.getByRole('button',{name:'로그인',exact:true}).click();await expect(times.getByRole('group',{name:'주일예배',exact:true}).getByLabel('예배 시각')).toHaveValue('11:00');
+  await page.getByLabel('이메일',{exact:true}).fill(email);await page.getByLabel('비밀번호',{exact:true}).fill(password);await page.getByRole('button',{name:'로그인',exact:true}).click();await expect(timeControl(manager,'주일예배 시간')).toHaveAttribute('data-value','11:00');
   for(const width of [1440,390,320]){await manager.setViewportSize({width,height:900});expect(await manager.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
   expect((await new AxeBuilder({page:manager}).exclude('iframe').analyze()).violations).toEqual([]);
   await page.getByRole('button',{name:'로그아웃',exact:true}).click();await expect(manager.getByRole('heading',{name:'작성하던 내용을 이어가세요'})).toBeVisible();
-  await page.getByLabel('이메일',{exact:true}).fill(other.data.user.email!);await page.getByLabel('비밀번호',{exact:true}).fill(password);await page.getByRole('button',{name:'로그인',exact:true}).click();await expect(times.getByRole('group',{name:'주일예배',exact:true}).getByLabel('예배 시각')).toHaveValue('10:45');
+  await page.getByLabel('이메일',{exact:true}).fill(other.data.user.email!);await page.getByLabel('비밀번호',{exact:true}).fill(password);await page.getByRole('button',{name:'로그인',exact:true}).click();await expect(timeControl(manager,'주일예배 시간')).toHaveAttribute('data-value','10:45');
  }finally{
   await service.from('church_page_settings').delete().in('key',Object.keys(defaultPageSettings));if(original.data.length)await service.from('church_page_settings').insert(original.data);
   for(const field of info.data)await service.from('church_info').update(field).eq('key',field.key);
