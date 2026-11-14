@@ -52,7 +52,7 @@ test("edit church info, upload normalized private image, attach/publish and prot
     expect((await page.request.delete(`/api/images?id=${imageId}`)).status()).toBe(401);
     expect((await page.request.post("/api/images", { data: pixels })).status()).toBe(401);
     await expect(manager.getByRole("img", { name: "초록색 표지 이미지" })).toBeVisible();
-    await page.getByRole("button", { name: "사용할 이미지 새로고침", exact: true }).click();
+    await page.getByText("이미지 추가",{exact:true}).click();await page.getByRole("button", { name: "사용할 이미지 새로고침", exact: true }).click();
     await expect(page.getByLabel("주보에 넣을 이미지").locator("option", { hasText: "검증용 주보 표지" })).toHaveCount(1);
     await page.getByLabel("주보에 넣을 이미지").selectOption(imageId); await page.getByRole("button", { name: "선택한 이미지 넣기", exact: true }).click();
     await expect(page.getByLabel("이미지 설명 (대체텍스트)")).toHaveValue("초록색 표지 이미지");

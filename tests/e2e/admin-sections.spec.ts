@@ -32,8 +32,8 @@ test('top navigation, page contents and isolated field saves preserve other edit
     expect((await db.from('church_info').select('body').eq('key','introduction').single()).data?.body).toBe('먼저 저장한 새 안내');
     other.once('dialog',d=>d.accept());await otherIntro.getByRole('button',{name:'저장값 다시 불러오기',exact:true}).click();await expect(otherIntro.getByLabel('교회 소개',{exact:true})).toHaveValue('먼저 저장한 새 안내');await other.close();
     await page.setViewportSize({width:320,height:844});
-    const help=page.locator('summary[aria-label="교회 정보 도움말"]');await help.click();const popup=page.locator('[data-tip-panel]').first();await expect(popup).toBeVisible();const box=await popup.boundingBox();expect(box!.x).toBeGreaterThanOrEqual(0);expect(box!.x+box!.width).toBeLessThanOrEqual(320);
-    await page.keyboard.press('Escape');await expect(help).toBeFocused();await expect(popup).not.toBeVisible();
+    await expect(page.locator('summary[aria-label="교회 정보 도움말"]')).toHaveCount(0);
+    await expect(page.getByText('항목별로 저장하면 공개 안내에 반영됩니다.',{exact:false})).toBeVisible();
     await page.getByRole('navigation',{name:'페이지 목차',exact:true}).getByRole('link',{name:/오시는 길/}).click();await expect(page.locator('#church-field-directions')).toBeFocused();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await page.route('**/rest/v1/church_info?*',async r=>r.request().method()==='PATCH'?r.fulfill({status:503,json:{message:'offline'}}):r.continue());

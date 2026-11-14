@@ -6,14 +6,14 @@ test("select a bulletin notice, publish separately, include event snapshot and a
   const admin=createClient("http://127.0.0.1:54321",process.env.LOCAL_SUPABASE_SERVICE_KEY!,{auth:{persistSession:false}});
   const email=`${randomUUID()}@example.test`,password=randomUUID(),bulletin=randomUUID(),item=randomUUID();
   const user=await admin.auth.admin.createUser({email,password,email_confirm:true});if(user.error)throw user.error;
-  const entryIds:string[]=[];
+  const entryIds:string[]=[];const eventTitle="검증용 주일 모임 "+randomUUID();
   try{
     await admin.from("church_editors").insert({user_id:user.data.user.id});
     await admin.from("bulletins").insert({id:bulletin,service_date:"2091-11-04",issue_number:1});
     const seeded=await admin.from("bulletin_items").insert({id:item,bulletin_id:bulletin,position:0,title:"주보 환영 공지",body:"이번 주 환영합니다",web_visible:true});if(seeded.error)throw seeded.error;
     await page.goto("/admin/bulletins");await page.getByLabel("이메일",{exact:true}).fill(email);await page.getByLabel("비밀번호",{exact:true}).fill(password);await page.getByRole("button",{name:"로그인",exact:true}).click();
     await page.getByRole("button",{name:/2091-11-04/}).click();
-    await page.getByRole("button",{name:"별도 공지로 가져오기",exact:true}).click();
+    await page.getByText("공지·일정 연결",{exact:true}).first().click();await page.getByRole("button",{name:"별도 공지로 가져오기",exact:true}).click();
     await expect(page.getByText(/연결된 공지 초안을 준비했습니다/)).toBeVisible();
     const exported=await admin.from("community_entries").select("id").eq("source_item_id",item).single();if(exported.error)throw exported.error;entryIds.push(exported.data.id);
     const manager=await context.newPage();await manager.goto("/admin/community");
@@ -24,7 +24,7 @@ test("select a bulletin notice, publish separately, include event snapshot and a
     const response=await page.request.get(`/api/community?kind=notice&id=${exported.data.id}`);expect(response.status()).toBe(200);expect(await response.text()).toContain("별도 공지에서 수정한 문구");
     expect((await admin.from("bulletin_items").select("body").eq("id",item).single()).data?.body).toBe("이번 주 환영합니다");
     await manager.getByRole("button",{name:"새 일정",exact:true}).click();
-    await manager.getByLabel("제목",{exact:true}).fill("검증용 주일 모임");
+    await manager.getByLabel("제목",{exact:true}).fill(eventTitle);
     await manager.getByLabel("내용",{exact:true}).fill("모임 안내");
     await manager.getByLabel("시작 시간",{exact:true}).fill("2091-11-04T13:40");
     await manager.setViewportSize({width:320,height:844});
@@ -32,14 +32,14 @@ test("select a bulletin notice, publish separately, include event snapshot and a
     await manager.getByLabel("종료 시간",{exact:true}).fill("2091-11-04T12:00");
     await manager.getByRole("button",{name:"초안 저장",exact:true}).click();
     await expect(manager.getByRole("status")).toContainText("종료 시간은 시작 시간보다 늦게");
-    await expect(manager.getByLabel("제목",{exact:true})).toHaveValue("검증용 주일 모임");
+    await expect(manager.getByLabel("제목",{exact:true})).toHaveValue(eventTitle);
     const authTab = await context.newPage(); await authTab.goto("/admin/bulletins");
     await authTab.getByRole("button", { name: "로그아웃", exact: true }).click();
     await expect(manager.getByRole("button", { name: "로그인 다시 확인", exact: true })).toBeVisible();
     await authTab.getByLabel("이메일", { exact: true }).fill(email);
     await authTab.getByLabel("비밀번호", { exact: true }).fill(password);
     await authTab.getByRole("button", { name: "로그인", exact: true }).click();
-    await expect(manager.getByLabel("제목", { exact: true })).toHaveValue("검증용 주일 모임");
+    await expect(manager.getByLabel("제목", { exact: true })).toHaveValue(eventTitle);
     await authTab.close();
     await page.getByLabel("이메일", { exact: true }).fill(email);
     await page.getByLabel("비밀번호", { exact: true }).fill(password);
@@ -47,10 +47,10 @@ test("select a bulletin notice, publish separately, include event snapshot and a
     await manager.getByLabel("종료 시간",{exact:true}).fill("2091-11-04T15:00");
     await manager.getByLabel("장소",{exact:true}).fill("교육관");
     await manager.getByRole("button",{name:"초안 저장",exact:true}).click();await expect(manager.getByRole("status")).toContainText("저장했습니다");
-    const event=await admin.from("community_entries").select("id,starts_at").eq("title","검증용 주일 모임").single();if(event.error)throw event.error;entryIds.push(event.data.id);
+    const event=await admin.from("community_entries").select("id,starts_at").eq("title",eventTitle).single();if(event.error)throw event.error;entryIds.push(event.data.id);
     expect(new Date(event.data.starts_at).toISOString()).toBe("2091-11-04T04:40:00.000Z");
-    await page.getByRole("button",{name:"공지·일정 목록 새로고침",exact:true}).click();
-    await expect(page.getByLabel("주보에 넣을 공지·일정").locator("option",{hasText:"검증용 주일 모임"})).toHaveCount(1);
+    const communityPanel=page.locator("details").filter({has:page.locator("summary",{hasText:"공지·일정 연결"})});if(await communityPanel.getAttribute("open")===null)await communityPanel.locator("summary").click();await page.getByRole("button",{name:"공지·일정 목록 새로고침",exact:true}).click();
+    await expect(page.getByLabel("주보에 넣을 공지·일정").locator("option",{hasText:eventTitle})).toHaveCount(1);
     await page.getByLabel("주보에 넣을 공지·일정").selectOption(event.data.id);
     await page.getByRole("button",{name:"선택한 내용을 주보에 복사",exact:true}).click();
     await expect(page.getByLabel("내용",{exact:true}).last()).toHaveValue(/2091-11-04 13:40/);
@@ -59,12 +59,12 @@ test("select a bulletin notice, publish separately, include event snapshot and a
     manager.once("dialog",dialog=>dialog.accept());await manager.getByRole("button",{name:"보관",exact:true}).click();
     await expect(manager.getByRole("status")).toContainText("보관했습니다");
     await page.reload();await page.getByRole("button",{name:/2091-11-04/}).click();
-    await expect(page.getByLabel("항목 제목",{exact:true}).last()).toHaveValue("검증용 주일 모임");
+    await expect(page.getByLabel("항목 제목",{exact:true}).last()).toHaveValue(eventTitle);
     const reader=await context.newPage();await reader.goto("/notices");await expect(reader.getByText("별도 공지에서 수정한 문구",{exact:true})).toBeVisible();
     await manager.getByRole("button",{name:/주보 환영 공지.*공지/}).click();await manager.getByLabel("민감정보 포함",{exact:true}).check();
     await expect(manager.getByLabel("별도 메뉴에 공개",{exact:true})).not.toBeChecked();
     manager.once("dialog",dialog=>dialog.accept());await manager.getByRole("button",{name:"게시 설정 저장",exact:true}).click();await expect(manager.getByRole("status")).toContainText("저장했습니다");
     expect((await page.request.get(`/api/community?kind=notice&id=${exported.data.id}`)).status()).toBe(404);
     await reader.reload();await expect(reader.getByText("별도 공지에서 수정한 문구",{exact:true})).toHaveCount(0);
-  }finally{await admin.from("community_entries").delete().in("id",entryIds);await admin.from("bulletins").delete().eq("id",bulletin);await admin.auth.admin.deleteUser(user.data.user.id);}
+  }finally{await admin.from("community_entries").delete().eq("title",eventTitle);await admin.from("community_entries").delete().in("id",entryIds);await admin.from("bulletins").delete().eq("id",bulletin);await admin.auth.admin.deleteUser(user.data.user.id);}
 });
