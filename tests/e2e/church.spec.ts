@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
 import sharp from "sharp";
+import AxeBuilder from "@axe-core/playwright";
 import { PDFRawStream, PDFDocument, PDFName } from "pdf-lib";
 test("edit church info, upload normalized private image, attach/publish and protect historical use", async ({ page, context }) => {
   const admin = createClient("http://127.0.0.1:54321", process.env.LOCAL_SUPABASE_SERVICE_KEY!, { auth: { persistSession: false } });
@@ -42,6 +43,7 @@ test("edit church info, upload normalized private image, attach/publish and prot
     const publicName=(await publicInfo.json()).fields.find((f:{key:string})=>f.key==='name');expect(publicName.body).toBe('검증용 교회 안내');
     const reader=await context.newPage();await reader.goto('/church');await expect(reader.getByRole('main').getByText('검증용 교회 안내',{exact:true})).toBeVisible();
     const pixels = await sharp({ create: { width: 3000, height: 1500, channels: 3, background: "#008040" } }).png().toBuffer();
+    await manager.getByRole("button",{name:"+ 이미지 추가",exact:true}).click();
     await manager.getByLabel("이미지 제목", { exact: true }).fill("검증용 주보 표지");
     await manager.getByLabel("이미지 설명 (대체텍스트)", { exact: true }).fill("초록색 표지 이미지");
     await manager.getByLabel("이미지 파일", { exact: true }).setInputFiles({ name: "cover.png", mimeType: "image/png", buffer: pixels });
@@ -52,6 +54,10 @@ test("edit church info, upload normalized private image, attach/publish and prot
     expect((await page.request.delete(`/api/images?id=${imageId}`)).status()).toBe(401);
     expect((await page.request.post("/api/images", { data: pixels })).status()).toBe(401);
     await expect(manager.getByRole("img", { name: "초록색 표지 이미지" })).toBeVisible();
+    const library=manager.locator('#church-images');await library.getByLabel('보관함 이미지 검색').fill('검증용 주보 표지');
+    for(const width of [1440,320]){await manager.setViewportSize({width,height:900});await library.screenshot({path:`.local/detail-image-library-${width}.png`});}
+    const enlarge=library.getByRole('button',{name:'검증용 주보 표지 크게 보기',exact:true});await enlarge.click();const imageDialog=manager.getByRole('dialog',{name:'보관함 이미지 확인'});await expect(imageDialog.getByRole('img',{name:'초록색 표지 이미지'})).toBeVisible();expect((await new AxeBuilder({page:manager}).exclude('iframe').analyze()).violations.map(v=>v.id)).toEqual([]);await imageDialog.screenshot({path:'.local/detail-image-preview-320.png'});await manager.keyboard.press('Escape');await expect(enlarge).toBeFocused();
+
     await page.getByText("이미지 추가",{exact:true}).click();await page.getByRole("button", { name: "사용할 이미지 새로고침", exact: true }).click();
     await expect(page.getByLabel("주보에 넣을 이미지").locator("option", { hasText: "검증용 주보 표지" })).toHaveCount(1);
     await page.getByLabel("주보에 넣을 이미지").selectOption(imageId); await page.getByRole("button", { name: "선택한 이미지 넣기", exact: true }).click();

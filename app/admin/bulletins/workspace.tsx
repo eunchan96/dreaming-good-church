@@ -1,4 +1,5 @@
 "use client";
+import {DatePicker} from '../calendar';
 import PrintPreview from "./print-preview";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -211,7 +212,7 @@ export default function BulletinWorkspace() {
 
         {preview ? <section className={styles.flatSection}><h2>웹 표시 미리보기</h2><p className={styles.muted}>{draft.status === "published" ? "게시된 주보의 공개 항목입니다." : "현재 화면의 공개 항목만 표시합니다. 아직 웹에 게시되지 않았습니다."}</p>{draft.items.filter((item) => item.webVisible).map((item) => <section id={`edit-item-${item.id}`} tabIndex={-1} key={item.id}><BlockPreview item={item} editor /></section>)}</section> :
         <fieldset id="bulletin-fields" tabIndex={-1} disabled={busy || draft.status !== "draft"} className={styles.fields}>
-          <div className={`${ui.flat} ${ui.metaGrid}`}><label>예배 날짜<input type="date" value={draft.serviceDate} onChange={(event) => { const value = event.target.value; setDraft((current) => current && ({ ...current, serviceDate: value })); markDirty(); }} /></label><label>호수<input type="number" min="1" step="1" value={draft.issueNumber} onChange={(event) => { const value = Number(event.target.value); setDraft((current) => current && ({ ...current, issueNumber: value })); markDirty(); }} /></label></div>
+          <div className={`${ui.flat} ${ui.metaGrid}`}><div><label htmlFor="bulletin-service-date">예배 날짜</label><DatePicker id="bulletin-service-date" label="예배 날짜" value={draft.serviceDate} onChange={value => { setDraft((current) => current && ({ ...current, serviceDate: value })); markDirty(); }} /></div><label>호수<input type="number" min="1" step="1" value={draft.issueNumber} onChange={(event) => { const value = Number(event.target.value); setDraft((current) => current && ({ ...current, issueNumber: value })); markDirty(); }} /></label></div>
           {draft.items.map((item, index) => <article id={`edit-item-${item.id}`} tabIndex={-1} className={`${styles.blockRow} ${ui.block}`} key={item.id}>
             <div className={`${styles.actions} ${ui.itemToolbar}`}>
               <button aria-label={`${item.title} 위로 이동`} disabled={index === 0} onClick={() => {
@@ -239,7 +240,7 @@ export default function BulletinWorkspace() {
           <p>공개 {draft.items.filter((item) => item.webVisible).length}개 · 비공개 {draft.items.filter((item) => !item.webVisible).length}개. 비공개 항목은 웹에 표시되지 않습니다.</p>
           {draft.status === "draft" ? <><ul>{publicationIssues(draft).map((issue) => <li key={issue}>{issue}</li>)}</ul><p>게시 후 수정하려면 게시를 취소해 주세요.</p><button disabled={busy || saving || dirty || draft.revision === 0 || publicationIssues(draft).length > 0} onClick={() => changePublication(true)}>주보 게시</button></> : <button disabled={busy || saving} onClick={() => changePublication(false)}>게시 취소</button>}
         </section>
-        <section id="next-copy" tabIndex={-1} className={styles.flatSection}><h3>이 주보로 다음 주 준비하기</h3><p>저장된 내용과 공개 설정을 복사합니다. 매주 확인할 항목은 다시 표시됩니다.</p><div className={styles.actions}><label>새 주보 날짜<input type="date" value={copyDate} onChange={(event) => setCopyDate(event.target.value)} /></label><button onClick={copy} disabled={busy || saving || dirty || draft.revision === 0 || !copyDate}>다음 주 주보 복사</button></div>{dirty || draft.revision === 0 ? <p className={styles.muted}>먼저 현재 주보를 저장해 주세요.</p> : null}</section>
+        <section id="next-copy" tabIndex={-1} className={styles.flatSection}><h3>이 주보로 다음 주 준비하기</h3><p>저장된 내용과 공개 설정을 복사합니다. 매주 확인할 항목은 다시 표시됩니다.</p><div className={styles.actions}><div><label htmlFor="bulletin-copy-date">새 주보 날짜</label><DatePicker id="bulletin-copy-date" label="새 주보 날짜" value={copyDate} onChange={setCopyDate} /></div><button onClick={copy} disabled={busy || saving || dirty || draft.revision === 0 || !copyDate}>다음 주 주보 복사</button></div>{dirty || draft.revision === 0 ? <p className={styles.muted}>먼저 현재 주보를 저장해 주세요.</p> : null}</section>
       </> : <section className={`${styles.card} ${styles.empty}`}><span className={styles.eyebrow}>함께 준비하는 주일</span><h2>주보를 선택하거나<br />새로 작성해 주세요.</h2><p>저장한 주보는 다음 주에도 이어서 사용할 수 있습니다.</p></section>}</section></div>}
   </main></AdminShell>;
 }

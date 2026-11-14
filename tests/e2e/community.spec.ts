@@ -1,3 +1,4 @@
+import {calendarControl,selectCalendar} from './calendar-helpers';
 import {test,expect} from "@playwright/test";
 import {createClient} from "@supabase/supabase-js";
 import {randomUUID} from "node:crypto";
@@ -26,10 +27,10 @@ test("select a bulletin notice, publish separately, include event snapshot and a
     await manager.getByRole("button",{name:"소식 목록",exact:true}).click();await manager.getByRole("button",{name:"소식 등록",exact:true}).click();
     await manager.getByLabel("제목",{exact:true}).fill(eventTitle);
     await manager.getByLabel("내용",{exact:true}).fill("모임 안내");
-    await manager.getByLabel("시작 시간",{exact:true}).fill("2091-11-04T13:40");
+    await selectCalendar(manager,calendarControl(manager,"시작 시간"),"2091-11-04T13:40");
     await manager.setViewportSize({width:320,height:844});
     expect(await manager.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-    await manager.getByLabel("종료 시간",{exact:true}).fill("2091-11-04T12:00");
+    await selectCalendar(manager,calendarControl(manager,"종료 시간"),"2091-11-04T12:00");
     await manager.getByRole("button",{name:"임시 저장",exact:true}).click();
     await expect(manager.getByRole("status")).toContainText("종료 시간은 시작 시간보다 늦게");
     await expect(manager.getByLabel("제목",{exact:true})).toHaveValue(eventTitle);
@@ -44,7 +45,7 @@ test("select a bulletin notice, publish separately, include event snapshot and a
     await page.getByLabel("이메일", { exact: true }).fill(email);
     await page.getByLabel("비밀번호", { exact: true }).fill(password);
     await page.getByRole("button", { name: "로그인", exact: true }).click();
-    await manager.getByLabel("종료 시간",{exact:true}).fill("2091-11-04T15:00");
+    await selectCalendar(manager,calendarControl(manager,"종료 시간"),"2091-11-04T15:00");
     await manager.getByLabel("장소",{exact:true}).fill("교육관");
     await manager.getByRole("button",{name:"임시 저장",exact:true}).click();await expect(manager.getByRole("status")).toContainText("저장했습니다");
     const event=await admin.from("community_entries").select("id,starts_at").eq("title",eventTitle).single();if(event.error)throw event.error;entryIds.push(event.data.id);
@@ -55,8 +56,8 @@ test("select a bulletin notice, publish separately, include event snapshot and a
     await page.getByRole("button",{name:"선택한 내용을 주보에 복사",exact:true}).click();
     await expect(page.getByLabel("내용",{exact:true}).last()).toHaveValue(/2091-11-04 13:40/);
     await manager.getByLabel("제목",{exact:true}).fill("모임 시간 수정");
-    await manager.getByText('추가 작업',{exact:true}).click();
-    manager.once("dialog",dialog=>dialog.accept());await manager.getByRole("button",{name:"보관",exact:true}).click();
+
+    manager.once("dialog",dialog=>dialog.accept());await manager.getByRole("button",{name:"공개 목록에서 내리기",exact:true}).click();
     await expect(manager.getByRole("status")).toContainText("보관했습니다");
     await page.reload();await page.getByRole("button",{name:/2091-11-04/}).click();
     await expect(page.getByLabel("항목 제목",{exact:true}).last()).toHaveValue(eventTitle);

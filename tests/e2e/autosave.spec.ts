@@ -1,3 +1,4 @@
+import {calendarControl,selectCalendar} from './calendar-helpers';
 import { test, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
@@ -29,7 +30,7 @@ test("autosave preserves edits, pauses on failure, resumes after login and keeps
       expect((await saveButton.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     }
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.getByLabel("예배 날짜", { exact: true }).fill("2096-11-04");
+    await selectCalendar(page,calendarControl(page,"예배 날짜"),"2096-11-04");
     await page.getByRole("button", { name: "초안 저장", exact: true }).click();
     await expect(page.getByRole("status")).toContainText("초안을 저장했습니다");
 

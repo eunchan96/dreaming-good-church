@@ -1,3 +1,4 @@
+import {calendarControl,selectCalendar} from './calendar-helpers';
 import { test, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
@@ -19,7 +20,7 @@ test("editor creates, copies, confirms, saves and reopens a draft", async ({ pag
     await page.getByLabel("비밀번호", { exact: true }).fill(password);
     await page.getByRole("button", { name: "로그인", exact: true }).click();
     await page.getByRole("button", { name: "+ 새 주보 작성" }).click();
-    await page.getByLabel("예배 날짜", { exact: true }).fill("2097-11-03");
+    await selectCalendar(page,calendarControl(page,"예배 날짜"),"2097-11-03");
     await page.getByLabel("내용", { exact: true }).nth(0).fill("지난주 설교 제목");
     await expect(page.getByLabel("내용", { exact: true }).nth(0)).toHaveValue("지난주 설교 제목");
     await page.getByLabel("웹에 공개", { exact: true }).nth(0).uncheck();
@@ -32,7 +33,7 @@ test("editor creates, copies, confirms, saves and reopens a draft", async ({ pag
     await page.getByRole("button", { name: "초안 저장", exact: true }).click();
     expect((await saveRequest).postDataJSON().p_items[0].body).toBe("지난주 설교 제목");
     await expect(page.getByRole("status")).toContainText("초안을 저장했습니다");
-    await page.getByLabel("새 주보 날짜", { exact: true }).fill("2097-11-10");
+    await selectCalendar(page,calendarControl(page,"새 주보 날짜"),"2097-11-10");
     await page.getByRole("button", { name: "다음 주 주보 복사", exact: true }).click();
     await expect(page.getByRole("status")).toContainText("내용과 공개 설정을 복사");
     await expect(page.getByText("4개 항목 확인 필요", { exact: true })).toBeVisible();
