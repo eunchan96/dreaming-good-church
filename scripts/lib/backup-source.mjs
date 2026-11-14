@@ -6,7 +6,15 @@ import { MAX_FILE_BYTES, sha256 } from './backup-archive.mjs';
 
 export const PROJECT_REF = 'zefnxczgwpsmfcixonpb';
 const CLI = resolve('node_modules/supabase/dist/supabase.js');
-const TABLE_KEYS = { bulletins: 'id', bulletin_items: 'id', community_entries: 'id', church_info: 'key', bulletin_images: 'id', church_editors: 'user_id' };
+const TABLE_KEYS = { bulletins: 'id', bulletin_items: 'id', community_entries: 'id', church_info: 'key', bulletin_images: 'id', church_editors: 'user_id',worship_videos:'id',homepage_content:'id',church_page_settings:'key' };
+export function appliedMigrationVersions(sql){
+ const match=/COPY\s+"?supabase_migrations"?\."?schema_migrations"?\s*\(([^)]+)\) FROM stdin;\r?\n([\s\S]*?)\r?\n\\\./.exec(sql);
+ if(!match)throw new Error('Migration history COPY missing.');
+ const column=match[1].split(',').map(value=>value.trim().replaceAll('"','')).indexOf('version');
+ const versions=match[2].split(/\r?\n/).filter(Boolean).map(line=>line.split('\t')[column]);
+ if(column<0||!versions.length||versions.some(value=>!/^\d{14}$/.test(value))||new Set(versions).size!==versions.length)throw new Error('Invalid applied migration history.');
+ return versions.sort();
+}
 export async function capture(command, args, limit = MAX_FILE_BYTES) {
   return new Promise((resolveResult, reject) => {
     const child = spawn(command, args, { stdio: ['ignore','pipe','pipe'], windowsHide: true });
@@ -58,8 +66,11 @@ async function snapshot(client) {
   let inventoryBytes=0;
   for (const [table,key] of Object.entries(TABLE_KEYS)) {
     const rows = [];
+    let available=true;
     for (let offset=0;;offset+=500) {
       const result = await client.from(table).select('*').order(key).range(offset,offset+499);
+      // Backups taken before the additive video migration remain supported.
+      if(result.error&&['worship_videos','homepage_content','church_page_settings'].includes(table)&&offset===0&&['PGRST205','42P01'].includes(result.error.code)){available=false;break;}
       if (result.error) throw new Error('Application inventory could not be read.');
       inventoryBytes+=Buffer.byteLength(JSON.stringify(result.data));
       if(inventoryBytes>16*1024*1024) throw new Error('Application inventory exceeds supported size.');
@@ -67,7 +78,7 @@ async function snapshot(client) {
       if (rows.length > 100000) throw new Error('Application inventory exceeds supported size.');
       if (result.data.length < 500) break;
     }
-    tables[table] = rows;
+    if(available)tables[table] = rows;
   }
   const bucket = await client.storage.getBucket('bulletin-images');
   if (bucket.error || bucket.data.public) throw new Error('Expected private bulletin-images bucket.');
@@ -115,10 +126,15 @@ export async function collectBackup({ local, config }) {
   const after = await snapshot(client);
   if (JSON.stringify(before)!==JSON.stringify(after)) throw new Error('Church data changed during backup. Pause editing and retry.');
   add('inventory.json',Buffer.from(JSON.stringify(before)));
+  const applied=local?JSON.parse((await capture('docker',['exec','supabase_db_dreaming-good-church','psql','-U','supabase_admin','-d','postgres','-At','-c','select json_agg(version order by version) from supabase_migrations.schema_migrations;'])).toString()):appliedMigrationVersions(files.find(file=>file.path==='history-data.sql').bytes.toString());
+  const included=[];
   for(const name of (await readdir('supabase/migrations')).sort()) {
     if(!/^\d{14}_[a-z0-9_]+\.sql$/.test(name)) throw new Error('Unexpected migration file.');
+    if(!applied.includes(name.slice(0,14)))continue;
+    included.push(name.slice(0,14));
     add(`migrations/${name}`,await readFile(resolve('supabase/migrations',name)));
   }
+  if(JSON.stringify(included)!==JSON.stringify(applied))throw new Error('An applied migration file is missing.');
   const commit = (await capture('git',['rev-parse','HEAD'],1024)).toString().trim();
   // Include reviewed schema/rights definitions; cloud services' settings/keys are NOT copied.
   return { files, metadata:{ createdAt:new Date().toISOString(), target:local?'local':PROJECT_REF, commit,

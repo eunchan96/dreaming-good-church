@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { loadBulletins, makeBrowserClient, type SavedBulletin } from "@/lib/bulletin-store";
 import { communityFromRow, communityError, type CommunityEntry } from "@/lib/community";
 import styles from "./workspace.module.css";
+import ui from '../management.module.css';
 
 export default function CommunityLinks({ draft, locked, onBusy, onImported }: { draft: SavedBulletin; locked: boolean; onBusy: (busy: boolean)=>void; onImported:(draft:SavedBulletin)=>void }) {
   const [client]=useState(makeBrowserClient);
@@ -31,8 +32,7 @@ export default function CommunityLinks({ draft, locked, onBusy, onImported }: { 
       else {setRefresh(value=>value+1);setMessage("연결된 공지 초안을 준비했습니다. 공지·일정 관리에서 내용을 확인하고 게시해 주세요. 이미 연결된 공지는 중복 생성하거나 덮어쓰지 않습니다.");}
     }catch(error){setMessage(communityError(error));}finally{onBusy(false);}
   }
-  return <section className={styles.card}><h3>공지·일정 연결</h3><p><Link href="/admin/community" target="_blank">공지·일정 관리 열기</Link></p>
-    <p>복사 시점의 내용을 보관합니다. 이후 원본을 수정하거나 비공개로 바꿔도 이 주보는 바뀌지 않습니다.</p>
+  return <section className={`${styles.flatSection} ${ui.formRows}`}><p><Link href="/admin/community" target="_blank" rel="noreferrer">공지·일정 관리 열기</Link></p>
     <p aria-live="polite">{message}</p>
     <label>별도 공지로 가져올 항목<select value={selectedItem??""} disabled={locked} onChange={event=>setItemId(event.target.value)}>{items.map(item=><option key={item.id} value={item.id}>{item.title}{item.webVisible?"":" (웹 비공개)"}</option>)}</select></label>
     <button disabled={locked||!selectedItem||draft.revision===0} onClick={()=>perform(false)}>별도 공지로 가져오기</button>

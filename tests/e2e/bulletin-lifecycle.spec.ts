@@ -1,3 +1,4 @@
+import {calendarControl,selectCalendar} from './calendar-helpers';
 import { test, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { PDFDocument } from "pdf-lib";
@@ -29,7 +30,7 @@ test("one bulletin travels from published source through copy, print, public PDF
       await page.getByRole("button", { name: "로그인", exact: true }).click();
       await page.getByRole("button", { name: /2086-11-03/ }).click();
       await expect(page.getByLabel("내용", { exact: true }).first()).toBeDisabled();
-      await page.getByLabel("새 주보 날짜", { exact: true }).fill("2086-11-10");
+      await selectCalendar(page,calendarControl(page,"새 주보 날짜"),"2086-11-10");
       const response = page.waitForResponse(r => r.url().includes("rpc/copy_bulletin_draft"));
       await page.getByRole("button", { name: "다음 주 주보 복사", exact: true }).click();
       const copied = await (await response).json(); ids.push(copied.id);

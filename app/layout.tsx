@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Sans_KR, Noto_Serif_KR } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -11,6 +11,8 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+const publicSans = Noto_Sans_KR({ variable: '--font-public-sans', subsets: ['latin'], display: 'swap', preload: false });
+const publicSerif = Noto_Serif_KR({ variable: '--font-public-serif', weight: '500', subsets: ['latin'], display: 'swap', preload: false });
 
 export const metadata: Metadata = {
   title: "꿈꾸는좋은교회",
@@ -18,13 +20,13 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: "좋은교회", statusBarStyle: "default" },
   icons: { apple: "/icons/apple-touch-icon.png" },
 };
-export const viewport: Viewport = { themeColor: "#253d35" };
+export const viewport: Viewport = { themeColor: "#342b25" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="ko"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${publicSans.variable} ${publicSerif.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

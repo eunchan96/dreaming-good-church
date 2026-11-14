@@ -175,6 +175,26 @@ export type Database = {
                 Relationships: [
                 ];
             };
+            "church_page_settings": {
+                Row: {
+                    "key": string;
+                    "payload": NonNullable<Json>;
+                    "revision": number;
+                };
+                ComputedFields: never;
+                Insert: {
+                    "key": string;
+                    "payload": NonNullable<Json>;
+                    "revision"?: number;
+                };
+                Update: {
+                    "key"?: string;
+                    "payload"?: NonNullable<Json>;
+                    "revision"?: number;
+                };
+                Relationships: [
+                ];
+            };
             "community_entries": {
                 Row: {
                     "body": string;
@@ -230,6 +250,108 @@ export type Database = {
                     "status"?: string;
                     "title"?: string;
                     "updated_at"?: string;
+                };
+                Relationships: [
+                ];
+            };
+            "homepage_content": {
+                Row: {
+                    "description_line1": string;
+                    "description_line2": string;
+                    "focus_x": number;
+                    "focus_y": number;
+                    "footnote": string;
+                    "id": boolean;
+                    "image_alt": string;
+                    "image_asset_id": string | null;
+                    "image_mode": string;
+                    "image_ratio": string;
+                    "link_label": string;
+                    "revision": number;
+                    "title_line1": string;
+                    "title_line2": string;
+                };
+                ComputedFields: never;
+                Insert: {
+                    "description_line1": string;
+                    "description_line2": string;
+                    "focus_x": number;
+                    "focus_y": number;
+                    "footnote": string;
+                    "id"?: boolean;
+                    "image_alt": string;
+                    "image_asset_id"?: string | null;
+                    "image_mode": string;
+                    "image_ratio": string;
+                    "link_label": string;
+                    "revision"?: number;
+                    "title_line1": string;
+                    "title_line2": string;
+                };
+                Update: {
+                    "description_line1"?: string;
+                    "description_line2"?: string;
+                    "focus_x"?: number;
+                    "focus_y"?: number;
+                    "footnote"?: string;
+                    "id"?: boolean;
+                    "image_alt"?: string;
+                    "image_asset_id"?: string | null;
+                    "image_mode"?: string;
+                    "image_ratio"?: string;
+                    "link_label"?: string;
+                    "revision"?: number;
+                    "title_line1"?: string;
+                    "title_line2"?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "homepage_content_image_asset_id_fkey";
+                        columns: [
+                            "image_asset_id"
+                        ];
+                        isOneToOne: false;
+                        referencedRelation: "bulletin_images";
+                        referencedColumns: [
+                            "id"
+                        ];
+                    }
+                ];
+            };
+            "worship_videos": {
+                Row: {
+                    "featured": boolean;
+                    "id": string;
+                    "revision": number;
+                    "service_date": string;
+                    "service_type": string;
+                    "status": string;
+                    "title": string;
+                    "updated_at": string;
+                    "video_id": string;
+                };
+                ComputedFields: never;
+                Insert: {
+                    "featured"?: boolean;
+                    "id"?: string;
+                    "revision"?: number;
+                    "service_date": string;
+                    "service_type": string;
+                    "status"?: string;
+                    "title": string;
+                    "updated_at"?: string;
+                    "video_id": string;
+                };
+                Update: {
+                    "featured"?: boolean;
+                    "id"?: string;
+                    "revision"?: number;
+                    "service_date"?: string;
+                    "service_type"?: string;
+                    "status"?: string;
+                    "title"?: string;
+                    "updated_at"?: string;
+                    "video_id"?: string;
                 };
                 Relationships: [
                 ];
@@ -352,6 +474,24 @@ export type Database = {
                     isSetofReturn: true;
                 };
             };
+            "save_church_page_setting": {
+                Args: {
+                    "p_key": string;
+                    "p_payload": Json;
+                    "p_revision": number;
+                };
+                Returns: {
+                    "key": string;
+                    "payload": NonNullable<Json>;
+                    "revision": number;
+                };
+                SetofOptions: {
+                    from: "*";
+                    to: "church_page_settings";
+                    isOneToOne: true;
+                    isSetofReturn: false;
+                };
+            };
             "save_community_entry": {
                 Args: {
                     "p_entry": Json;
@@ -383,6 +523,63 @@ export type Database = {
                     isSetofReturn: false;
                 };
             };
+            "save_homepage_content": {
+                Args: {
+                    "p_content": Json;
+                    "p_revision": number;
+                };
+                Returns: {
+                    "description_line1": string;
+                    "description_line2": string;
+                    "focus_x": number;
+                    "focus_y": number;
+                    "footnote": string;
+                    "id": boolean;
+                    "image_alt": string;
+                    "image_asset_id": string | null;
+                    "image_mode": string;
+                    "image_ratio": string;
+                    "link_label": string;
+                    "revision": number;
+                    "title_line1": string;
+                    "title_line2": string;
+                };
+                SetofOptions: {
+                    from: "*";
+                    to: "homepage_content";
+                    isOneToOne: true;
+                    isSetofReturn: false;
+                };
+            };
+            "save_worship_video": {
+                Args: {
+                    "p_date": string;
+                    "p_featured": boolean;
+                    "p_id": string;
+                    "p_revision": number;
+                    "p_status": string;
+                    "p_title": string;
+                    "p_type": string;
+                    "p_video": string;
+                };
+                Returns: {
+                    "featured": boolean;
+                    "id": string;
+                    "revision": number;
+                    "service_date": string;
+                    "service_type": string;
+                    "status": string;
+                    "title": string;
+                    "updated_at": string;
+                    "video_id": string;
+                };
+                SetofOptions: {
+                    from: "*";
+                    to: "worship_videos";
+                    isOneToOne: true;
+                    isSetofReturn: false;
+                };
+            };
             "set_bulletin_publication": {
                 Args: {
                     "p_id": string;
@@ -408,6 +605,13 @@ export type Database = {
                 Args: {
                     "content": Json;
                     "kind": string;
+                };
+                Returns: boolean;
+            };
+            "valid_church_page_setting": {
+                Args: {
+                    "p_key": string;
+                    "p_payload": Json;
                 };
                 Returns: boolean;
             };

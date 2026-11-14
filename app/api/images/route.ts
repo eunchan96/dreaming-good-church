@@ -45,7 +45,7 @@ export async function DELETE(request: Request) {
     const client = imageWriter();
     // FK locks serialize deletion against attaching images, including historical copies.
     const deleted = await client.from("bulletin_images").delete().eq("id", id);
-    if (deleted.error?.code === "23503") return reply("주보에서 사용 중인 이미지는 삭제할 수 없습니다. 과거 주보도 확인해 주세요.", 409);
+    if (deleted.error?.code === "23503") return reply("사용 중인 이미지는 삭제할 수 없습니다. 주보·과거 주보·홈페이지 연결을 먼저 확인해 주세요.", 409);
     if (deleted.error) return reply("이미지를 삭제하지 못했습니다.", 503);
     const removed = await client.storage.from("bulletin-images").remove([`${id}.webp`]);
     if (removed.error) return reply("파일 정리가 완료되지 않았습니다. 같은 이미지의 삭제를 다시 시도해 주세요.", 503);
