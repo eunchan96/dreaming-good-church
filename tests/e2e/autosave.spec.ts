@@ -1,3 +1,4 @@
+import {saveAndEdit} from './bulletin-helpers';
 import {showBulletinVisibility} from './bulletin-helpers';
 import {calendarControl,selectCalendar} from './calendar-helpers';
 import { test, expect } from "@playwright/test";
@@ -32,8 +33,8 @@ test("autosave preserves edits, pauses on failure, resumes after login and keeps
     }
     await page.setViewportSize({ width: 390, height: 844 });
     await selectCalendar(page,calendarControl(page,"예배 날짜"),"2096-11-04");
-    await page.getByRole("button", { name: "초안 저장", exact: true }).click();
-    await expect(page.getByRole("status")).toContainText("초안을 저장했습니다");
+    await saveAndEdit(page);
+
 
     // A slow save must not overwrite typing performed while the request is in flight.
     let release!: () => void;
@@ -53,8 +54,8 @@ test("autosave preserves edits, pauses on failure, resumes after login and keeps
     await page.getByLabel("묵상", { exact: true }).fill("실패해도 유지");
     await expect(page.getByRole("button", { name: "저장 다시 시도" })).toBeVisible();
     await expect(page.getByLabel("묵상", { exact: true })).toHaveValue("실패해도 유지");
-    await page.getByRole("button", { name: "저장 다시 시도" }).click();
-    await expect(page.getByRole("status")).toContainText("초안을 저장했습니다");
+    await saveAndEdit(page,"저장 다시 시도");
+
 
     // Signing out in another tab simulates the SDK's session-ended notification.
     const other = await context.newPage(); await other.goto("/admin/bulletins");
@@ -71,11 +72,11 @@ test("autosave preserves edits, pauses on failure, resumes after login and keeps
     await login();
     await expect(page.getByLabel("묵상", { exact: true })).toHaveValue("재로그인 후 이어쓰기");
 
-    await page.getByRole("button",{name:"예배 순서 2행 이름 수정",exact:true}).click();await page.getByRole("dialog",{name:"항목 수정",exact:true}).getByLabel("이름",{exact:true}).fill("찬송");await page.getByRole("dialog",{name:"항목 수정",exact:true}).getByRole("button",{name:"적용",exact:true}).click();
+    await page.getByRole("button",{name:"예배 순서 2행 이름 수정",exact:true}).click();await page.getByRole("dialog",{name:"항목 수정",exact:true}).getByLabel("수정 내용",{exact:true}).fill("찬송");await page.getByRole("dialog",{name:"항목 수정",exact:true}).getByRole("button",{name:"적용",exact:true}).click();
     await page.getByLabel("예배 순서 2행 진행 내용", { exact: true }).fill("369장");
-    await page.getByLabel("예배 순서 2행 담당자", { exact: true }).fill("다 같이");
+
     await selectCalendar(page,calendarControl(page,"헌금 집계 월"),"2096-10-01");
-    await page.getByRole("button",{name:"헌금 내역 1행 이름 수정",exact:true}).click();await page.getByRole("dialog",{name:"항목 수정",exact:true}).getByLabel("이름",{exact:true}).fill("감사헌금");await page.getByRole("dialog",{name:"항목 수정",exact:true}).getByRole("button",{name:"적용",exact:true}).click();
+    await page.getByRole("button",{name:"헌금 내역 1행 이름 수정",exact:true}).click();await page.getByRole("dialog",{name:"항목 수정",exact:true}).getByLabel("수정 내용",{exact:true}).fill("감사헌금");await page.getByRole("dialog",{name:"항목 수정",exact:true}).getByRole("button",{name:"적용",exact:true}).click();
     await page.getByLabel("헌금 내역 1행 금액", { exact: true }).fill("120000");
     await expect(page.getByText("10월(4주) 총계 120,000원", { exact: true })).toBeVisible();
     await showBulletinVisibility(page);await page.getByLabel("웹에 공개", { exact: true }).last().uncheck();

@@ -1,37 +1,33 @@
 'use client';
 import {useRef,useState} from 'react';
 import type {BulletinItem,BlockContent} from '@/lib/bulletins';
-import {newsGroups,accountBody,isPrayerGuide,newsTitle} from '@/lib/bulletin-editor';
+import {newsGroups,accountBody,isPrayerGuide,newsCategory} from '@/lib/bulletin-editor';
 import GrowingTextarea from './growing-textarea';
+import EditableText from './editable-text';
 import css from './news-editor.module.css';
-
-type Props={items:BulletinItem[];onText:(id:string,changes:Partial<Pick<BulletinItem,'title'|'body'|'webVisible'>>)=>void;onContent:(id:string,content:BlockContent,body?:string)=>void;onToggle:(item:BulletinItem)=>void;onOrder:(ids:string[])=>void;onAdd:()=>void;showVisibility:boolean};
-export default function NewsEditor({items,onText,onContent,onToggle,onAdd,showVisibility}:Props){
- const dialog=useRef<HTMLDialogElement>(null),back=useRef<HTMLElement|null>(null);
- const [renaming,setRenaming]=useState<BulletinItem|null>(null),[name,setName]=useState('');
- const close=()=>{dialog.current?.close();back.current?.focus();};
- return <div className={css.editor} role="group" aria-label="좋은 소식 내용">{newsGroups(items).map(group=><section key={group.title} className={css.row} aria-label={group.title}>
-  <div className={css.name}><span>〈{group.title}〉</span>{group.entries.length===1&&!isPrayerGuide(group.entries[0])?<button type="button" aria-label={`${group.title} 이름 수정`} onClick={e=>{back.current=e.currentTarget;setRenaming(group.entries[0]);setName(newsTitle(group.entries[0].title));dialog.current?.showModal();}}>수정</button>:null}</div>
-  <div className={css.content}>{group.title==='헌금'?<><AccountEditor items={group.entries} onText={onText}/>{group.entries.map(item=><div key={item.id} className={css.accountOptions}>{item.content?.disabled?<button type="button" onClick={()=>onToggle(item)}>{item.title} 활성화</button>:null}{showVisibility?<label className={css.visibility}><input type="checkbox" checked={item.webVisible} onChange={e=>onText(item.id,{webVisible:e.target.checked})}/>{item.title} 웹에 공개</label>:null}</div>)}</>:group.entries.map(item=><div key={item.id} className={css.part} data-disabled={item.content?.disabled??false}>
-   {isPrayerGuide(item)?<PrayerGuide item={item} onContent={onContent}/>:<GrowingTextarea disabled={item.content?.disabled} aria-label={group.title==='기도･안내'?'안내 추가 내용':`${newsTitle(item.title)} 내용`} placeholder="내용" maxLength={20000} value={item.body} onChange={e=>onText(item.id,{body:e.target.value})}/>}
-   {!isPrayerGuide(item)?<button type="button" className={css.enable} aria-label={`${newsTitle(item.title)} ${item.content?.disabled?'활성화':'비활성화'}`} aria-pressed={!item.content?.disabled} onClick={()=>onToggle(item)}>{item.content?.disabled?'활성화':'비활성화'}</button>:null}
-   {showVisibility?<label className={css.visibility}><input type="checkbox" checked={item.webVisible} onChange={e=>onText(item.id,{webVisible:e.target.checked})}/>웹에 공개</label>:null}
-  </div>)}</div>
- </section>)}<button className={css.add} type="button" onClick={onAdd}>소식 추가</button>
- <dialog ref={dialog} className={css.dialog} aria-label="소식 항목 수정" onCancel={()=>back.current?.focus()}><h3>항목 수정</h3><label>이름<input maxLength={160} value={name} onChange={e=>setName(e.target.value)}/></label><div><button type="button" onClick={close}>취소</button><button type="button" onClick={()=>{if(renaming)onText(renaming.id,{title:`좋은 소식 · ${name}`});close();}}>적용</button></div></dialog>
- </div>;
+type Props={items:BulletinItem[];previous?:BulletinItem[];onText:(id:string,changes:Partial<Pick<BulletinItem,'title'|'body'|'webVisible'>>)=>void;onContent:(id:string,content:BlockContent,body?:string)=>void;onToggle:(item:BulletinItem)=>void;onOrder:(ids:string[])=>void;onAdd:()=>void;onRemove:(ids:string[])=>void;onImport:(ids:string[],source:BulletinItem[])=>void;showVisibility:boolean};
+export default function NewsEditor({items,previous=[],onText,onContent,onToggle,onOrder,onAdd,onRemove,onImport,showVisibility}:Props){
+ const [originalCategories]=useState(()=>new Map(items.map(item=>[item.id,newsCategory(item)])));
+ const groups=newsGroups(items),root=useRef<HTMLDivElement>(null),source=useRef<number|null>(null),target=useRef<number|null>(null),[over,setOver]=useState<number|null>(null),[status,setStatus]=useState('');
+ function move(from:number,to:number){if(from===to||to<0||to>=groups.length)return;const ordered=[...groups],[group]=ordered.splice(from,1);ordered.splice(to,0,group);onOrder(ordered.flatMap(group=>group.entries.map(item=>item.id)));setStatus(`${group.title} 소식을 ${to+1}번째로 이동했습니다.`);requestAnimationFrame(()=>root.current?.querySelector<HTMLButtonElement>(`[data-news-row="${group.entries[0].id}"] [data-handle]`)?.focus());}
+ function finish(){if(source.current!==null&&target.current!==null)move(source.current,target.current);source.current=null;target.current=null;setOver(null);}
+ return <div ref={root} className={css.editor} role="group" aria-label="좋은 소식 내용">{groups.map((group,index)=>{const ids=group.entries.map(item=>item.id),prior=newsGroups(previous).find(old=>old.title===(originalCategories.get(ids[0])??group.title))?.entries;
+ return <section key={ids[0]} data-news-row={ids[0]} data-over={over===index} className={css.row} aria-label={group.title}>
+  <button type="button" data-handle className={css.handle} aria-label={`${group.title} 이동`} title="드래그하거나 위아래 방향키로 이동" onKeyDown={e=>{if(['ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();move(index,index+(e.key==='ArrowUp'?-1:1));}}} onPointerDown={e=>{if(e.button!==0)return;source.current=index;target.current=index;e.currentTarget.setPointerCapture(e.pointerId);}} onPointerMove={e=>{if(source.current===null)return;const row=document.elementFromPoint(e.clientX,e.clientY)?.closest<HTMLElement>('[data-news-row]');if(row&&root.current?.contains(row)){target.current=groups.findIndex(g=>g.entries[0].id===row.dataset.newsRow);setOver(target.current);}}} onPointerUp={finish} onPointerCancel={()=>{source.current=null;target.current=null;setOver(null);}}>≡</button>
+  <div className={css.name}><EditableText brackets value={group.title} label={`${group.title} 이름 수정`} maxLength={160} onChange={value=>group.entries.forEach(item=>onText(item.id,{title:`좋은 소식 · ${value}`}))}/></div>
+  <div className={css.content}>{group.entries.filter(isPrayerGuide).map(item=><PrayerGuide key={item.id} item={item} onContent={onContent}/>)}<TextGroup title={group.title} items={group.entries.filter(item=>!isPrayerGuide(item))} onText={onText}/>
+   {group.entries.map(item=><div key={item.id} className={css.options}>{item.content?.disabled?<button type="button" onClick={()=>onToggle(item)}>{group.title} 활성화</button>:null}{showVisibility?<label><input type="checkbox" checked={item.webVisible} onChange={e=>onText(item.id,{webVisible:e.target.checked})}/>{group.title} 웹에 공개</label>:null}</div>)}
+  </div><div className={css.tools}>{prior?<button type="button" aria-label={`${group.title} 지난 주 가져오기`} title="지난 주 가져오기" onClick={()=>onImport(ids,prior)}>↶</button>:null}<button type="button" aria-label={`${group.title} ${group.entries.every(item=>item.content?.disabled)?'활성화':'비활성화'}`} title="사용 전환" onClick={()=>{const disabled=!group.entries.every(item=>item.content?.disabled);group.entries.forEach(item=>onContent(item.id,{...item.content,disabled}));}}>−</button><button type="button" aria-label={`${group.title} 삭제`} title="소식 삭제" onClick={()=>onRemove(ids)}>×</button></div>
+ </section>;
+ })}<button className={css.add} type="button" onClick={onAdd}>소식 추가</button><span className={css.srOnly} aria-live="polite">{status}</span></div>;
 }
-function AccountEditor({items,onText}:{items:BulletinItem[];onText:Props['onText']}){
- const value=items.map(accountBody).filter(Boolean).join('\n');
- return <GrowingTextarea aria-label="헌금 계좌 내용" maxLength={20000} placeholder="온라인 헌금계좌: 농협 …\n온라인 건축헌금: 농협 …" value={value} onChange={e=>{
-  // One editor, existing records and their individual visibility are retained.
-  const text=e.target.value,split=text.search(/\n(?=온라인\s*건축헌금\s*[:：])/),construction=items.find(item=>/건축/.test(item.title)),general=items.find(item=>!/건축/.test(item.title))??items[0];
-  if(split>=0&&construction&&general.id!==construction.id){onText(general.id,{body:text.slice(0,split)});onText(construction.id,{body:text.slice(split+1)});}
-  else{onText(general.id,{body:text});for(const item of items)if(item.id!==general.id)onText(item.id,{body:''});}
- }}/>
+function TextGroup({title,items,onText}:{title:string;items:BulletinItem[];onText:Props['onText']}){
+ // Separate audiences remain separate: combining public and private text must not publish it.
+ const partitions=new Map<string,BulletinItem[]>();for(const item of items){const key=String(item.webVisible)+':'+String(!!item.content?.disabled);partitions.set(key,[...(partitions.get(key)??[]),item]);}
+ return [...partitions].map(([key,entries])=><div key={key} className={css.textPart} data-disabled={!!entries[0].content?.disabled}>{partitions.size>1?<small>{entries[0].webVisible?'웹 공개':'웹 비공개'}{entries[0].content?.disabled?' · 비활성':''}</small>:null}<GrowingTextarea disabled={entries[0].content?.disabled} aria-label={title==='기도･안내'?'안내 추가 내용':title==='헌금'?'헌금 계좌 내용':`${title} 내용`} maxLength={20000} placeholder="내용" value={entries.map(item=>newsCategory(item)==='헌금'?accountBody(item):item.body).filter(Boolean).join('\n')} onChange={e=>{onText(entries[0].id,{body:e.target.value});entries.slice(1).forEach(item=>onText(item.id,{body:''}));}}/></div>);
 }
 export function PrayerGuide({item,onContent}:{item:BulletinItem;onContent:Props['onContent']}){
  const rows=Array.from({length:Math.max(5,item.content?.rows?.length??0)},(_,i)=>item.content?.rows?.[i]??['','','']);
  function update(index:number,column:number,value:string){onContent(item.id,{...item.content,rows:rows.map((row,i)=>i===index?Array.from({length:3},(_,j)=>j===column?value:row[j]??''):row)});}
- return <div className={css.tableScroll}><table className={css.guide}><tbody>{['날짜','기도','안내'].map((title,column)=><tr key={title}><th scope="row">{title}</th>{rows.map((row,index)=><td key={index}><GrowingTextarea maxLength={500} aria-label={`기도･안내 ${index+1}열 ${title}`} value={row[column]??''} onChange={e=>update(index,column,e.target.value)}/></td>)}</tr>)}</tbody></table>{item.body?<GrowingTextarea aria-label="기도 안내 내용" maxLength={20000} value={item.body} onChange={e=>onContent(item.id,item.content??{},e.target.value)}/>:null}</div>;
+ return <div className={css.tableWrap}><table className={css.guide} aria-label="기도･안내"><tbody>{['날짜','기도','안내'].map((title,column)=><tr key={title}><th scope="row">{title}</th>{rows.map((row,index)=><td key={index}><GrowingTextarea maxLength={500} aria-label={`기도･안내 ${index+1}열 ${title}`} value={row[column]??''} onChange={e=>update(index,column,e.target.value)}/></td>)}</tr>)}</tbody></table>{item.body?<GrowingTextarea aria-label="기도 안내 내용" maxLength={20000} value={item.body} onChange={e=>onContent(item.id,item.content??{},e.target.value)}/>:null}</div>;
 }

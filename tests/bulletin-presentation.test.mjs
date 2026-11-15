@@ -26,7 +26,7 @@ test('prayer and usher rows join news; volunteer and staff editors keep table fi
 
 test('fixed news groups join prayer and accounts without mutating source; offering month and last row stay aligned',()=>{
  const items=[{title:'온라인 건축 헌금 계좌',body:'건축계좌'},{title:'좋은 소식 · 자치 동정',body:'1층 안내'},{title:'좋은 소식 · 환영',body:'환영합니다'},{title:'11월 기도 인도 · 안내',body:'',kind:'worship'},{title:'온라인 헌금 계좌',body:'일반계좌'}];
- const before=structuredClone(items),groups=newsGroups(items);assert.deepEqual(groups.map(g=>g.title),['환영','기도･안내','헌금']);assert.equal(groups[1].entries.length,2);assert.equal(groups[2].entries.length,2);assert.equal(accountBody(items[0]),'온라인 건축헌금: 건축계좌');assert.deepEqual(items,before);
+ const before=structuredClone(items),groups=newsGroups(items);assert.deepEqual(groups.map(g=>g.title),['헌금','기도･안내','환영']);assert.equal(groups[1].entries.length,2);assert.equal(groups[0].entries.length,2);assert.equal(accountBody(items[0]),'온라인 건축헌금: 건축계좌');assert.deepEqual(items,before);
  const content={month:'2026-10',rows:[['월삭감사','5'],['십일조','10'],['주일헌금','20']],disabledRows:[0]};const ordered=offeringRows(content);assert.equal(ordered.rows.at(-1)[0],'월삭감사');assert.deepEqual(ordered.disabledRows,[2]);assert.equal(content.rows[0][0],'월삭감사');assert.equal(offeringSummary(content),'10월(4주) 총계');assert.equal(offeringSummary({...content,month:'2026-11'}),'11월(5주) 총계');assert.equal(offeringSummary({...content,month:'2026-11'},'11월(4주) 총계'),'11월(4주) 총계');
 });
 

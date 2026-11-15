@@ -20,21 +20,20 @@ export function sectionFor(item: {title:string;kind?:string;printPage?:number|nu
 export type PresentationItem={title:string;body:string;kind?:string;content?:unknown;printPage?:number|null;webVisible?:boolean};
 export const displayTitle=(title:string)=>title==='예배 묵상 진행'?'예배 공지사항':/나의 묵상/.test(title)?'나의 묵상':/^토라\s*&\s*토브$/.test(title)?'토라&토브':title;
 export const newsTitle=(title:string)=>displayTitle(title).replace(/^좋은 소식\s*[·ㆍ:]\s*/,'');
-export const isPrayerGuide=(item:Pick<PresentationItem,'title'>)=>/기도\s*(?:인도)?.*안내/.test(item.title);
+export const isPrayerGuide=(item:Pick<PresentationItem,'title'>&{kind?:string})=>(item.kind==='worship'&&(/^좋은 소식/.test(item.title)||/기도\s*(?:인도)?.*안내/.test(item.title)))||(item.kind===undefined&&!/^좋은 소식/.test(item.title)&&/기도\s*(?:인도)?.*안내/.test(item.title));
 export const isNewsItem=(item:Pick<PresentationItem,'title'>)=>/^좋은 소식(?:\s*[·ㆍ:]|$)|기도\s*인도.*안내|온라인.*헌금.*계좌/.test(item.title);
-export function newsCategory(item:Pick<PresentationItem,'title'>){
- const name=newsTitle(item.title).replace(/[\s<>〈〉]/g,'');
- if(isPrayerGuide(item)||/자치동정|^안내$/.test(name))return '기도･안내';
- if(/헌금|계좌/.test(name))return '헌금';
- if(/성경/.test(name))return '성경';
- if(/교회김장|사업장심방|목회자동정|광고/.test(name))return '광고';
- return name||'소식';
+export function newsCategory(item:Pick<PresentationItem,'title'>&{kind?:string}){
+ const raw=newsTitle(item.title).replace(/[<>〈〉]/g,'').trim(),name=raw.replace(/\s/g,'');
+ if(isPrayerGuide(item)){return /^좋은 소식/.test(item.title)&&!/^기도[･·ㆍ\s]*안내$/.test(name)?raw:'기도･안내';}if(/자치동정|^안내$/.test(name))return '기도･안내';
+ if(/^(?:온라인.*헌금.*계좌|헌금)$/.test(name))return '헌금';
+ if(/^성경(?:읽기)?$/.test(name))return '성경';
+ if(/^(?:교회김장|사업장심방|목회자동정|광고)$/.test(name))return '광고';
+ return raw||'소식';
 }
 export function newsGroups<T extends PresentationItem>(items:readonly T[]){
- const categories=['환영','예배','중보','광고','성경','기도･안내','헌금'];
  const groups=new Map<string,T[]>();
  for(const item of items){const category=newsCategory(item);groups.set(category,[...(groups.get(category)??[]),item]);}
- return [...groups].sort(([a],[b])=>{const ai=categories.indexOf(a),bi=categories.indexOf(b);return (ai<0?99:ai)-(bi<0?99:bi);}).map(([title,entries])=>({title,entries:title==='기도･안내'?[...entries].sort((a,b)=>Number(isPrayerGuide(b))-Number(isPrayerGuide(a))):title==='헌금'?[...entries].sort((a,b)=>Number(/건축/.test(a.title))-Number(/건축/.test(b.title))):entries}));
+ return [...groups].map(([title,entries])=>({title,entries:entries.some(isPrayerGuide)?[...entries].sort((a,b)=>Number(isPrayerGuide(b))-Number(isPrayerGuide(a))):title==='헌금'?[...entries].sort((a,b)=>Number(/건축/.test(a.title))-Number(/건축/.test(b.title))):entries}));
 }
 export function accountBody(item:Pick<PresentationItem,'title'|'body'>){
  if(!item.body.trim())return '';

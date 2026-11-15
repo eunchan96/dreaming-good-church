@@ -6,7 +6,7 @@ import { offeringTotal, type BulletinItem, type BlockContent } from "@/lib/bulle
 import styles from "./workspace.module.css";
 import { BulletinImageView } from "@/app/bulletin-image";
 
-export function BlockFields({ item, onChange }: { item: BulletinItem; onChange: (content: BlockContent,body?:string) => void }) {
+export function BlockFields({ item, onChange,previous,volunteerHint,onImported }: { onImported?:()=>void;previous?:BulletinItem;volunteerHint?:string;item: BulletinItem; onChange: (content: BlockContent,body?:string) => void }) {
   const content = item.content ?? {};
   if (item.kind === "image") return <div>{content.assetId ? <BulletinImageView key={content.assetId} id={content.assetId} alt={content.alt ?? ""} editor /> : null}<label>이미지 설명 (대체텍스트)<input required maxLength={500} value={content.alt ?? ""} onChange={e => onChange({ ...content, alt: e.target.value })} /></label></div>;
   if (item.kind === "sermon") return <div className={styles.actions}>
@@ -14,7 +14,7 @@ export function BlockFields({ item, onChange }: { item: BulletinItem; onChange: 
     {!/토라|토브/.test(item.title)?<label>설교자<input maxLength={500} value={content.preacher ?? ""} onChange={(e) => onChange({ ...content, preacher: e.target.value })} /></label>:null}
   </div>;
   if (item.kind !== "worship" && item.kind !== "offering") return null;
-  return <RowEditor item={item} onChange={onChange}/>;
+  return <RowEditor onImported={onImported} item={item} previous={previous} volunteerHint={volunteerHint} onChange={onChange}/>;
 }
 
 export function BlockPreview({ item, editor = false, compact=false, hideTitle=false }: { item: Pick<BulletinItem, "title" | "body" | "kind" | "content">; editor?: boolean;compact?:boolean;hideTitle?:boolean }) {

@@ -1,4 +1,4 @@
-import type {Page} from '@playwright/test';
-export async function showBulletinVisibility(page:Page){
- await page.getByRole('button',{name:'주보 설정',exact:true}).click();await page.getByLabel('웹 공개 설정 표시',{exact:true}).check();const save=page.getByRole('button',{name:'저장',exact:true});if(await save.isEnabled())await save.click();await page.getByRole('button',{name:'주보 등록',exact:true}).click();
-}
+import {expect,type Page} from '@playwright/test';
+export async function bulletinPage(page:Page,name:string){const mobile=page.locator('summary:visible').filter({hasText:'빠른 이동'});if(await mobile.isVisible()){await mobile.click();await page.getByRole('navigation',{name:'빠른 이동 선택'}).getByRole('button',{name,exact:true}).click();}else await page.getByRole('button',{name,exact:true}).click();}
+export async function showBulletinVisibility(page:Page){await bulletinPage(page,'주보 설정');await page.getByLabel('웹 공개 설정 표시',{exact:true}).check();const save=page.getByRole('button',{name:'저장',exact:true});if(await save.isEnabled())await save.click();await bulletinPage(page,'주보 등록');}
+export async function saveAndEdit(page:Page,label='초안 저장'){const date=await page.locator('[data-calendar-label="예배 날짜"]').getAttribute('data-value');await page.getByRole('button',{name:label,exact:true}).click();await expect(page.getByRole('heading',{name:'주보 보관함',exact:true})).toBeVisible();await expect(page.getByRole('status')).toContainText('초안을 저장했습니다');await page.getByRole('button',{name:new RegExp(date!)}).click();await page.getByRole('button',{name:'수정',exact:true}).click();}
