@@ -2,3 +2,9 @@
 .editor :global(section){border:0!important;margin-bottom:12px!important;padding-bottom:4px!important}.editor .formRow{grid-template-columns:54px minmax(0,1fr);gap:12px;max-width:920px}.editor .chips{margin:0;gap:6px}.editor .chips button{font-size:12px!important;padding:7px 13px!important}.rowLabel{font-size:14px;padding-top:11px}.search>button{width:auto;max-width:100%}.actions a svg{color:#985c41}@media(max-width:540px){.editor .formRow{grid-template-columns:44px minmax(0,1fr);gap:8px}.editor .rowLabel{font-size:13px}.editor .chips button{padding:7px 10px!important;font-size:11px!important}}
 
 .search.search>input{width:0;min-width:0;flex:1 1 0}.search.search>button{width:auto;flex:0 0 auto;max-width:45%}
+
+/* Consistent with bulletin/community lists and forms */
+.actions .primaryAction{display:inline-flex;align-items:center;gap:4px;min-height:38px;padding:0 16px;border:1px solid #342b25;border-radius:8px;background:#342b25;color:#fff;font-size:13px;font-weight:600}
+.actions .primaryAction:hover:not(:disabled){background:#4a3e33}
+.save{justify-content:center!important}
+.save button{min-width:120px;border-radius:8px!important}

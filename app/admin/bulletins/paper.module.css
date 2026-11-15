@@ -98,9 +98,9 @@
 .news > li::before { content: counter(news) '.'; color: #3d342b; }
 .tag { color: #3d342b; white-space: nowrap; }
 .news > li > div { min-width: 0; display: grid; gap: .1em; white-space: pre-wrap; }
-.prayer { width: 100%; border-collapse: collapse; table-layout: fixed; margin: .1em 0 .2em; font-size: .92em; }
-.prayer th { width: 2.4em; text-align: left; font-weight: 400; color: #6b5f50; }
-.prayer td { padding: .05em .2em; text-align: center; }
+.prayer { width: auto; border-collapse: collapse; margin: 0 0 .15em; font-size: .92em; }
+.prayer th { padding: 0 .3em 0 0; text-align: left; font-weight: 400; color: #6b5f50; white-space: nowrap; }
+.prayer td { padding: 0 .35em; text-align: center; white-space: nowrap; }
 .prayer tr:first-child td { color: #1f5fae; }
 
 /* 헌금 내역 */
@@ -114,8 +114,8 @@
 
 /* 교회 안내 */
 .church { margin-top: auto; padding-top: .6em; }
-.church h3 { display: inline-flex; align-items: center; gap: .3em; margin: 0 0 .3em !important; padding-bottom: .15em; border-bottom: 1px solid #b54a2c; font-size: 1.45em !important; font-weight: 700 !important; letter-spacing: .35em; color: #3d342b; }
-.church h3 > span { color: #d62f2f; font-size: .7em; letter-spacing: 0; }
+.church h3 { position: relative; display: inline-block; margin: 0 0 .55em !important; padding: 0 1.1em .12em .3em; border-bottom: 1px solid #5d5348; font-size: 1.55em !important; font-weight: 600 !important; letter-spacing: .4em; color: #4b5320; }
+.church h3 > i { position: absolute; right: -.15em; bottom: -.45em; color: #e0262b; font-style: normal; font-size: .75em; letter-spacing: 0; }
 .church p { margin: 0; line-height: 1.75; white-space: pre-wrap; }
 
 /* Detail view (screen): same design at a readable size */
@@ -154,8 +154,6 @@
 .volunteerWho > *, .volunteerRole { white-space: nowrap !important; }
 
 /* 좋은 소식 기도･안내: table starts under the tag */
-.news > li[data-prayer] > div { grid-column: 2 / -1; }
-.prayer th { width: 2.2em; }
 
 /* 토라&토브 lighter rules */
 .torahRow { border-bottom-color: #cfc6b8; }
@@ -164,16 +162,38 @@
 /* 헌금 내역 */
 .offering caption { border-bottom: 1px solid #b9c08f; margin-bottom: .1em; }
 .offering td { border-bottom: 1px dotted #d6cfc2; }
-.total { border-top: 1px solid #b9c08f; padding-top: .3em; }
+.total { border-bottom: 1px solid #b9c08f; padding-bottom: .25em; }
 
 /* 메모 fills the rest of its page */
 .memoBlock { display: flex; flex-direction: column; flex: 1; min-height: 9em; }
 .memoBlock > .memo { flex: 1; }
 
 /* 교회 안내 + 약도 */
-.church { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 1em; align-items: end; }
+.church { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .85fr); gap: 1.2em; align-items: end; }
 .churchList { list-style: none; margin: 0; padding: 0; display: grid; gap: .25em; }
-.churchList li { display: grid; grid-template-columns: 1.3em minmax(0, 1fr); align-items: start; gap: .3em; line-height: 1.5; }
-.churchList svg { margin-top: .2em; }
+.churchList li { display: grid; grid-template-columns: 1.4em minmax(0, 1fr); align-items: start; gap: .35em; line-height: 1.55; font-size: 1.05em; }
+.churchList svg { margin-top: .15em; }
+.churchLine { display: block; }
+small.churchLine { font-size: .88em; }
 .churchText { white-space: pre-wrap; }
-.map { width: 100%; height: auto; max-height: 34mm; object-fit: contain; object-position: right bottom; display: block; }
+.map { width: 100%; height: auto; max-height: 28mm; object-fit: contain; object-position: right bottom; display: block; }
+
+/* 헌금 내역: shared names in one table (현장 | 온라인), the rest on the right */
+.offering:has(.offerPairs) { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+.offerPairs th, .offerRest th { font-weight: 600; color: #6f7d2a; text-align: right; padding: .05em .3em .15em; border-bottom: 1px solid #b9c08f; }
+.offerPairs td:not(:first-child) { text-align: right; width: 30%; font-variant-numeric: tabular-nums; }
+.offerPairs td:first-child, .offerRest td:first-child { text-align: left; }
+.offering .offerPairs td:last-child { width: 30%; }
+.offerRest small { color: #6f7d2a; font-size: .85em; }
+
+/* 섬기는 이들: column rule only, 담임·협동 rows tinted like the Word template */
+.supportGrid [data-role=staff] .table td { border-bottom: 0; padding-block: .28em; }
+.supportGrid [data-role=staff] .table td:first-child { border-right: 1px solid #b9c08f; }
+.supportGrid [data-role=staff] .table td:last-child { padding-left: .7em; }
+.supportGrid [data-role=staff] .table tr[data-lead] td { background: #d8dec0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.supportGrid [data-role=staff] .tinted { padding: 0; }
+.supportGrid [data-role=staff] .table td { padding-inline: .6em; }
+
+/* Even spacing: left boxes stretch to the staff column's height */
+.supportGrid > :not([data-role=staff]) { display: flex; flex-direction: column; }
+.supportGrid > :not([data-role=staff]) > .tinted { flex: 1; display: flex; flex-direction: column; justify-content: center; }

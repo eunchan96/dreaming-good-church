@@ -22,19 +22,16 @@ export const displayTitle=(title:string)=>title==='예배 묵상 진행'?'예배
 export const newsTitle=(title:string)=>displayTitle(title).replace(/^좋은 소식\s*[·ㆍ:]\s*/,'');
 export const isPrayerGuide=(item:Pick<PresentationItem,'title'>&{kind?:string})=>(item.kind==='worship'&&(/^좋은 소식/.test(item.title)||/기도\s*(?:인도)?.*안내/.test(item.title)))||(item.kind===undefined&&!/^좋은 소식/.test(item.title)&&/기도\s*(?:인도)?.*안내/.test(item.title));
 export const isNewsItem=(item:Pick<PresentationItem,'title'>)=>/^좋은 소식(?:\s*[·ㆍ:]|$)|기도\s*인도.*안내|온라인.*헌금.*계좌/.test(item.title);
-export function newsCategory(item:Pick<PresentationItem,'title'>&{kind?:string},legacyAd=true){
+export function newsCategory(item:Pick<PresentationItem,'title'>&{kind?:string}){
  const raw=newsTitle(item.title).replace(/[<>〈〉]/g,'').trim(),name=raw.replace(/\s/g,'');
  if(isPrayerGuide(item)){return /^좋은 소식/.test(item.title)&&!/^기도[･·ㆍ\s]*안내$/.test(name)?raw:'기도･안내';}if(/자치동정|^안내$/.test(name))return '기도･안내';
  if(/^(?:온라인.*헌금.*계좌|헌금)$/.test(name))return '헌금';
  if(/^성경(?:읽기)?$/.test(name))return '성경';
- // Older bulletins split 광고 into these titles; merge them only when no 광고 entry exists,
- // so a category typed next to an existing 광고 (e.g. 목회자동정) stays separate.
- if(name==='광고'||(legacyAd&&/^(?:교회김장|사업장심방|목회자동정)$/.test(name)))return '광고';
  return raw||'소식';
 }
 export function newsGroups<T extends PresentationItem>(items:readonly T[]){
- const groups=new Map<string,T[]>(),legacyAd=!items.some(item=>newsTitle(item.title).replace(/[<>〈〉\s]/g,'')==='광고');
- for(const item of items){const category=newsCategory(item,legacyAd);groups.set(category,[...(groups.get(category)??[]),item]);}
+ const groups=new Map<string,T[]>();
+ for(const item of items){const category=newsCategory(item);groups.set(category,[...(groups.get(category)??[]),item]);}
  return [...groups].map(([title,entries])=>({title,entries:entries.some(isPrayerGuide)?[...entries].sort((a,b)=>Number(isPrayerGuide(b))-Number(isPrayerGuide(a))):title==='헌금'?[...entries].sort((a,b)=>Number(/건축/.test(a.title))-Number(/건축/.test(b.title))):entries}));
 }
 export function accountBody(item:Pick<PresentationItem,'title'|'body'>){

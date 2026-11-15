@@ -6,7 +6,6 @@ import {offeringTotal} from '@/lib/bulletins';
 import {bulletinSections,sectionFor,displayTitle,isPrayerGuide,newsGroups,accountBody,worshipRows,offeringRows,offeringSummary,managedSchedule,bodyField,emptyNews,printOnlyItem,type BulletinSection} from '@/lib/bulletin-editor';
 import {rowIdentity} from '@/lib/bulletin-defaults.mjs';
 import {BulletinImageView} from '@/app/bulletin-image';
-import SiteIcon from '@/app/site-icon';
 import {PrintContext,PrintText} from './print-editor';
 import css from './paper.module.css';
 
@@ -35,6 +34,7 @@ function useEdit(item:BulletinItem){
   text:(field:'title'|'body',value:string)=>context.replace({...item,[field]:value,needsReview:false}),
   field:(field:'reference'|'attribution'|'footer',value:string)=>context.replace({...item,content:{...content,[field]:value},...(order?{body:''}:{}),needsReview:false}),
   cell:(row:number,col:number,value:string)=>context.replace({...item,content:{...content,rows:(content.rows??[]).map((r,i)=>i===row?r.map((v,j)=>j===col?value:v):r)},...(order?{body:''}:{}),needsReview:false}),
+  cells:(updates:{row:number;col:number;value:string}[])=>context.replace({...item,content:{...content,rows:(content.rows??[]).map((r,ri)=>r.map((v,ci)=>updates.find(u=>u.row===ri&&u.col===ci)?.value??v))},needsReview:false}),
  };
 }
 /** Read-only items (managed schedule) get a non-editable context. */
@@ -75,7 +75,7 @@ function Order({item}:{item:BulletinItem}){
 
 function Table({item,columns}:{item:BulletinItem;columns:number}){
  const {rows,cell}=useEdit(item);
- return <table className={css.table}><tbody>{rows.map(({row,i})=><tr key={i}>{row.slice(0,columns).map((value,col)=><td key={col}><PrintText id={`${item.id}:row:${i}:${col}`} label={`${item.title} ${i+1}행 ${col+1}열`} value={value} maxLength={500} onChange={next=>cell(i,col,next)}/></td>)}</tr>)}</tbody></table>;
+ return <table className={css.table}><tbody>{rows.map(({row,i})=><tr key={i} data-lead={/담임|협동/.test(row[0])||undefined}>{row.slice(0,columns).map((value,col)=><td key={col}><PrintText id={`${item.id}:row:${i}:${col}`} label={`${item.title} ${i+1}행 ${col+1}열`} value={value} maxLength={500} onChange={next=>cell(i,col,next)}/></td>)}</tr>)}</tbody></table>;
 }
 function Schedule({item}:{item:BulletinItem}){
  const {rows,cell}=useEdit(item);
@@ -117,18 +117,36 @@ function NewsEntry({item,account}:{item:BulletinItem;account:boolean}){
 function News({items}:{items:BulletinItem[]}){
  return <section className={css.block} data-print-group="news"><Band title="좋은 소식" tone="orange"/><ol className={css.news}>{newsGroups(items).map(group=><li key={group.title} data-prayer={group.entries.some(isPrayerGuide)||undefined}><span className={css.tag}>&lt;{group.title}&gt;</span><div>{group.entries.map(entry=><NewsEntry key={entry.id} item={entry} account={group.title==='헌금'}/>)}</div></li>)}</ol></section>;
 }
+const offeringName=(value:string)=>value.replace(/^온라인\s*[\/·]\s*/,'').trim();
+/** Shared names (주일헌금·십일조…) share one row with 현장/온라인 columns; the rest sit on the right. */
 function Offering({item}:{item:BulletinItem}){
- const {content,rows,cell}=useEdit(item),online=rows.filter(({row})=>/온라인/.test(row[0])),onsite=rows.filter(({row})=>!/온라인/.test(row[0]));
- return <Scope item={item}><Band title="헌금 내역" tone="lime"/><div className={css.offering} data-split={online.length>0&&onsite.length>0}>{[onsite,online].filter(column=>column.length).map(column=><table key={column===online?'online':'onsite'}>{online.length&&onsite.length?<caption>{column===online?'온라인 헌금':'현장 헌금'}</caption>:null}<tbody>{column.map(({row,i})=><tr key={i}>{row.slice(0,2).map((value,col)=><td key={col}><PrintText id={`${item.id}:row:${i}:${col}`} label={`${item.title} ${i+1}행 ${col+1}열`} value={col===1?Number(value||0).toLocaleString('ko-KR'):value.replace(/^온라인\s*[\/·]\s*/,'')} numeric={col===1} maxLength={col===1?20:500} onChange={next=>cell(i,col,col===1?next.replace(/[,원\s]/g,''):next)}/></td>)}</tr>)}</tbody></table>)}</div><p className={css.total}>{offeringSummary(content,item.body)} {offeringTotal(content).toLocaleString('ko-KR')}원</p></Scope>;
+ const {content,rows,cell,cells}=useEdit(item),online=rows.filter(({row})=>/온라인/.test(row[0])),onsite=rows.filter(({row})=>!/온라인/.test(row[0]));
+ const pairs=onsite.flatMap(entry=>{const match=online.find(o=>offeringName(o.row[0])===offeringName(entry.row[0]));return match?[{onsite:entry,online:match}]:[];});
+ const paired=new Set(pairs.flatMap(p=>[p.onsite.i,p.online.i])),rest=[...onsite,...online].filter(({i})=>!paired.has(i));
+ const amount=(entry:{row:string[];i:number})=><PrintText id={`${item.id}:row:${entry.i}:1`} label={`${item.title} ${entry.i+1}행 2열`} value={Number(entry.row[1]||0).toLocaleString('ko-KR')} numeric maxLength={20} onChange={next=>cell(entry.i,1,next.replace(/[,원\s]/g,''))}/>;
+ const name=(entry:{row:string[];i:number},pair?:{row:string[];i:number})=><PrintText id={`${item.id}:row:${entry.i}:0`} label={`${item.title} ${entry.i+1}행 1열`} value={offeringName(entry.row[0])} maxLength={500} onChange={next=>pair?cells([{row:entry.i,col:0,value:next},{row:pair.i,col:0,value:`온라인 / ${next}`}]):cell(entry.i,0,/온라인/.test(entry.row[0])?`온라인 / ${next}`:next)}/>;
+ const halves=pairs.length?null:[rest.slice(0,Math.ceil(rest.length/2)),rest.slice(Math.ceil(rest.length/2))];
+ return <Scope item={item}><Band title="헌금 내역" tone="lime"/><div className={css.offering}>
+  {halves?halves.filter(h=>h.length).map((half,index)=><table key={index}><tbody>{half.map(entry=><tr key={entry.i}><td>{name(entry)}</td><td>{amount(entry)}</td></tr>)}</tbody></table>)
+  :<><table className={css.offerPairs}><thead><tr><th scope="col"><span className={css.srOnly}>구분</span></th><th scope="col">현장</th><th scope="col">온라인</th></tr></thead><tbody>{pairs.map(pair=><tr key={pair.onsite.i}><td>{name(pair.onsite,pair.online)}</td><td>{amount(pair.onsite)}</td><td>{amount(pair.online)}</td></tr>)}</tbody></table>
+   <table className={css.offerRest}><thead><tr><th scope="col"><span className={css.srOnly}>구분</span></th><th scope="col"><span className={css.srOnly}>금액</span></th></tr></thead><tbody>{rest.map(entry=><tr key={entry.i}><td>{name(entry)}{/온라인/.test(entry.row[0])?<small> 온라인</small>:null}</td><td>{amount(entry)}</td></tr>)}</tbody></table></>}
+ </div><p className={css.total}>{offeringSummary(content,item.body)} {offeringTotal(content).toLocaleString('ko-KR')}원</p></Scope>;
 }
 
 export function Memo({item}:{item?:BulletinItem}){return <section className={`${css.block} ${css.memoBlock}`} data-print-item={item?.id}><Band title="메모" tone="olive"/><div className={css.memo}>{item?.body?<p>{item.body}</p>:null}</div></section>;}
+const Pin=()=><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" aria-hidden="true"><path fill="#d8392f" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.6A2.6 2.6 0 1 1 12 6.4a2.6 2.6 0 0 1 0 5.2Z"/></svg>;
+const Phone=()=><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" aria-hidden="true"><path fill="#ef9f12" d="M3 8.5C3 6 6.2 4 12 4s9 2 9 4.5V10a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1V8.6a12 12 0 0 0-8 0V10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Zm3.5 4.5h11l1.5 6.5a1 1 0 0 1-1 1.2H6a1 1 0 0 1-1-1.2Zm5.5 1.6a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg>;
+const Youtube=()=><svg viewBox="0 0 24 24" width="1.15em" height="1.15em" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="4" fill="#e3242b"/><path fill="#fff" d="m10 9 5 3-5 3Z"/></svg>;
+/** 4면 church block in the Word layout: name with underline and heart, icon lines, sketch map. */
 export function ChurchInfo({name,address,phone,item}:{name:string;address:string;phone:string;item?:BulletinItem}){
- return <section className={css.church}><div data-print-item={item?.id}><h3>{name.replace(/^꿈꾸는\s*/,'')}<span aria-hidden="true">♥</span></h3>{item?.body?<p className={css.churchText}>{item.body}</p>:<ul className={css.churchList}>
-  <li><SiteIcon name="pin" size={14} style={{color:"#d63a2f"}}/><span>{address}</span></li>
-  <li><SiteIcon name="phone" size={14} style={{color:"#e8a10c"}}/><span>{phone}</span></li>
-  <li><SiteIcon name="youtube" size={14} style={{color:"#e02b20"}}/><span>Youtube [꿈꾸는 좋은교회]</span></li>
- </ul>}</div><Image className={css.map} src="/brand/church-map.png" alt="교회 약도: 행신동 선아빌딩 5층, 중앙로와 충장로 사이" width={788} height={417} unoptimized/></section>;
+ const clean=address.split(/\r?\n/).filter(line=>!/오시는\s*길/.test(line)).join(' ').replace(/\[[^\]]*오시는\s*길[^\]]*\]/g,'').trim();
+ const [main,extra]=(()=>{const m=clean.match(/^(.*?)\s*(\([^)]*\))\s*$/);return m?[m[1],m[2]]:[clean,''];})();
+ const lines=main.split(/,\s*/).filter(Boolean);
+ return <section className={css.church}><div data-print-item={item?.id}><h3><span>{name.replace(/^꿈꾸는\s*/,'')}</span><i aria-hidden="true">♥</i></h3><ul className={css.churchList}>
+  <li><Pin/><span>{lines.map((line,i)=><span key={i} className={css.churchLine}>{line}{i<lines.length-1?',':''}</span>)}{extra?<small className={css.churchLine}>{extra}</small>:null}</span></li>
+  {phone?<li><Phone/><span>{phone}</span></li>:null}
+  <li><Youtube/><span>Youtube [꿈꾸는 좋은교회]</span></li>
+ </ul></div><Image className={css.map} src="/brand/church-map.png" alt="교회 약도: 행신동 선아빌딩 5층, 중앙로와 충장로 사이" width={788} height={417} unoptimized/></section>;
 }
 
 /** Renders the given items grouped by bulletin section, in the Word bulletin's order. */
