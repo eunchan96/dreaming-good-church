@@ -116,3 +116,27 @@
 .liturgy .person .editable { padding-left: 0; }
 .liturgy .person .editable:hover, .liturgy .person .editable:focus-within { background: transparent; }
 .liturgy .person .fit > input.fitInput { padding-left: 8px; }
+
+/* Mobile: one tidy line per row; tools appear under the row being edited */
+@media (max-width: 700px) {
+  .row, .row[data-order=true] { padding-top: 0; padding-right: 0; margin: 4px 0; }
+  .row[data-order=true] { grid-template-columns: 20px 28px minmax(0, 1fr); gap: 6px; }
+  .editor .standing { width: 28px; height: 28px; font-size: 14px; }
+  .rowTools { position: static; transform: none; grid-column: 1 / -1; width: auto; display: none; justify-content: flex-end; opacity: 1; margin-top: 2px; }
+  .row:focus-within .rowTools { display: flex; }
+  .liturgy { grid-template-columns: minmax(0, 1fr) max-content; grid-template-areas: 'name person' 'leader leader'; row-gap: 2px; }
+  .liturgy > .name { grid-area: name; }
+  .liturgy > .leader { grid-area: leader; }
+  .liturgy > .person { grid-area: person; }
+  .liturgy .name { font-size: 14px; white-space: nowrap; }
+  .liturgy .person { grid-column: auto; text-align: right; font-size: 14px; white-space: nowrap; }
+  .liturgy .name .editable, .liturgy .person .editable { white-space: nowrap; }
+  .leader { min-width: 48px; }
+  .slot { max-width: calc(100% - 16px); }
+  .editor .fit > input.fitInput { font-size: 14px; padding: 0 6px; }
+  .fit::after { padding: 0 7px; font-size: 14px; }
+  .full .editable { font-size: 13px; }
+  .editLink { width: 22px; height: 22px; }
+}
+
+@media (max-width: 700px) { .addHint { transition: none; color: #5f4718; } }

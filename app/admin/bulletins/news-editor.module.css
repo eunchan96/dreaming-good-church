@@ -23,3 +23,9 @@
 .guide td{vertical-align:middle}
 .guide th{vertical-align:middle}
 @media(max-width:700px){.row{grid-template-columns:22px minmax(0,1fr);margin:6px 0}}
+
+@media(max-width:700px){
+ .row{padding-top:0!important;grid-template-columns:22px minmax(0,1fr)}
+ .tools{position:static!important;grid-column:1/-1;display:none;justify-content:flex-end;opacity:1;width:auto}
+ .row:focus-within .tools{display:flex}
+}

@@ -45,8 +45,8 @@
 
 .leader { display: flex; align-items: center; min-width: 0; }
 .leader > i { flex: 1 1 0; min-width: .8em; height: .2em; margin: 0 .35em; background-image: radial-gradient(circle at center, #8f8476 0 .055em, transparent .075em); background-size: .44em 100%; background-repeat: repeat-x; background-position: 0 center; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.leader > i:first-child:not(:last-child) { margin-right: .6em; }
-.leader > i:last-child:not(:first-child) { margin-left: .6em; }
+.leader > i:first-child:not(:last-child) { margin-right: 1em; }
+.leader > i:last-child:not(:first-child) { margin-left: 1em; }
 .orderWhat { flex: 0 1 auto; min-width: 0; text-align: center; white-space: nowrap; }
 .orderRow[data-emph=scripture] .orderWhat { color: #e0261b; font-size: 1.45em; }
 .orderRow[data-emph=sermon] .orderWhat { color: #0b7d38; font-size: 1.45em; white-space: normal; }
@@ -67,7 +67,7 @@
 .supportGrid > :not([data-role=staff]) { grid-column: 1; }
 .supportGrid > :not([data-role=staff]):last-child { display: flex; flex-direction: column; }
 .supportGrid > :not([data-role=staff]):last-child > .tinted { flex: 1; }
-.supportGrid [data-role=staff] .table td:first-child { width: 5.8em; }
+.supportGrid [data-role=staff] .table td:first-child { width: 6.9em; }
 .supportGrid [data-role=staff] .table td, .supportGrid [data-role=staff] .table td > * { white-space: nowrap; }
 .tinted { padding: .35em .6em .5em; background: #e9ecd7; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -189,7 +189,7 @@ small.churchLine { font-size: .88em; }
 /* 섬기는 이들: column rule only, 담임·협동 rows tinted like the Word template */
 .supportGrid [data-role=staff] .table td { border-bottom: 0; padding-block: .28em; }
 .supportGrid [data-role=staff] .table td:first-child { border-right: 1px solid #b9c08f; }
-.supportGrid [data-role=staff] .table td:last-child { padding-left: .7em; }
+.supportGrid [data-role=staff] .table td:last-child { padding-left: 1em; }
 .supportGrid [data-role=staff] .table tr[data-lead] td { background: #d8dec0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .supportGrid [data-role=staff] .tinted { padding: 0; }
 .supportGrid [data-role=staff] .table td { padding-inline: .6em; }
@@ -197,3 +197,31 @@ small.churchLine { font-size: .88em; }
 /* Even spacing: left boxes stretch to the staff column's height */
 .supportGrid > :not([data-role=staff]) { display: flex; flex-direction: column; }
 .supportGrid > :not([data-role=staff]) > .tinted { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+
+/* Word-style title wings */
+.orderTitle > .wing { width: 2.6em; height: auto; flex: none; }
+.orderTitle > span { color: #6f7d2a; font-size: 1em; letter-spacing: .38em; margin-right: -.38em; }
+
+/* 예배 안내: two-line label, time on the right */
+.scheduleLabel { white-space: pre-line; line-height: 1.35; }
+.schedule > div:first-child .scheduleRow { align-items: center; }
+
+@media (max-width: 640px) {
+  .flow .news > li { grid-template-columns: auto minmax(0, 1fr); }
+  .flow .news > li > .tag { grid-column: 2; }
+  .flow .news > li > div { grid-column: 1 / -1; padding-left: 1.4em; }
+  .flow .news > li[data-prayer] > div { overflow-x: auto; }
+  .flow .prayer td, .flow .prayer th, .flow .prayer td > * { white-space: nowrap; }
+  .flow .offering td > * { white-space: nowrap; }
+  .flow .offering, .flow .offering:has(.offerPairs) { grid-template-columns: minmax(0, 1fr); gap: .8em; }
+  .flow .offering td { white-space: nowrap; }
+  .flow .schedule { grid-template-columns: minmax(0, 1fr); }
+  .flow .schedule > div { border-right: 0; border-bottom: 1px solid #b9c08f; padding: .4em .6em; }
+  .flow .schedule > div:last-child { border-bottom: 0; }
+  .flow .supportGrid [data-role=staff] .table td:first-child { width: 6.2em; }
+  .flow .supportGrid [data-role=staff] .table td, .flow .supportGrid [data-role=staff] .table td > * { white-space: normal; }
+  .flow .orderTitle > .wing { width: 1.8em; }
+  .flow .church { grid-template-columns: minmax(0, 1fr); }
+}
+
+.scheduleRow > .scheduleLabel { white-space: pre-line; }

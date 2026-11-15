@@ -24,3 +24,10 @@
 /* One input look everywhere in the bulletin editor */
 .surface.surface :is(textarea, input:not([type=checkbox]):not([type=radio]):not([type=search])) { background: #fff; border: 1px solid #d9cfbd; border-radius: 6px; }
 .surface.surface :is(textarea, input:not([type=checkbox]):not([type=radio])):focus { border-color: #b39148; box-shadow: 0 0 0 3px #efe3c6; outline: none; }
+
+/* Mobile: item tools sit on the heading line instead of floating over inputs */
+@media (max-width: 700px) {
+  .surface .entry, .surface .entry:has(.entryTools) { padding-top: 6px; }
+  .surface .entryTools { position: static; display: flex; justify-content: flex-end; width: auto; opacity: 1; margin: 0 0 4px; }
+  .surface .entryTools button { background: transparent; min-width: 32px; min-height: 32px; }
+}

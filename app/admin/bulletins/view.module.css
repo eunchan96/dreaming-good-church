@@ -146,3 +146,10 @@
   .bar, .footerBar, .message { display: none; }
 }
 .srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (max-width: 700px) {
+  .footerBar { gap: 8px; }
+  .footerBar > .saveState { width: 100%; }
+  .footerBar > .actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  .footerBar > .actions > *, .footerBar > .actions > * > button { width: 100%; }
+}

@@ -60,7 +60,7 @@ function CoverTitle({item}:{item:BulletinItem}){
 
 function Order({item}:{item:BulletinItem}){
  const {content,rows,field,cell}=useEdit(item),title=/^예배 순서$/.test(item.title.trim())?'주일 하늘보좌 예배':displayTitle(item.title);
- return <Scope item={item}><h3 className={css.orderTitle}><span aria-hidden="true">❧</span>{title}<span aria-hidden="true">☙</span></h3>
+ return <Scope item={item}><h3 className={css.orderTitle}><Image className={css.wing} src="/brand/wing-left.png" width={168} height={116} alt="" unoptimized/><span>{title}</span><Image className={css.wing} src="/brand/wing-right.png" width={168} height={117} alt="" unoptimized/></h3>
   <div className={css.order}>{rows.map(({row,i})=>content.fullRows?.includes(i)
    ?<PrintText key={i} className={css.orderIntro} id={`${item.id}:row:${i}:0`} label={`${item.title} ${i+1}행 내용`} value={row[0]} maxLength={500} onChange={value=>cell(i,0,value)}/>
    :<div key={i} className={css.orderRow} data-emph={/^성경봉독$/.test(rowIdentity(row[0]))?'scripture':/^말씀선포$/.test(rowIdentity(row[0]))?'sermon':undefined}>
@@ -77,10 +77,12 @@ function Table({item,columns}:{item:BulletinItem;columns:number}){
  const {rows,cell}=useEdit(item);
  return <table className={css.table}><tbody>{rows.map(({row,i})=><tr key={i} data-lead={/담임|협동/.test(row[0])||undefined}>{row.slice(0,columns).map((value,col)=><td key={col}><PrintText id={`${item.id}:row:${i}:${col}`} label={`${item.title} ${i+1}행 ${col+1}열`} value={value} maxLength={500} onChange={next=>cell(i,col,next)}/></td>)}</tr>)}</tbody></table>;
 }
+/** 예배 안내 like the Word bulletin: 주일 | 학생·월삭 | 새벽·금요, times only. */
+const scheduleColumns:[RegExp,string][][]=[[[/^주일예배$/,'주일\n하늘보좌예배']],[[/학생/,'학생 예배'],[/월삭/,'매월 첫 월삭']],[[/^새벽/,'새벽 예배'],[/금요/,'금요 예배']]];
+const timeOnly=(value:string)=>value.match(/(오전|오후|저녁|새벽|밤)\s*\d{1,2}:\d{2}\s*$/)?.[0]??value;
 function Schedule({item}:{item:BulletinItem}){
- const {rows,cell}=useEdit(item);
- const column=(label:string)=>/학생|월삭/.test(label)?1:/새벽|금요/.test(label)?2:0;
- return <Scope item={item}><Band title="예배 안내" tone="olive"/><div className={css.schedule}>{[0,1,2].map(index=><div key={index}>{rows.filter(({row})=>column(row[0])===index).map(({row,i})=><div key={i} className={css.scheduleRow}><PrintText id={`${item.id}:row:${i}:0`} label={`${item.title} ${i+1}행 1열`} value={row[0]} onChange={v=>cell(i,0,v)}/><PrintText id={`${item.id}:row:${i}:1`} label={`${item.title} ${i+1}행 2열`} value={row[1]} onChange={v=>cell(i,1,v)}/></div>)}</div>)}</div></Scope>;
+ const {rows}=useEdit(item);
+ return <Scope item={item}><Band title="예배 안내" tone="olive"/><div className={css.schedule}>{scheduleColumns.map((column,index)=><div key={index}>{column.flatMap(([pattern,label])=>{const entry=rows.find(({row})=>pattern.test(row[0].replace(/\s+/g,'')));return entry?[<div key={label} className={css.scheduleRow}><span className={css.scheduleLabel}>{label}</span><span>{timeOnly(entry.row[1]??'')}</span></div>]:[];})}</div>)}</div></Scope>;
 }
 function Volunteers({item}:{item:BulletinItem}){
  const {rows,cell}=useEdit(item);
@@ -129,7 +131,7 @@ function Offering({item}:{item:BulletinItem}){
  return <Scope item={item}><Band title="헌금 내역" tone="lime"/><div className={css.offering}>
   {halves?halves.filter(h=>h.length).map((half,index)=><table key={index}><tbody>{half.map(entry=><tr key={entry.i}><td>{name(entry)}</td><td>{amount(entry)}</td></tr>)}</tbody></table>)
   :<><table className={css.offerPairs}><thead><tr><th scope="col"><span className={css.srOnly}>구분</span></th><th scope="col">현장</th><th scope="col">온라인</th></tr></thead><tbody>{pairs.map(pair=><tr key={pair.onsite.i}><td>{name(pair.onsite,pair.online)}</td><td>{amount(pair.onsite)}</td><td>{amount(pair.online)}</td></tr>)}</tbody></table>
-   <table className={css.offerRest}><thead><tr><th scope="col"><span className={css.srOnly}>구분</span></th><th scope="col"><span className={css.srOnly}>금액</span></th></tr></thead><tbody>{rest.map(entry=><tr key={entry.i}><td>{name(entry)}{/온라인/.test(entry.row[0])?<small> 온라인</small>:null}</td><td>{amount(entry)}</td></tr>)}</tbody></table></>}
+   <table className={css.offerRest}><thead><tr><th scope="col"><span className={css.srOnly}>구분</span></th><th scope="col">{rest.every(({row})=>!/온라인/.test(row[0]))?'현장':rest.every(({row})=>/온라인/.test(row[0]))?'온라인':<span className={css.srOnly}>금액</span>}</th></tr></thead><tbody>{rest.map(entry=><tr key={entry.i}><td>{name(entry)}{/온라인/.test(entry.row[0])&&rest.some(({row})=>!/온라인/.test(row[0]))?<small> 온라인</small>:null}</td><td>{amount(entry)}</td></tr>)}</tbody></table></>}
  </div><p className={css.total}>{offeringSummary(content,item.body)} {offeringTotal(content).toLocaleString('ko-KR')}원</p></Scope>;
 }
 

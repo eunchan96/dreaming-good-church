@@ -41,7 +41,8 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
     return () => observer.disconnect();
   }, []);
   function checkOverflow() {
-    return Array.from(root.current?.querySelectorAll<HTMLElement>('[data-print-panel]') ?? []).filter(node => node.scrollHeight > node.clientHeight + 1 || node.scrollWidth > node.clientWidth + 1).map(node => Number(node.dataset.printPanel));
+    // A few pixels of tolerance: sub-pixel rounding should not block printing.
+    return Array.from(root.current?.querySelectorAll<HTMLElement>('[data-print-panel]') ?? []).filter(node => node.scrollHeight > node.clientHeight + 6 || node.scrollWidth > node.clientWidth + 6).map(node => Number(node.dataset.printPanel));
   }
   useEffect(() => {
     const check = () => { const next = checkOverflow(); setOverflowPages(current => JSON.stringify(current) === JSON.stringify(next) ? current : next); };
