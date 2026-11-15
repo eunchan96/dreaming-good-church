@@ -4,9 +4,10 @@ import { createPortal } from "react-dom";
 import {CHURCH_ADDRESS,CHURCH_PHONE} from '@/lib/site-content';
 import ChurchContentProvider,{useChurchContent} from '@/app/church-content';
 import type { SavedBulletin } from "@/lib/bulletin-store";
-import {PrintEditorProvider,PrintBlocks,PrintFormatToolbar} from "./print-editor";
+import {PrintEditorProvider,PrintFormatToolbar} from "./print-editor";
+import {PaperBlocks,Memo,ChurchInfo} from "./paper";
 import type {BulletinItem} from "@/lib/bulletins";
-import {managedSchedule,presentationItems,sectionFor,isPrayerGuide,displayTitle} from "@/lib/bulletin-editor";
+import {managedSchedule,presentationItems,sectionFor,isPrayerGuide,displayTitle,isNewsItem} from "@/lib/bulletin-editor";
 import {formatWorshipTime,timeLabels} from "@/lib/church-page-settings";
 import styles from "./print-preview.module.css";
 
@@ -81,7 +82,7 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
   }
   async function print() {
     if(settingsStatus!=="ready"){setMessage("교회 예배시간을 불러온 뒤 인쇄해 주세요.");return;}
-    const images = Array.from(root.current?.querySelectorAll("img") ?? []);
+    const images = Array.from(root.current?.querySelectorAll<HTMLImageElement>("[data-print-item] img") ?? []);
     const expected = items.filter(item => item.kind === "image" && item.content?.assetId&&!item.content.disabled).length;
     if (images.length !== expected) { setMessage("이미지를 아직 불러오지 못했습니다. 이미지가 모두 표시된 뒤 다시 눌러 주세요."); return; }
     try { await Promise.all(images.map(image => image.decode())); await document.fonts.ready;
@@ -91,7 +92,8 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
     catch { setMessage("이미지를 확인하지 못했습니다. 연결을 확인하고 다시 시도해 주세요."); }
   }
   const sides = [{ label: "바깥면", pages: [4, 1] }, { label: "안쪽면", pages: [2, 3] }];
-  const assignable = presentationItems(draft.items);
+  // 좋은 소식 entries move together in the layout panel.
+  const layoutRows = [...presentationItems(draft.items).filter(item=>!isNewsItem(item)).map(item=>({ id:item.id, label:displayTitle(item.title)||"주보 항목", ids:[item.id], item })), ...(draft.items.some(isNewsItem)?[{ id:"news", label:"좋은 소식", ids:draft.items.filter(isNewsItem).map(item=>item.id), item:draft.items.find(isNewsItem)! }]:[])];
   const editable = draft.status === "draft";
   return createPortal(<PrintEditorProvider bulletinId={draft.id} editable={editable} onReplace={item=>{if(draft.status==="draft"&&draft.items.some(original=>original.id===item.id))onReplace(item);}}><div ref={root} tabIndex={-1} className={`${styles.overlay} ${overflowPages.length ? styles.badLayout : ""}`} role="dialog" aria-modal="true" aria-label="관리자 인쇄 미리보기">
     <header className={styles.topbar}>
@@ -110,18 +112,21 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
     <div className={styles.stage} data-panel={panel}>
       <div ref={stage} className={styles.canvas}>
         <div className={styles.paper} role="document" aria-label="인쇄 주보" style={{ zoom: scale }}>{sides.map(side => <div key={side.label} className={styles.sheetWrap}>
-          <p className={styles.sheetLabel}>{side.label} <span>{side.pages.join(" · ")}면</span></p>
-          <div className={styles.sheet} aria-label={`${side.label} ${side.pages.join("·")}`}>{side.pages.map(number => <section className={styles.panel} key={number} aria-label={`${number}면`} data-overflow={overflowPages.includes(number)}>
-            <header><p>꿈꾸는좋은교회 · {number}면</p><h2>{number === 1 ? `${draft.serviceDate} · ${draft.issueNumber}호 주보` : pageTitles[number - 1]}</h2></header>
-            <div className={styles.panelBody} data-print-panel={number}><div data-print-content><PrintBlocks items={items.filter(item=>(pages[item.id]??defaultPage(item))===number)}/>{number===3&&!draft.items.some(item=>item.title.trim()==="메모")?<section className={styles.item}><h3>메모</h3><div style={{minHeight:"32mm"}}/></section>:null}{number===4&&!draft.items.some(item=>item.title.trim()==="교회 안내")?<section className={styles.item}><h3>교회 안내</h3><p>{fields?.name||"꿈꾸는좋은교회"}</p><p>{fields?.address||CHURCH_ADDRESS}</p><p>{fields?.phone||CHURCH_PHONE}</p></section>:null}</div></div>
+          <p className={styles.sheetLabel}>{side.label}</p>
+          <div className={styles.sheet} data-sheet aria-label={side.label}>{side.pages.map(number => <section className={styles.panel} key={number} aria-label={`${number}면`} data-page={number} data-overflow={overflowPages.includes(number)}>
+            <div className={styles.panelBody} data-print-panel={number}><div data-print-content className={styles.panelContent}>
+              <PaperBlocks items={items.filter(item=>(pages[item.id]??defaultPage(item))===number)} meta={draft}
+                memo={number===3?<Memo item={draft.items.find(item=>item.title.trim()==="메모")}/>:undefined}
+/>
+            </div>{number===4?<div className={styles.panelFooter}><ChurchInfo item={draft.items.find(item=>item.title.trim()==="교회 안내")} name={fields?.name||"꿈꾸는좋은교회"} address={fields?.address||CHURCH_ADDRESS} phone={fields?.phone||CHURCH_PHONE}/></div>:null}</div>
           </section>)}</div>
         </div>)}</div>
       </div>
       {panel ? <aside id="print-layout-panel" className={styles.side} aria-label="면 배치">
         <div className={styles.sideHead}><h3>면 배치</h3><button type="button" className={styles.iconButton} aria-label="면 배치 닫기" onClick={() => setPanel(false)}>×</button></div>
-        {pageTitles.map((title, index) => { const number = index + 1; const entries = assignable.filter(item => (pages[item.id] ?? defaultPage(item)) === number); return <section key={title} className={styles.sideGroup}>
-          <h4>{number}면 · {title}{overflowPages.includes(number) ? <span className={styles.warn}>넘침</span> : null}</h4>
-          {entries.length ? entries.map(item => <label className={styles.assignment} key={item.id}><span>{displayTitle(item.title) || "주보 항목"}</span><select disabled={!editable} aria-label={`${item.title||"주보 항목"} 인쇄 면`} value={pages[item.id]??defaultPage(item)} onChange={event=>{onPagesChange({...pages,[item.id]:Number(event.target.value)});setMessage("");}}>{pageTitles.map((option,i)=><option value={i+1} key={option}>{i+1}면</option>)}</select></label>) : <p className={styles.sideEmpty}>배치된 항목 없음</p>}
+        {pageTitles.map((title, index) => { const number = index + 1; const entries = layoutRows.filter(row => (pages[row.item.id] ?? defaultPage(row.item)) === number); return <section key={title} className={styles.sideGroup}>
+          <h4>{title}{overflowPages.includes(number) ? <span className={styles.warn}>넘침</span> : null}</h4>
+          {entries.length ? entries.map(row => <label className={styles.assignment} key={row.id}><span>{row.label}</span><select disabled={!editable} aria-label={`${row.label} 인쇄 면`} value={pages[row.item.id]??defaultPage(row.item)} onChange={event=>{const value=Number(event.target.value);onPagesChange({...pages,...Object.fromEntries(row.ids.map(id=>[id,value]))});setMessage("");}}>{pageTitles.map((option,i)=><option value={i+1} key={option}>{option}</option>)}</select></label>) : <p className={styles.sideEmpty}>배치된 항목 없음</p>}
         </section>; })}
         <div className={styles.sideNote}>
           <p><strong>인쇄 설정</strong> A4 가로 · 배율 100% · 여백 없음 · 머리글/바닥글 끔</p>

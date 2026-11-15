@@ -1,68 +1,19 @@
-/* Print preview: printed content (A4 sheets) first, then screen chrome. */
-.sheet{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:297mm;height:210mm;padding:5mm;box-sizing:border-box;background:#fffefa;margin:0 auto 24px;font-size:9pt;line-height:1.5;box-shadow:0 6px 30px #493d2e12}
-.panel{min-height:0;min-width:0;display:flex;flex-direction:column;padding:4mm 5mm;border-right:1px dashed #d7cbb6}
-.panel:last-child{border:0}
-.panel>header{flex:none;margin-bottom:2mm}
-.panel>header p{font-size:7pt;color:#796342;margin:0}
-.panel h2{font-size:13pt;line-height:1.4;font-weight:500;margin:1mm 0;color:#695134}
-.panel h3{font-size:10pt;line-height:1.5;font-weight:600;margin:1mm 0 1.5mm;color:#695134}
-.panelBody{flex:1;min-height:0;overflow:auto}
-.panelBody p{white-space:pre-wrap}
-.panelBody table{width:100%;border-collapse:collapse;table-layout:fixed;margin:1mm 0}
-.panelBody th,.panelBody td{text-align:left;border:0;border-bottom:1px solid #e5ded0;padding:1mm;overflow-wrap:anywhere;vertical-align:top;font-weight:400}
-.panelBody img{max-height:100mm;max-width:100%;width:auto;object-fit:contain;display:block;margin:2mm auto}
-.printBlock{padding:1mm 0 2mm;break-inside:avoid}
+/* Print preview: A4 sheets first, then screen chrome. Sheet content styles live in paper.module.css. */
+.sheet{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:297mm;height:210mm;padding:7mm 6mm;box-sizing:border-box;background:#fff;font-size:8.5pt;line-height:1.45;color:#3d342b;font-family:var(--font-public-sans),"Malgun Gothic",sans-serif}
+.panel{min-height:0;min-width:0;display:flex;flex-direction:column;padding:0 5mm}
+.panel:first-child{border-right:1px dashed #e2dccf}
+.panelBody{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.panelContent{flex:none}
+.panel[data-page="1"] .panelContent{flex:1;display:flex;flex-direction:column}
+.panel[data-page="1"] .panelContent>div{flex:1;display:flex;flex-direction:column}
+.panelFooter{margin-top:auto;flex:none}
+.panelBody img{max-height:120mm}
 .printText{white-space:pre-wrap;overflow-wrap:anywhere;min-height:1em;outline:none;border-radius:2px}
-.printText[contenteditable="plaintext-only"]:hover{background:#f0e6cd80;box-shadow:0 0 0 1px #c7ac75}
-.printText:focus{background:#f7f0df;box-shadow:0 0 0 1px #b39148}
-.printCover{text-align:center;padding:5mm 0}
-.printCover h3{font-family:var(--font-public-serif),serif;font-size:18pt;line-height:1.8;font-weight:500}
-.reference{font-size:9pt;font-weight:600;color:#806239;margin-bottom:1mm}
-.worshipTable td:first-child{width:23%}
-.worshipTable td:last-child{width:23%}
-.worshipTable tr:has(td[colspan]) td{font-size:8.5pt;width:auto;padding-bottom:2mm}
-.printFootnote{font-size:7.5pt;color:#79684e;margin-top:1mm}
-.printAttribution{text-align:right;margin-top:2mm;font-size:8pt}
-.printNews>h3{border-bottom:1px solid #bfa97e;padding-bottom:1mm}
-.printNewsRow{display:grid;grid-template-columns:17mm minmax(0,1fr);gap:1mm}
-.printNewsRow>h4{font-size:8.5pt;font-weight:500;color:#806239;margin:1mm 0}
-.printNewsRow .printBlock{padding:1mm 0}
-.prayerTable th{width:6mm;font-size:7pt}
-.prayerTable td{font-size:7pt;text-align:center;padding:.5mm}
-.printTotal{text-align:right;font-weight:600;font-size:9pt;margin:1mm 0}
-.item{padding:1mm 0}
-.blockedPrint{display:none}
-.printColumns{display:grid;grid-template-columns:1fr 1fr;gap:3mm;align-items:start}
-.printColumns .printBlock{min-width:0}
-.printColumns .printBlock:last-child{grid-column:2;grid-row:1/3}
-.printColumns .printBlock table{font-size:8pt}
-.printColumns .printBlock td{padding:.6mm}
-.offeringColumns{display:grid;grid-template-columns:1fr 1fr;gap:3mm}
-.offeringColumns>table{font-size:8pt}
-.offeringColumns td{padding:.6mm}
-.offeringColumns td:last-child{text-align:right;width:45%}
-.printNewsRow{grid-template-columns:21mm minmax(0,1fr)}
-.printNewsRow>h4{white-space:nowrap;font-size:8pt}
-.printNewsRow .printBlock{font-size:8.5pt;padding:.7mm 0}
-.prayerTable th{width:8mm;white-space:nowrap}
-.prayerTable td{padding:.5mm .3mm}
-.panelBody td .printText{line-height:1.4}
-.panelBody td{padding:.7mm 1mm}
-.offeringColumns[data-split=false]{display:block}
-.offeringColumns caption{text-align:left;font-size:8pt;color:#866738;padding:1mm 0}
-.sheet{font-size:8.5pt;line-height:1.4}
-.panel h3{font-size:9.5pt;margin:1mm 0}
-.printBlock{padding:.6mm 0 1mm}
-.panelBody td{padding:.45mm .8mm}
-.printNewsRow .printBlock{font-size:8.5pt;line-height:1.35;padding:.4mm 0}
-.printColumns .printBlock td{padding:.45mm}
-.printColumns .printBlock table{font-size:8pt}
-.panelBody .printFootnote{line-height:1.35}
-.prayerTable td .printText{line-height:1.3}
-.printCover h3{font-size:18pt}
+.printText[contenteditable="plaintext-only"]:hover{background:#fff4d680;box-shadow:0 0 0 1px #e2c27a}
+.printText:focus{background:#fff6dc;box-shadow:0 0 0 1px #c9a24a}
 .printText[data-empty=true]{min-height:1px}
 .printText[data-empty=true]:focus{min-height:1em}
-.panelBody .offeringColumns td{padding:.3mm .8mm}
+.blockedPrint{display:none}
 
 /* ---------- Preview chrome (screen only) ---------- */
 .overlay {

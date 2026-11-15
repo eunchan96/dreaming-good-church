@@ -1,5 +1,5 @@
 "use client";
-import {bulletinSections,initialBulletinItems,printOnlyItem,sectionFor,presentationItems,displayTitle,type BulletinSection} from '@/lib/bulletin-editor';
+import {bulletinSections,initialBulletinItems,printOnlyItem,sectionFor,presentationItems,renderedItems,type BulletinSection} from '@/lib/bulletin-editor';
 import SaveButton from '../save-button';
 import polish from './editor.module.css';
 import {DatePicker} from '../calendar';
@@ -9,7 +9,8 @@ import PrintPreview from "./print-preview";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { confirmItem, createBulletin, copyBulletin, createItem, editItem, publicationIssues, type BulletinItem } from "@/lib/bulletins";
 import { errorMessage, loadBulletins, makeBrowserClient, saveDraft, type SavedBulletin } from "@/lib/bulletin-store";
-import BulletinBlocks from "./grouped-blocks";
+import {PaperView} from "./paper";
+import {PrintEditorProvider} from "./print-editor";
 import CommunityLinks from "./community-links";
 import { ImagePicker } from "./image-picker";
 import styles from "./workspace.module.css";
@@ -239,9 +240,9 @@ export default function BulletinWorkspace() {
   const webItems=visibleItems.filter(item=>item.webVisible);
   const locked=busy||saving;
   function openSettings(){if(view==='settings')return;setVisibilityDraft(showVisibility);setConnectionsDraft(showConnections);setView('settings');}
-  const pages=[{id:'library',label:'주보 보관함',active:view==='library',onSelect:library,sections:[{id:'bulletin-library',label:'주보 목록'}]},
-    ...(view==='detail'?[{id:'detail',label:'주보 상세',active:true,onSelect:()=>{},sections:[...webItems.map(item=>({id:`edit-item-${item.id}`,label:displayTitle(item.title)}))]}]:[]),
-    ...(editing||view==='settings'&&draft?.status==='draft'?[{id:'register',label:'주보 등록',active:editing,onSelect:()=>{if(editing)return;if(view==='settings'&&draft&&draft.status==='draft'){setView(draft.revision===0?'register':'edit');return;}createNew();},sections:[{id:'editor-tools',label:'저장·미리보기'},...bulletinSections.map((label,index)=>({id:`bulletin-section-${index}`,label})), {id:"bulletin-publish",label:"게시하기"}]}]:[]),
+  const pages=[{id:'library',label:'주보 목록',active:view==='library',onSelect:library,sections:[{id:'bulletin-library',label:'주보 목록'}]},
+    ...(view==='detail'?[{id:'detail',label:'주보 상세',active:true,onSelect:()=>{},sections:bulletinSections.flatMap((label,index)=>renderedItems(webItems).some(item=>sectionFor(item)===label)?[{id:`detail-section-${index}`,label}]:[])}]:[]),
+    ...(editing||view==='settings'&&draft?.status==='draft'?[{id:'register',label:'주보 등록',active:editing,onSelect:()=>{if(editing)return;if(view==='settings'&&draft&&draft.status==='draft'){setView(draft.revision===0?'register':'edit');return;}createNew();},sections:[...bulletinSections.map((label,index)=>({id:`bulletin-section-${index}`,label})), {id:"bulletin-publish",label:"저장·게시하기"}]}]:[]),
     {id:'settings',label:'주보 설정',active:view==='settings',onSelect:openSettings,sections:[{id:'bulletin-options',label:'입력 화면 설정'}]},
   ];
   const filtered=rows.filter(row=>`${row.serviceDate} ${row.issueNumber}`.includes(query.trim()));
@@ -250,8 +251,8 @@ export default function BulletinWorkspace() {
   const reader=draft?<>
     {view!=='detail'?<p className={view_.readerNote}>홈페이지에 공개되는 모습입니다. 웹 비공개 항목은 표시되지 않습니다.</p>:null}
     <section className={`${polish.reader} ${view_.reader}`} aria-label="주보 상세 내용">
-      <header className={view_.readerHead}><span>꿈꾸는좋은교회 · 주일 주보</span><h3>{draft.issueNumber}호 주보</h3><p>{longDate(draft.serviceDate)}</p></header>
-      {webItems.length?<BulletinBlocks items={webItems} editor idPrefix="edit-item"/>:<p className={view_.empty}>웹에 공개할 내용이 아직 없습니다.</p>}
+      {webItems.some(item=>sectionFor(item)==='표지')?null:<header className={view_.readerHead}><span>꿈꾸는좋은교회 · 주일 주보</span><h3>{draft.issueNumber}호 주보</h3><p>{longDate(draft.serviceDate)}</p></header>}
+      {webItems.length?<PrintEditorProvider bulletinId={draft.id} editable={false} plain onReplace={()=>{}}><PaperView items={webItems} meta={draft} sectionIdPrefix="detail-section"/></PrintEditorProvider>:<p className={view_.empty}>웹에 공개할 내용이 아직 없습니다.</p>}
     </section></>:null;
 
   return <AdminShell active="bulletins" intro={session==='editor'||session==='denied'?<ManagementHeading id="bulletin-heading" eyebrow="WEEKLY BULLETIN" title="주보 관리" description={view==='library'?'매주 주보를 작성하고 홈페이지에 게시합니다.':undefined}/>:undefined} authenticated={session === 'editor'} canLeave={mayLeave} onLogout={session === 'editor' || session === 'denied' ? logout : undefined} busy={locked} pages={pages}><main id="admin-content" tabIndex={-1} aria-labelledby={session==='editor'||session==='denied'?'bulletin-heading':undefined} className={`${styles.page} ${session==='editor'||session==='denied'?`${ui.surface} ${polish.surface} ${view_.view}`:''}`}>
@@ -262,18 +263,18 @@ export default function BulletinWorkspace() {
       <p role="status" aria-live="polite" className={view_.message}>{message}</p>
 
       {view==='library'?<section aria-labelledby="bulletin-library-title" id="bulletin-library" tabIndex={-1}>
-        <div className={view_.cardHead}><h2 id="bulletin-library-title">주보 보관함</h2><div className={view_.headActions}><input type="search" className={view_.search} aria-label="주보 검색" placeholder="날짜 또는 호수로 검색" value={query} onChange={e=>setQuery(e.target.value)}/><button type="button" className={`${view_.btn} ${view_.ghost}`} disabled={locked} onClick={openSettings}>설정</button><button type="button" className={`${view_.btn} ${view_.primary}`} disabled={locked} onClick={createNew}>+ 새 주보 작성</button></div></div>
+        <div className={view_.cardHead}><h2 id="bulletin-library-title">주보 목록</h2><div className={view_.headActions}><input type="search" className={view_.search} aria-label="주보 검색" placeholder="날짜 또는 호수로 검색" value={query} onChange={e=>setQuery(e.target.value)}/><button type="button" className={`${view_.btn} ${view_.primary}`} disabled={locked} onClick={createNew}>+ 새 주보 작성</button></div></div>
         {filtered.length?<ul className={view_.list}>{filtered.map(row=><li key={row.id}><button type="button" className={view_.row} aria-pressed={draft?.id===row.id} aria-label={`${longDate(row.serviceDate)} (${row.serviceDate}) · ${row.issueNumber}호 · ${row.status==='draft'?'초안':'게시됨'}`} disabled={locked} onClick={()=>open(row)}><span>{longDate(row.serviceDate)}</span><small>{row.issueNumber}호</small>{statusPill(row.status)}<span className={view_.chev} aria-hidden="true">›</span></button></li>)}</ul>
           :<div className={`${view_.list} ${view_.empty}`}>{rows.length?'검색 결과가 없습니다.':'등록된 주보가 없습니다. 새 주보를 작성해 보세요.'}</div>}
       </section>:null}
 
-      {view==='settings'?<section id="bulletin-options" aria-labelledby="bulletin-options-title"><div className={view_.cardHead}><h2 id="bulletin-options-title">주보 설정</h2><div className={view_.headActions}><button type="button" className={`${view_.btn} ${view_.ghost}`} onClick={library}>← 보관함</button><SaveButton className={`${view_.btn} ${view_.primary}`} disabled={visibilityDraft===showVisibility&&connectionsDraft===showConnections} disabledHint="현재 최신 상태입니다." onClick={()=>{setVisibilityOption(visibilityDraft);setConnectionsOption(connectionsDraft);setMessage("주보 설정을 저장했습니다.");}}>저장</SaveButton></div></div><div className={view_.settings}><label className={styles.check}><input type="checkbox" checked={visibilityDraft} onChange={e=>setVisibilityDraft(e.target.checked)}/>웹 공개 설정 표시</label><label className={styles.check}><input type="checkbox" checked={connectionsDraft} onChange={e=>setConnectionsDraft(e.target.checked)}/>공지·일정 연결 표시</label></div><p className={view_.settingsNote}>이 브라우저의 편집 화면에만 적용됩니다.</p></section>:null}
+      {view==='settings'?<section id="bulletin-options" aria-labelledby="bulletin-options-title"><div className={view_.cardHead}><h2 id="bulletin-options-title">주보 설정</h2><div className={view_.headActions}><button type="button" className={`${view_.btn} ${view_.ghost}`} onClick={library}>← 주보 목록</button><SaveButton className={`${view_.btn} ${view_.primary}`} disabled={visibilityDraft===showVisibility&&connectionsDraft===showConnections} disabledHint="현재 최신 상태입니다." onClick={()=>{setVisibilityOption(visibilityDraft);setConnectionsOption(connectionsDraft);setMessage("주보 설정을 저장했습니다.");}}>저장</SaveButton></div></div><div className={view_.settings}><label className={styles.check}><input type="checkbox" checked={visibilityDraft} onChange={e=>setVisibilityDraft(e.target.checked)}/>웹 공개 설정 표시</label><label className={styles.check}><input type="checkbox" checked={connectionsDraft} onChange={e=>setConnectionsDraft(e.target.checked)}/>공지·일정 연결 표시</label></div><p className={view_.settingsNote}>이 브라우저의 편집 화면에만 적용됩니다.</p></section>:null}
 
       {view!=='library'&&view!=='settings'?(draft?<>
         {printPreview ? <PrintPreview onReplace={item=>{if(draft.status!=="draft"||busy)return;setDraft(current=>current&&({...current,items:current.items.map(original=>original.id===item.id?item:original)}));markDirty();}} draft={draft} dirty={dirty} onClose={closePrint} pages={Object.fromEntries(draft.items.filter(item => item.printPage != null).map(item => [item.id, item.printPage!]))} onPagesChange={pages => { if (draft.status !== "draft") return; setDraft(current => current && ({ ...current, items: current.items.map(item => ({ ...item, printPage: pages[item.id] ?? null })) })); markDirty(); }} /> : null}
 
         <div id="editor-tools" tabIndex={-1} className={view_.bar}>
-          <button type="button" className={`${view_.btn} ${view_.ghost} ${view_.back}`} disabled={locked} onClick={library}>← 주보 보관함</button>
+          <button type="button" className={`${view_.btn} ${view_.ghost} ${view_.back}`} disabled={locked} onClick={library}>← 주보 목록</button>
           <div className={view_.titleRow}>
             <div><div className={view_.titleLine}><h2>{draft.issueNumber}호 주보</h2>{editing&&draft.status==='draft'?<span className={view_.pill} data-status="draft">{draft.revision===0?'새 주보':'편집 중'}</span>:statusPill(draft.status)}</div><p>{longDate(draft.serviceDate)}</p></div>
             <div className={view_.actions}>

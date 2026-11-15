@@ -1,7 +1,113 @@
-.editor{width:100%;min-width:0;margin:10px 0}.row{position:relative;display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:center;margin:10px 0;min-height:44px;padding-right:94px}.row[data-order=true]{grid-template-columns:28px 36px minmax(0,1fr);gap:12px}.cells{display:grid;grid-template-columns:112px minmax(0,1.8fr) minmax(70px,1fr);gap:12px;align-items:center;min-width:0}.cells[data-columns="2"]{grid-template-columns:140px minmax(0,1fr)}.name,.cell{min-width:0}.liturgy{grid-template-columns:105px minmax(0,1.7fr) minmax(90px,1fr);gap:12px}.liturgy .cell{position:relative}.liturgy .cell::before{content:'';position:absolute;inset-inline:-7px;top:50%;border-top:1px dotted #b5a589;z-index:0}.cell>*{position:relative;z-index:1}.editor textarea{width:100%;min-width:0;min-height:42px;padding:8px 10px;margin:0;font:inherit;font-size:15px;line-height:1.7;border:1px solid #d7cebe;border-radius:4px;background:#fbf9f3}.editor .underlined{border:0;border-bottom:1px solid #bca77f;border-radius:0;background:#f6f1e6;padding:6px 4px;min-height:38px}.editor .handle{border:0;background:transparent;color:#8a7757;font-size:24px;padding:0;min-width:0;min-height:36px;cursor:grab;touch-action:none}.editor .standing{width:36px;height:36px;min-width:36px;min-height:36px;padding:0;border:1px solid #d7cebe;background:transparent;font-size:19px}.editor .standing[aria-pressed=true]{background:#ead9a6;border-color:#b39148}.editable{display:inline-flex;align-items:center;gap:5px;max-width:100%;white-space:pre-wrap;vertical-align:middle;background:#f5f1e8}.editable>span{min-width:0;overflow-wrap:anywhere}.editor .editLink,.editLink{display:inline-block;position:static!important;border:0!important;background:transparent!important;padding:0 2px!important;min-height:28px!important;font-size:11px!important;color:#806338;text-decoration:underline;white-space:nowrap;opacity:0;flex:none}.editable:hover>.editLink,.editable:focus-within>.editLink{opacity:1}.rowTools{position:absolute;right:0;top:6px;display:flex;gap:2px;opacity:0}.row:hover .rowTools,.row:focus-within .rowTools{opacity:1}.editor .rowTools button{min-height:30px;min-width:28px;padding:2px;border:0;background:#f5f1e8;color:#79684e;font-size:16px}.row[data-disabled=true] .cells,.row[data-disabled=true] .full{opacity:.45}.row[data-over=true]{outline:2px solid #b39148;outline-offset:3px;border-radius:5px}.full{min-width:0}.footer{font-size:12px;color:#79684e;margin:16px 0;white-space:pre-wrap}.editor .add{margin:8px 0 0 38px;border:1px solid #cab68d;background:#f3ead5;min-height:40px;padding:8px 16px;border-radius:5px;font-size:14px}.month{display:flex;gap:12px;align-items:center;margin-bottom:18px}.month>span{white-space:nowrap}.editor .month>button{width:200px;flex:none}.month :global(dialog) button{min-width:0}.total{text-align:right;font-size:16px;font-weight:500}.srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.dialog{margin:auto;width:min(420px,calc(100vw - 32px));border:1px solid #d9ceb9;border-radius:10px;padding:24px;background:#fbf9f3;color:#342b25;box-shadow:0 20px 80px #342b2530;white-space:normal;text-align:left}.dialog::backdrop{background:#342b2550;backdrop-filter:blur(3px)}.dialog h3{margin:0 0 14px!important;font-size:18px!important}.dialog>div{display:flex;justify-content:flex-end;gap:10px}.dialog textarea{width:100%;font-size:15px!important;min-height:90px!important}.dialog button{font-size:13px!important;min-height:40px!important;padding:8px 14px!important}.dialog>div button:last-child{background:#665035;color:#fffaf0}@media(max-width:700px){.row{padding-right:0;padding-top:26px;grid-template-columns:24px minmax(0,1fr);gap:8px}.row[data-order=true]{grid-template-columns:24px 36px minmax(0,1fr);gap:9px}.rowTools{top:-2px;opacity:1}.cells{grid-template-columns:90px minmax(0,1fr);gap:7px}.cells[data-columns="2"]{grid-template-columns:110px minmax(0,1fr)}.liturgy{grid-template-columns:1fr;gap:4px}.liturgy .name{font-size:14px}.liturgy .cell::before{display:none}.cells:not(.liturgy)[data-columns="3"]>.cell:last-child{grid-column:2}.editor .editLink{opacity:1;font-size:10px!important}.editor textarea{font-size:14px}.editor .underlined{min-height:36px}.footer{font-size:11px}.editable{font-size:inherit}.month>button{max-width:200px}.editor .add{margin-left:32px}}
+/* Row editor (예배 순서 · 봉사위원 · 섬기는 이들 · 헌금 내역).
+   All cells share one height (--cell) so text, inputs and editable labels line up. */
+.editor { --cell: 34px; --line: #d9cfbd; --ink: #342b25; --muted: #7a6c58; --soft: #f5f0e5; width: 100%; min-width: 0; margin: 8px 0; }
 
-.row[data-disabled=true] .cells,.row[data-disabled=true] .full{opacity:1;color:#79684e}.row[data-disabled=true] .name{color:#79684e;text-decoration:line-through}
+.row { position: relative; display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 8px; align-items: center; min-height: var(--cell); margin: 6px 0; padding-right: 96px; }
+.row[data-order=true] { grid-template-columns: 24px 30px minmax(0, 1fr); }
 
-.dialog .pickRows{display:grid;max-height:50dvh;overflow:auto;margin-bottom:14px}.dialog .pickRows button{text-align:left;white-space:normal;background:transparent;color:#5d4930;border:1px solid #d7cebe}
+.editor .handle { display: grid; place-items: center; width: 24px; height: var(--cell); min-height: 0; padding: 0; border: 0; background: transparent; color: #a8987d; cursor: grab; touch-action: none; }
+.editor .handle:hover { color: var(--ink); }
+.editor .standing { display: grid; place-items: center; width: 30px; height: 30px; min-width: 0; min-height: 0; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: #b4a585; font-size: 16px; line-height: 1; }
+.editor .standing[aria-pressed=true] { background: #efe2bf; border-color: #c4a35c; color: #5e4518; }
 
-.rowTools{width:94px;justify-content:flex-start}
+/* Generic cells (봉사위원 · 섬기는 이들 · 헌금) */
+.cells { display: grid; grid-template-columns: 120px minmax(0, 1.8fr) minmax(70px, 1fr); gap: 10px; align-items: center; min-width: 0; }
+.cells[data-columns="2"] { grid-template-columns: 140px minmax(0, 1fr); }
+.name, .cell, .person { min-width: 0; }
+.editor.editor.editor textarea { display: block; width: 100%; min-width: 0; min-height: var(--cell); height: var(--cell); margin: 0; padding: 5px 10px; font: inherit; font-size: 15px; line-height: 1.5; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+.editor.editor.editor .underlined { border: 0; border-bottom: 1px solid #c8b58f; border-radius: 0; background: transparent; padding-inline: 4px; }
+
+/* Liturgy row: name ……… content ……… person (like the Word bulletin) */
+.liturgy { display: grid; grid-template-columns: 110px minmax(0, 1fr) minmax(96px, max-content); align-items: center; gap: 0; min-width: 0; }
+.liturgy .name { padding-right: 6px; }
+.liturgy .person { padding-left: 6px; }
+.leader { position: relative; display: flex; align-items: center; min-width: 0; height: var(--cell); }
+.dots { flex: 1 1 0; min-width: 12px; height: 0; border-top: 2px dotted #bfae8c; }
+.slot { flex: 0 1 auto; min-width: 0; max-width: calc(100% - 40px); display: flex; justify-content: center; padding: 0 6px; }
+.leader[data-empty=true] .slot { position: absolute; inset: 0; max-width: none; padding: 0; }
+.leader[data-empty=true]:focus-within .slot { position: static; flex: 0 1 auto; padding: 0 6px; }
+.leader[data-empty=true][data-fixed=true] .slot { width: 0; overflow: hidden; }
+.leader[data-empty=true] .dots + .slot + .dots { margin-left: -1px; }
+.addHint { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 1px 10px; border-radius: 999px; background: #fffaf0; border: 1px solid #d8c59a; color: #7a5c26; font-size: 12px; font-weight: 600; pointer-events: none; opacity: 0; transition: opacity .15s; white-space: nowrap; }
+.leader:hover .addHint { opacity: 1; }
+.leader:focus-within .addHint { display: none; }
+.editor .addCover { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.editor .addCover:focus-visible + * , .leader:has(.addCover:focus-visible) .addHint { opacity: 1; }
+
+/* Fit-to-content input (CSS grid mirror) */
+.fit { display: inline-grid; max-width: 100%; min-width: 0; vertical-align: middle; }
+.fit::after { content: attr(data-value) ' '; grid-area: 1 / 1; visibility: hidden; white-space: pre; overflow: hidden; height: 0; padding: 0 11px; font-size: 15px; }
+.editor .fit > input.fitInput { grid-area: 1 / 1; display: block; width: 100%; min-width: 3em; height: var(--cell); min-height: 0; margin: 0; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; font: inherit; font-size: 15px; color: var(--ink); text-align: center; }
+.editor .fit > input.fitInput:focus { border-color: #b39148; outline: none; box-shadow: 0 0 0 3px #e9dcbc; }
+.leader[data-empty=true]:not(:focus-within) .fit { width: 100%; height: 100%; }
+.leader[data-empty=true]:not(:focus-within) .fit > input.fitInput { border-color: transparent; background: transparent; cursor: pointer; color: transparent; }
+.leader[data-empty=true]:focus-within .fit > input.fitInput { min-width: 8em; }
+.person .fit > input.fitInput { text-align: left; }
+
+/* Fixed wording with a hover pencil — same height as inputs */
+.editable { display: inline-flex; align-items: center; gap: 2px; max-width: 100%; min-height: var(--cell); padding: 0 4px; border-radius: 6px; white-space: pre-wrap; vertical-align: middle; line-height: 1.4; }
+.editable > span { min-width: 0; overflow-wrap: anywhere; }
+.editable:hover, .editable:focus-within { background: var(--soft); }
+.editor .editLink, .editLink { display: inline-grid; place-items: center; width: 24px; height: 24px; min-width: 0; min-height: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 5px; background: transparent !important; color: #8d6d2f; opacity: 0; flex: none; }
+.editLink:hover { background: #ece2cd !important; }
+.editable:hover > .editLink, .editable:focus-within > .editLink { opacity: 1; }
+.leader .editable { justify-content: center; text-align: center; }
+
+.full { min-width: 0; text-align: center; }
+.full .editable { justify-content: center; font-size: 14px; color: #5d4930; }
+.footer { margin: 12px 0 4px; text-align: center; font-size: 12.5px; color: var(--muted); white-space: pre-wrap; }
+
+/* Row tools */
+.rowTools { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: flex; gap: 2px; width: 92px; justify-content: flex-end; opacity: 0; transition: opacity .15s; }
+.row:hover .rowTools, .row:focus-within .rowTools { opacity: 1; }
+.editor .rowTools button { display: grid; place-items: center; width: 28px; height: 28px; min-width: 0; min-height: 0; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--muted); }
+.editor .rowTools button:hover { background: var(--soft); color: var(--ink); }
+
+.row[data-disabled=true] .name { color: var(--muted); text-decoration: line-through; }
+.row[data-disabled=true] :is(.cells, .full, .liturgy) { color: #6d6152; }
+.row[data-disabled=true] :is(.dots) { border-top-color: #d6ccb9; }
+.row[data-over=true] { outline: 2px solid #b39148; outline-offset: 3px; border-radius: 6px; }
+
+.addRow { display: flex; justify-content: center; margin-top: 12px; }
+.editor .add { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 16px; border: 1px dashed #c9b48a; border-radius: 999px; background: transparent; color: #6f5420; font-size: 13px; font-weight: 600; }
+.editor .add:hover:not(:disabled) { background: #f6eedb; border-style: solid; }
+
+.month { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+.month > span { white-space: nowrap; }
+.editor .month > button { width: 200px; flex: none; }
+.month :global(dialog) button { min-width: 0; }
+.total { text-align: right; font-size: 16px; font-weight: 600; }
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+.dialog { margin: auto; width: min(420px, calc(100vw - 32px)); border: 1px solid #d9ceb9; border-radius: 12px; padding: 22px; background: #fbfaf7; color: var(--ink); box-shadow: 0 20px 80px #342b2530; white-space: normal; text-align: left; }
+.dialog::backdrop { background: #342b2550; backdrop-filter: blur(3px); }
+.dialog h3 { margin: 0 0 12px !important; font-size: 17px !important; }
+.dialog > div { display: flex; justify-content: flex-end; gap: 8px; }
+.dialog textarea { width: 100%; font-size: 15px !important; min-height: 90px !important; height: auto !important; }
+.dialog button { font-size: 13px !important; min-height: 38px !important; padding: 6px 14px !important; border-radius: 8px !important; }
+.dialog > div button:last-child { background: #342b25; color: #fff; border-color: #342b25; }
+.dialog .pickRows { display: grid; max-height: 50dvh; overflow: auto; margin-bottom: 14px; gap: 4px; }
+.dialog .pickRows button { text-align: left; white-space: normal; background: transparent; color: #5d4930; border: 1px solid #e0d6c4; }
+
+@media (max-width: 700px) {
+  .row { padding-right: 0; padding-top: 30px; grid-template-columns: 22px minmax(0, 1fr); gap: 6px; }
+  .row[data-order=true] { grid-template-columns: 22px 30px minmax(0, 1fr); }
+  .rowTools { top: 14px; opacity: 1; }
+  .cells { grid-template-columns: 90px minmax(0, 1fr); gap: 6px; }
+  .cells[data-columns="2"] { grid-template-columns: 100px minmax(0, 1fr); }
+  .cells:not([data-columns="2"]) > .cell:last-child { grid-column: 2; }
+  .liturgy { grid-template-columns: 76px minmax(0, 1fr); row-gap: 2px; }
+  .liturgy .person { grid-column: 2; text-align: right; }
+  .editLink { opacity: 1 !important; }
+  .addHint { opacity: 1; }
+  .editor textarea { font-size: 14px; }
+}
+
+/* Overrides for legacy `.page button:hover` and keep centred text truly centred. */
+.editor .leader button.addCover, .editor .leader button.addCover:hover:not(:disabled) { background: transparent; border: 0; }
+.addHint { z-index: 2; }
+.editable { position: relative; }
+:is(.liturgy, .full, .footer) .editLink { position: absolute; left: 100%; top: 50%; transform: translateY(-50%); margin-left: 2px; background: #fbfaf7 !important; }
+:is(.liturgy, .full, .footer) .editLink:hover { background: #ece2cd !important; }
+.liturgy .person .editLink { left: auto; right: 100%; margin: 0 2px 0 0; }
+@media (max-width: 700px) { :is(.liturgy, .full, .footer) .editLink { position: static; transform: none; margin: 0; } }

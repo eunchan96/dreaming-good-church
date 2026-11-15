@@ -33,7 +33,7 @@ export default function BulletinForm({items,previous,onRemove,onImport,groups,sh
    </article>;
   }
   return <section id={`bulletin-section-${index}`} key={section} tabIndex={-1} className={polish.group}>
-   <div className={ui.heading}><h2>{section}</h2>{section==='헌금 내역'&&entries.length?<button type="button" className={polish.useToggle} aria-pressed={!entries.every(item=>item.content?.disabled)} onClick={()=>{const disabled=!entries.every(item=>item.content?.disabled);entries.forEach(item=>onContent(item.id,{...item.content,disabled}));}}>{entries.every(item=>item.content?.disabled)?"사용":"비사용"}</button>:null}</div>
+   <div className={ui.heading}><h2>{section}</h2>{section==='헌금 내역'&&entries.length?<button type="button" className={polish.useToggle} aria-pressed={!entries.every(item=>item.content?.disabled)} onClick={()=>{const disabled=!entries.every(item=>item.content?.disabled);entries.forEach(item=>onContent(item.id,{...item.content,disabled}));}}>{entries.every(item=>item.content?.disabled)?"활성화":"비활성화"}</button>:null}</div>
    {section==='헌금 내역'&&entries.every(item=>item.content?.disabled)?null:section==='좋은 소식'?<><NewsEditor onRemove={onRemove} onImport={onImport} previous={previous?.items.filter(item=>sectionFor(item)==='좋은 소식')} items={entries} onContent={onContent} onText={onText} onToggle={item=>onContent(item.id,{...item.content,disabled:!item.content?.disabled})} onOrder={onOrderNews} onAdd={onAddNews} showVisibility={showVisibility}/></>:<>{entries.filter(item=>item.kind!=='image').map(entry)}{section==='표지'?coverPicker:null}{entries.filter(item=>item.kind==='image').map(entry)}</>}
    {section==='좋은 소식'?newsConnections:null}
   </section>;
