@@ -30,7 +30,7 @@ test("publish and withdraw expose only reviewed public content in API and reader
     await page.getByRole("button", { name: /2094-11-07/ }).click();await page.getByRole("button",{name:"수정",exact:true}).click();
     expect((await page.request.get("/api/bulletins/pdf?date=2094-11-07")).status()).toBe(404);
     await expect(page.getByRole("button", { name: "주보 게시", exact: true })).toBeDisabled();
-    await page.getByRole("button", { name: "그대로 사용" }).click();
+    await page.getByRole("button", { name: "이번 주 내용 확인 완료" }).click();
     await expect(page.getByRole("button", { name: "주보 게시", exact: true })).toBeEnabled();
     page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "주보 게시", exact: true }).click();

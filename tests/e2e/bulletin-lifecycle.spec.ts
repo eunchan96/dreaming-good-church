@@ -1,3 +1,4 @@
+import {showBulletinVisibility} from './bulletin-helpers';
 import {calendarControl,selectCalendar} from './calendar-helpers';
 import { test, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
@@ -34,8 +35,8 @@ test("one bulletin travels from published source through copy, print, public PDF
       const response = page.waitForResponse(r => r.url().includes("rpc/copy_bulletin_draft"));
       await page.getByRole("button", { name: "다음 주 주보 복사", exact: true }).click();
       const copied = await (await response).json(); ids.push(copied.id);
-      await expect(page.getByText("2개 항목 확인 필요", { exact: true })).toBeVisible();
-      await page.getByRole("button",{name:"수정",exact:true}).click();
+      await expect(page.getByRole("button",{name:"이번 주 내용 확인 완료",exact:true})).toBeVisible();
+      await page.getByRole("button",{name:"수정",exact:true}).click();await showBulletinVisibility(page);
       await expect(page.getByLabel("웹에 공개", { exact: true }).first()).toBeChecked();
       await expect(page.getByLabel("웹에 공개", { exact: true }).nth(1)).not.toBeChecked();
       expect((await reader.request.get("/api/bulletins?date=2086-11-10")).status()).toBe(404);
@@ -46,7 +47,7 @@ test("one bulletin travels from published source through copy, print, public PDF
       await page.getByLabel("내용", { exact: true }).nth(1).fill("이번 주 인쇄 전용 비공개 내용");
       await page.getByRole("button", { name: "초안 저장", exact: true }).click();
       await expect(page.getByRole("status")).toContainText("초안을 저장했습니다");
-      await page.reload(); await page.getByRole("button", { name: /2086-11-10/ }).click();await page.getByRole("button",{name:"수정",exact:true}).click();
+      await page.reload(); await page.getByRole("button", { name: /2086-11-10/ }).click();await page.getByRole("button",{name:"수정",exact:true}).click();await showBulletinVisibility(page);
       await expect(page.getByLabel("내용", { exact: true }).nth(1)).toHaveValue("이번 주 인쇄 전용 비공개 내용");
       await expect(page.getByLabel("웹에 공개", { exact: true }).nth(1)).not.toBeChecked();
       await expect(page.getByText("0개 항목 확인 필요", { exact: true })).toHaveCount(0);

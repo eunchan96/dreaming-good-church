@@ -60,7 +60,7 @@ test("select a bulletin notice, publish separately, include event snapshot and a
     manager.once("dialog",dialog=>dialog.accept());await manager.getByRole("button",{name:"공개 목록에서 내리기",exact:true}).click();
     await expect(manager.getByRole("status")).toContainText("보관했습니다");
     await page.reload();await page.getByRole("button",{name:/2091-11-04/}).click();await page.getByRole("button",{name:"수정",exact:true}).click();
-    await expect(page.getByLabel("항목 제목",{exact:true}).last()).toHaveValue(eventTitle);
+    await expect(page.getByRole("heading",{name:eventTitle,exact:true})).toBeVisible();
     const reader=await context.newPage();await reader.goto("/notices");await expect(reader.getByText("별도 공지에서 수정한 문구",{exact:true})).toBeVisible();
     await manager.getByRole("button",{name:"소식 목록",exact:true}).click();await manager.getByRole("button",{name:/주보 환영 공지.*공지/}).click();await manager.getByLabel("민감정보 포함",{exact:true}).check();
     await expect(manager.getByLabel("별도 메뉴에 공개",{exact:true})).not.toBeChecked();

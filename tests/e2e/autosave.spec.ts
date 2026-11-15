@@ -1,3 +1,4 @@
+import {showBulletinVisibility} from './bulletin-helpers';
 import {calendarControl,selectCalendar} from './calendar-helpers';
 import { test, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
@@ -77,7 +78,7 @@ test("autosave preserves edits, pauses on failure, resumes after login and keeps
     await page.getByLabel("헌금 내역 1행 헌금 구분", { exact: true }).fill("감사헌금");
     await page.getByLabel("헌금 내역 1행 금액", { exact: true }).fill("120000");
     await expect(page.getByText("합계 120,000원", { exact: true })).toBeVisible();
-    await page.getByLabel("웹에 공개", { exact: true }).last().uncheck();
+    await showBulletinVisibility(page);await page.getByLabel("웹에 공개", { exact: true }).last().uncheck();
     await expect.poll(async () => {
       const r = await admin.from("bulletin_items").select("content,web_visible").eq("kind", "offering");
       return r.data?.some((item) => item.content.month === "2096-10" && item.web_visible === false);

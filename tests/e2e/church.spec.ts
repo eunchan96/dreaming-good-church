@@ -84,7 +84,7 @@ test("edit church info, upload normalized private image, attach/publish and prot
     manager.once("dialog", d => d.accept()); await manager.getByRole("button", { name: "검증용 주보 표지 이미지 삭제", exact: true }).click(); await expect(manager.locator('[data-page-message]')).toContainText("사용 중인 이미지는 삭제할 수 없습니다");
     page.once("dialog", d => d.accept()); await page.getByRole("button", { name: "게시 취소", exact: true }).click();
     await expect(page.getByRole("button", { name: "주보 게시", exact: true })).toBeVisible(); expect((await page.request.get(`/api/images?id=${imageId}`)).status()).toBe(404);
-    page.once("dialog", d => d.accept()); await page.getByRole("button", { name: "검증용 주보 표지 삭제", exact: true }).click();
+    page.once("dialog", d => d.accept()); await page.getByRole("button", { name: "검증용 주보 표지 첨부 해제", exact: true }).click();
     await expect.poll(async () => (await admin.from("bulletin_items").select("id").eq("bulletin_id", bulletin)).data?.length).toBe(0);
     manager.once("dialog", d => d.accept()); await manager.getByRole("button", { name: "검증용 주보 표지 이미지 삭제", exact: true }).click(); await expect(manager.locator('[data-page-message]')).toContainText("이미지를 삭제했습니다");
   } finally {
