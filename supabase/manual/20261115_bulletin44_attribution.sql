@@ -1,4 +1,5 @@
--- Pending explicit hosted-DB approval. Apply after bulletin_row_state.
+-- Applied with explicit user approval on 2026-11-15 after bulletin_row_state.
+-- Retained for audit; the operation is idempotent when the value is already present.
 -- Only the requested attribution changes; a stale revision aborts the operation.
 do $$
 declare bulletin public.bulletins; guide public.bulletin_items; before_hash text; after_hash text;
