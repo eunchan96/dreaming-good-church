@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {presentationItems,sectionFor,displayTitle,bodyField} from '../lib/bulletin-presentation.ts';
+import {presentationItems,sectionFor,displayTitle,bodyField,newsGroups,accountBody,offeringRows,offeringSummary,renderedItems} from '../lib/bulletin-presentation.ts';
 
 test('presentation removes duplicated printed scaffolding while preserving raw data, flags and print-only sections',()=>{
  const items=[
@@ -22,4 +22,14 @@ test('presentation removes duplicated printed scaffolding while preserving raw d
 test('prayer and usher rows join news; volunteer and staff editors keep table fields instead of duplicate bodies',()=>{
  assert.equal(sectionFor({title:'11월 기도 인도 · 안내',kind:'worship',printPage:4}),'좋은 소식');assert.equal(sectionFor({title:'다음 주 봉사위원',kind:'worship'}),'예배 안내');assert.equal(displayTitle('예배 묵상 진행'),'예배 공지사항');
  assert.equal(bodyField({title:'섬기는 이들',kind:'worship'}),false);assert.equal(bodyField({title:'다음 주 봉사위원',kind:'worship'}),false);assert.equal(bodyField({title:'다음 주 봉사위원',kind:'text'}),true);
+});
+
+test('fixed news groups join prayer and accounts without mutating source; offering month and last row stay aligned',()=>{
+ const items=[{title:'온라인 건축 헌금 계좌',body:'건축계좌'},{title:'좋은 소식 · 자치 동정',body:'1층 안내'},{title:'좋은 소식 · 환영',body:'환영합니다'},{title:'11월 기도 인도 · 안내',body:'',kind:'worship'},{title:'온라인 헌금 계좌',body:'일반계좌'}];
+ const before=structuredClone(items),groups=newsGroups(items);assert.deepEqual(groups.map(g=>g.title),['환영','기도･안내','헌금']);assert.equal(groups[1].entries.length,2);assert.equal(groups[2].entries.length,2);assert.equal(accountBody(items[0]),'온라인 건축헌금: 건축계좌');assert.deepEqual(items,before);
+ const content={month:'2026-10',rows:[['월삭감사','5'],['십일조','10'],['주일헌금','20']],disabledRows:[0]};const ordered=offeringRows(content);assert.equal(ordered.rows.at(-1)[0],'월삭감사');assert.deepEqual(ordered.disabledRows,[2]);assert.equal(content.rows[0][0],'월삭감사');assert.equal(offeringSummary(content),'10월(4주) 총계');assert.equal(offeringSummary({...content,month:'2026-11'}),'11월(5주) 총계');assert.equal(offeringSummary({...content,month:'2026-11'},'11월(4주) 총계'),'11월(4주) 총계');
+});
+
+test('empty news headings stay editable but do not occupy public or printed space',()=>{
+ const items=[{title:'좋은 소식 · 광고',body:'',kind:'text'},{title:'좋은 소식 · 환영',body:'환영합니다',kind:'text'},{title:'좋은 소식 · 기도･안내',body:'',kind:'worship',content:{rows:[['','','']]}}];assert.equal(presentationItems(items).length,3);assert.deepEqual(renderedItems(items).map(item=>item.title),['좋은 소식 · 환영']);assert.equal(items.length,3);
 });

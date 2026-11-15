@@ -39,11 +39,11 @@ test("one bulletin travels from published source through copy, print, public PDF
     });
     await test.step("edit, save, reopen and check both preview audiences", async () => {
       await page.getByLabel("내용", { exact: true }).first().fill("이번 주 성도 공개 안내");
-      await page.getByRole("textbox",{name:"소식 1 내용",exact:true}).fill("이번 주 인쇄 전용 비공개 내용");
+      await page.getByRole("textbox",{name:"인쇄 전용 안내 내용",exact:true}).fill("이번 주 인쇄 전용 비공개 내용");
       await page.getByRole("button", { name: "초안 저장", exact: true }).click();
       await expect(page.getByRole("status")).toContainText("초안을 저장했습니다");
       await page.reload(); await page.getByRole("button", { name: /2086-11-10/ }).click();await page.getByRole("button",{name:"수정",exact:true}).click();await showBulletinVisibility(page);
-      await expect(page.getByRole("textbox",{name:"소식 1 내용",exact:true})).toHaveValue("이번 주 인쇄 전용 비공개 내용");
+      await expect(page.getByRole("textbox",{name:"인쇄 전용 안내 내용",exact:true})).toHaveValue("이번 주 인쇄 전용 비공개 내용");
       await expect(page.getByLabel("웹에 공개", { exact: true }).nth(1)).not.toBeChecked();
       await expect(page.getByText("0개 항목 확인 필요", { exact: true })).toHaveCount(0);
       await page.getByRole("button", { name: "웹 미리보기", exact: true }).click();

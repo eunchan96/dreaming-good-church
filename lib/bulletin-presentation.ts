@@ -1,3 +1,5 @@
+import {offeringRows} from './offering-presentation.mjs';
+export {offeringSummary,offeringRows} from './offering-presentation.mjs';
 import type {BlockContent,BulletinItem} from './bulletins';
 export const bulletinSections = ['표지','예배 순서','예배 안내','묵상 가이드','토라&토브','기도','좋은 소식','헌금 내역'] as const;
 export type BulletinSection = typeof bulletinSections[number];
@@ -18,7 +20,28 @@ export function sectionFor(item: {title:string;kind?:string;printPage?:number|nu
 export type PresentationItem={title:string;body:string;kind?:string;content?:unknown;printPage?:number|null;webVisible?:boolean};
 export const displayTitle=(title:string)=>title==='예배 묵상 진행'?'예배 공지사항':/나의 묵상/.test(title)?'나의 묵상':/^토라\s*&\s*토브$/.test(title)?'토라&토브':title;
 export const newsTitle=(title:string)=>displayTitle(title).replace(/^좋은 소식\s*[·ㆍ:]\s*/,'');
-export const isNewsItem=(item:Pick<PresentationItem,'title'>)=>/^좋은 소식(?:\s*[·ㆍ:]|$)|기도\s*인도.*안내/.test(item.title);
+export const isPrayerGuide=(item:Pick<PresentationItem,'title'>)=>/기도\s*(?:인도)?.*안내/.test(item.title);
+export const isNewsItem=(item:Pick<PresentationItem,'title'>)=>/^좋은 소식(?:\s*[·ㆍ:]|$)|기도\s*인도.*안내|온라인.*헌금.*계좌/.test(item.title);
+export function newsCategory(item:Pick<PresentationItem,'title'>){
+ const name=newsTitle(item.title).replace(/[\s<>〈〉]/g,'');
+ if(isPrayerGuide(item)||/자치동정|^안내$/.test(name))return '기도･안내';
+ if(/헌금|계좌/.test(name))return '헌금';
+ if(/성경/.test(name))return '성경';
+ if(/교회김장|사업장심방|목회자동정|광고/.test(name))return '광고';
+ return name||'소식';
+}
+export function newsGroups<T extends PresentationItem>(items:readonly T[]){
+ const categories=['환영','예배','중보','광고','성경','기도･안내','헌금'];
+ const groups=new Map<string,T[]>();
+ for(const item of items){const category=newsCategory(item);groups.set(category,[...(groups.get(category)??[]),item]);}
+ return [...groups].sort(([a],[b])=>{const ai=categories.indexOf(a),bi=categories.indexOf(b);return (ai<0?99:ai)-(bi<0?99:bi);}).map(([title,entries])=>({title,entries:title==='기도･안내'?[...entries].sort((a,b)=>Number(isPrayerGuide(b))-Number(isPrayerGuide(a))):title==='헌금'?[...entries].sort((a,b)=>Number(/건축/.test(a.title))-Number(/건축/.test(b.title))):entries}));
+}
+export function accountBody(item:Pick<PresentationItem,'title'|'body'>){
+ if(!item.body.trim())return '';
+ if(/^좋은 소식\s*[·ㆍ:]\s*헌금$/.test(item.title))return item.body;
+ if(/^온라인\s*(건축)?\s*헌금\s*(계좌)?\s*[:：]/.test(item.body))return item.body;
+ return `${/건축/.test(item.title)?'온라인 건축헌금':'온라인 헌금계좌'}: ${item.body}`;
+}
 export const managedSchedule=(item:Pick<PresentationItem,'title'>)=>item.title==='각종 예배 안내';
 export const bodyField=(item:Pick<PresentationItem,'title'|'kind'>)=>item.kind!=='image'&&!(item.kind==='worship'&&/다음\s*주\s*봉사위원|섬기는 이들|기도\s*인도.*안내/.test(item.title));
 export function presentationItems<T extends PresentationItem>(items:readonly T[]):T[]{
@@ -53,10 +76,11 @@ export function moveRow(content:BlockContent,from:number,to:number):BlockContent
  const order=(content.rows??[]).map((_,i)=>i);const [moving]=order.splice(from,1);order.splice(to,0,moving);
  return {...content,rows:order.map(i=>[...content.rows![i]]),disabledRows:order.flatMap((old,i)=>content.disabledRows?.includes(old)?[i]:[]),...(content.fullRows?{fullRows:order.flatMap((old,i)=>content.fullRows?.includes(old)?[i]:[])}:{})};
 }
+export function emptyNews(item:PresentationItem){return isNewsItem(item)&&!item.body.trim()&&!((item.content as BlockContent)?.rows??[]).some(row=>row.some(cell=>cell.trim()));}
 export function renderedItems<T extends PresentationItem>(items:readonly T[]):T[]{
- return presentationItems(items).filter(item=>!(item.content as BlockContent)?.disabled).map(item=>{
+ return presentationItems(items).filter(item=>!(item.content as BlockContent)?.disabled&&!emptyNews(item)).map(item=>{
   const ordered=item.kind==='worship'&&sectionFor(item)==='예배 순서';
-  const content=ordered?worshipRows(item):structuredClone((item.content??{}) as BlockContent);
+  const content=item.kind==='offering'?offeringRows(structuredClone((item.content??{}) as BlockContent)):ordered?worshipRows(item):structuredClone((item.content??{}) as BlockContent);
   if(content.rows){const enabled=content.rows.map((_,i)=>i).filter(i=>!content.disabledRows?.includes(i));content.rows=enabled.map(i=>content.rows![i]);if(content.fullRows)content.fullRows=enabled.flatMap((old,i)=>content.fullRows!.includes(old)?[i]:[]);delete content.disabledRows;}
   return {...item,...(ordered?{body:''}:{}),content};
  });

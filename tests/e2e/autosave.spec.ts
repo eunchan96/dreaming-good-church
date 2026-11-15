@@ -77,7 +77,7 @@ test("autosave preserves edits, pauses on failure, resumes after login and keeps
     await selectCalendar(page,calendarControl(page,"헌금 집계 월"),"2096-10-01");
     await page.getByRole("button",{name:"헌금 내역 1행 이름 수정",exact:true}).click();await page.getByRole("dialog",{name:"항목 수정",exact:true}).getByLabel("이름",{exact:true}).fill("감사헌금");await page.getByRole("dialog",{name:"항목 수정",exact:true}).getByRole("button",{name:"적용",exact:true}).click();
     await page.getByLabel("헌금 내역 1행 금액", { exact: true }).fill("120000");
-    await expect(page.getByText("합계 120,000원", { exact: true })).toBeVisible();
+    await expect(page.getByText("10월(4주) 총계 120,000원", { exact: true })).toBeVisible();
     await showBulletinVisibility(page);await page.getByLabel("웹에 공개", { exact: true }).last().uncheck();
     await expect.poll(async () => {
       const r = await admin.from("bulletin_items").select("content,web_visible").eq("kind", "offering");

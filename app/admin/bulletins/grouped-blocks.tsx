@@ -1,13 +1,14 @@
 'use client';
-import {isNewsItem,newsTitle,renderedItems} from '@/lib/bulletin-editor';
+import {bulletinSections,sectionFor,isNewsItem,newsGroups,accountBody,renderedItems} from '@/lib/bulletin-editor';
 import type {BulletinItem} from '@/lib/bulletins';
 import {BlockPreview} from './block-fields';
 import styles from './grouped-blocks.module.css';
+
 type Item=Pick<BulletinItem,'id'|'title'|'body'|'kind'|'content'|'printPage'>;
 export default function BulletinBlocks({items,editor=false,idPrefix='bulletin-item',className}:{items:Item[];editor?:boolean;idPrefix?:string;className?:string}){
- const visible=renderedItems(items),news=visible.filter(isNewsItem);
- return visible.map(item=>{
-  if(isNewsItem(item))return item.id===news[0]?.id?<section key={item.id} className={`${styles.news} ${className??''}`} aria-label="좋은 소식"><h3>좋은 소식</h3>{news.map(entry=><section id={`${idPrefix}-${entry.id}`} tabIndex={-1} key={entry.id}><BlockPreview item={{...entry,title:entry.kind==='worship'?newsTitle(entry.title):`${news.filter(item=>item.kind!=='worship').findIndex(item=>item.id===entry.id)+1}. 〈${newsTitle(entry.title)}〉`}} editor={editor} compact hideTitle={entry.title==='좋은 소식'}/></section>)}</section>:null;
-  return <section id={`${idPrefix}-${item.id}`} tabIndex={-1} className={className} key={item.id}><BlockPreview item={item} editor={editor}/></section>;
- });
+ const visible=renderedItems(items);
+ return <div className={styles.document}>{bulletinSections.map(section=>{
+  const entries=visible.filter(item=>sectionFor(item)===section);if(!entries.length)return null;
+  return <section className={styles.section} key={section} aria-label={section} data-section={section}><header className={styles.sectionHeading}><span aria-hidden="true">✦</span><h3>{section}</h3></header>{section==='좋은 소식'?<div className={styles.news}>{newsGroups(entries.filter(isNewsItem)).map(group=><div className={styles.newsRow} key={group.title}><h4>〈{group.title}〉</h4><div>{group.entries.filter(item=>item.body.trim()||item.content?.rows?.length).map(entry=><section id={`${idPrefix}-${entry.id}`} tabIndex={-1} key={entry.id} className={className}><BlockPreview item={{...entry,body:group.title==='헌금'?accountBody(entry):entry.body}} editor={editor} compact hideTitle/></section>)}</div></div>)}{entries.filter(item=>!isNewsItem(item)).map(item=><section id={`${idPrefix}-${item.id}`} tabIndex={-1} key={item.id} className={className}><BlockPreview item={item} editor={editor} compact/></section>)}</div>:entries.map(item=><section id={`${idPrefix}-${item.id}`} tabIndex={-1} className={className} key={item.id}><BlockPreview item={item} editor={editor} compact hideTitle={item.title===section&&section!=='토라&토브'}/></section>)}</section>;
+ })}</div>;
 }

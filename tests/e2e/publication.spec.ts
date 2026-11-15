@@ -32,7 +32,7 @@ test("publish and withdraw expose only reviewed public content in API and reader
     page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "게시하기", exact: true }).click();
     await expect(page.getByRole("status")).toContainText("주보를 게시했습니다");
-    await expect(page.getByRole("textbox",{name:"소식 1 내용",exact:true})).toBeDisabled();
+    await expect(page.getByRole("textbox",{name:"공개 말씀 내용",exact:true})).toBeDisabled();
     const response = await reader.request.get(`/api/bulletins?id=${id}`);
     expect(response.status()).toBe(200); expect(response.headers()["cache-control"]).toContain("no-store");
     const payload = await response.text();

@@ -3,6 +3,7 @@ import path from "node:path";
 import { PDFDocument, rgb } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import sharp from "sharp";
+import {offeringRows,offeringSummary} from "./offering-presentation.mjs";
 import type { BlockContent } from "./bulletins";
 
 export type PdfBulletin = {
@@ -48,19 +49,19 @@ export async function publicBulletinPdf(bulletin: PdfBulletin, image: (id: strin
   text("웹 공개 항목", 9); y -= 16;
   if (!bulletin.items.length) text("웹에 공개된 주보 항목이 없습니다.");
   for (const item of bulletin.items) {
-    const content = (item.content ?? {}) as BlockContent;if(content.disabled)continue;
+    const content = item.kind==='offering'?offeringRows((item.content??{}) as BlockContent):(item.content ?? {}) as BlockContent;if(content.disabled)continue;
     space(65); text(item.title || "주보 항목", 15);
     if (item.kind === "sermon") {
       if (content.reference) text(`성경: ${content.reference}`);
       if (content.preacher) text(`말씀: ${content.preacher}`);
     }
-    if (item.body) text(item.body);
+    if (item.body&&item.kind!=="offering") text(item.body);
     if (item.kind === "worship" || item.kind === "offering") {
       if (content.month) text(content.month);
       for (const [index,row] of (content.rows??[]).entries())if(!content.disabledRows?.includes(index))text(content.fullRows?.includes(index)?row[0]:row.join("   |   "));
       if (item.kind === "offering") {
         const total = (content.rows ?? []).reduce((sum,row,index)=>sum+(content.disabledRows?.includes(index)?0:Number(row[1]||0)),0);
-        text(`합계: ${total.toLocaleString("ko-KR")}원`);
+        text(`${offeringSummary(content,item.body)}: ${total.toLocaleString("ko-KR")}원`);
       }
     }
     if (item.kind === "image" && content.assetId) {

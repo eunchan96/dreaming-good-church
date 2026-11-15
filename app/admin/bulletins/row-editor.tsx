@@ -2,9 +2,9 @@
 import {useRef,useState,type PointerEvent} from 'react';
 import type {BulletinItem,BlockContent} from '@/lib/bulletins';
 import {offeringTotal} from '@/lib/bulletins';
-import {sectionFor,worshipRows,moveRow} from '@/lib/bulletin-editor';
+import {sectionFor,worshipRows,moveRow,offeringSummary,offeringRows} from '@/lib/bulletin-editor';
 import GrowingTextarea from './growing-textarea';
-import {DatePicker} from '../calendar';
+import {MonthPicker} from '../calendar';
 import css from './row-editor.module.css';
 
 function stripStanding(value:string){return value.replace(/^\s*↑\s*/,'');}
@@ -13,7 +13,7 @@ type Props={item:BulletinItem;onChange:(content:BlockContent,body?:string)=>void
 export default function RowEditor({item,onChange}:Props){
  const order=item.kind==='worship'&&sectionFor(item)==='예배 순서';
  const fixed=/기도\s*인도.*안내/.test(item.title);
- const content=order?worshipRows(item):item.content??{};
+ const content=order?worshipRows(item):item.kind==='offering'?offeringRows(item.content??{}):item.content??{};
  const original=content.rows??[],rows=fixed?Array.from({length:Math.max(5,original.length)},(_,i)=>original[i]??['','','']):original;
  const columns=item.kind==='offering'?['헌금 구분','금액']:/섬기는 이들/.test(item.title)?['역할','이름']:/봉사위원/.test(item.title)?['봉사','이름','날짜']:fixed?['날짜','기도 인도','안내']:['예배 순서','진행 내용','담당자'];
  const root=useRef<HTMLDivElement>(null),source=useRef<number|null>(null),target=useRef<number|null>(null),dialog=useRef<HTMLDialogElement>(null),returnFocus=useRef<HTMLElement|null>(null);
@@ -33,11 +33,11 @@ export default function RowEditor({item,onChange}:Props){
   const row=rows[index];change({...content,rows:rows.map((r,i)=>i===index?Array.from({length:item.kind==='offering'?2:3},(_,j)=>j===column?(column===0&&/^\s*↑/.test(row[0]??'')?'↑ '+value:value):r[j]??''):r)});
  }
  return <div ref={root} className={css.editor}>
-  {item.kind==='offering'?<div className={css.month}><span>집계 월</span><DatePicker label="헌금 집계 월" value={content.month?`${content.month}-01`:''} onChange={value=>change({...content,month:value.slice(0,7)})}/></div>:null}
+  {item.kind==='offering'?<div className={css.month}><span>집계 월</span><MonthPicker label="헌금 집계 월" value={content.month??''} onChange={value=>change({...content,month:value})}/></div>:null}
   {rows.map((row,index)=><EditableRow key={index} row={row} index={index} title={item.title} kind={item.kind} order={order} fixed={fixed} columns={columns} disabled={content.disabledRows?.includes(index)??false} full={content.fullRows?.includes(index)??false} over={over===index} onMove={reorder} onStart={startDrag} onPointerMove={pointerMove} onPointerUp={pointerUp} onCancel={cancelDrag} onName={openName} onUpdate={update} onStanding={toggleStanding} onToggle={toggleRow}/>)}
   {order&&content.footer?<p className={css.footer}>{content.footer}</p>:null}
   {!fixed?<button className={css.add} type="button" disabled={rows.length>=100} aria-label={`${item.title} 행 추가`} onClick={()=>change({...content,rows:[...rows,Array.from({length:item.kind==='offering'?2:3},()=>'')]})}>행 추가</button>:null}
-  {item.kind==='offering'?<p className={css.total}>합계 {offeringTotal(content).toLocaleString('ko-KR')}원</p>:null}
+  {item.kind==='offering'?<p className={css.total}>{offeringSummary(content,item.body)} {offeringTotal(content).toLocaleString('ko-KR')}원</p>:null}
   <span className={css.srOnly} aria-live="polite">{announcement}</span>
   <dialog ref={dialog} className={css.dialog} aria-labelledby={`row-name-${item.id}`} onCancel={()=>returnFocus.current?.focus()}><h3 id={`row-name-${item.id}`}>항목 수정</h3><label>이름<input value={name} maxLength={500} onChange={e=>setName(e.target.value)}/></label><div><button type="button" onClick={close}>취소</button><button type="button" onClick={()=>{update(editing,0,name);close();}}>적용</button></div></dialog>
  </div>;
