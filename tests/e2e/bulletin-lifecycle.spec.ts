@@ -61,7 +61,7 @@ test("one bulletin travels from published source through copy, print, public PDF
         expect(Math.abs(sheet.getHeight() - 595.28)).toBeLessThan(1);
       }
       await print.getByRole("button", { name: "미리보기 닫기", exact: true }).click();
-      await page.getByRole("button", { name: "편집으로 돌아가기", exact: true }).click();
+      await page.getByRole("button", { name: "편집", exact: true }).click();
     });
     await test.step("publish and read/download from a separate anonymous browser", async () => {
       page.once("dialog", dialog => dialog.accept());

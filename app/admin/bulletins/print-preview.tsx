@@ -6,7 +6,7 @@ import ChurchContentProvider,{useChurchContent} from '@/app/church-content';
 import type { SavedBulletin } from "@/lib/bulletin-store";
 import {PrintEditorProvider,PrintBlocks,PrintFormatToolbar} from "./print-editor";
 import type {BulletinItem} from "@/lib/bulletins";
-import {managedSchedule,presentationItems,sectionFor,isPrayerGuide} from "@/lib/bulletin-editor";
+import {managedSchedule,presentationItems,sectionFor,isPrayerGuide,displayTitle} from "@/lib/bulletin-editor";
 import {formatWorshipTime,timeLabels} from "@/lib/church-page-settings";
 import styles from "./print-preview.module.css";
 
@@ -26,6 +26,16 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
   const root = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState("");
   const [overflowPages, setOverflowPages] = useState<number[]>([]);
+  const [panel, setPanel] = useState(false);
+  const stage = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const node = stage.current; if (!node) return;
+    // Fit the 297mm sheet into the visible canvas without changing print output.
+    const fit = () => { const available = node.clientWidth - 48; const sheet = 297 * 96 / 25.4; setScale(Math.max(0.3, Math.min(1, available / sheet))); };
+    fit(); const observer = new ResizeObserver(fit); observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
   function checkOverflow() {
     return Array.from(root.current?.querySelectorAll<HTMLElement>('[data-print-panel]') ?? []).filter(node => node.scrollHeight > node.clientHeight + 1 || node.scrollWidth > node.clientWidth + 1).map(node => Number(node.dataset.printPanel));
   }
@@ -63,7 +73,7 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
     const next={...pages};let moved=0;
     const candidates=items.filter(item=>item.kind==='offering'||item.kind==='sermon').sort((a,b)=>Number(b.kind==='offering')-Number(a.kind==='offering'));
     for(const item of candidates){const from=next[item.id]??defaultPage(item),current=heights.get(from);if(!current||current.used<=current.available)continue;
-      const node=root.current?.querySelector<HTMLElement>(`[data-print-item="${item.id}"]`);if(!node)continue;const height=node.getBoundingClientRect().height+2;
+      const node=root.current?.querySelector<HTMLElement>(`[data-print-item="${item.id}"]`);if(!node)continue;const height=node.offsetHeight+2;
       const target=[2,3,4].filter(number=>number!==from).sort((a,b)=>heights.get(a)!.used-heights.get(b)!.used).find(number=>heights.get(number)!.used+height<=heights.get(number)!.available);
       if(target){next[item.id]=target;current.used-=height;heights.get(target)!.used+=height;moved++;}
     }
@@ -80,16 +90,44 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
       setMessage(""); window.print(); }
     catch { setMessage("이미지를 확인하지 못했습니다. 연결을 확인하고 다시 시도해 주세요."); }
   }
-  return createPortal(<PrintEditorProvider bulletinId={draft.id} editable={draft.status==="draft"} onReplace={item=>{if(draft.status==="draft"&&draft.items.some(original=>original.id===item.id))onReplace(item);}}><div ref={root} tabIndex={-1} className={`${styles.overlay} ${overflowPages.length ? styles.badLayout : ""}`} role="dialog" aria-modal="true" aria-labelledby="print-title">
-    <header className={styles.controls}><div className={styles.printHeading}><div><span>PRINT STUDIO</span><h2 id="print-title">관리자 인쇄 미리보기</h2><p>{draft.issueNumber}호 · {draft.serviceDate} · A4 가로 반접지</p></div><div>{draft.status==="draft"&&overflowPages.length?<button onClick={arrange}>지면 자동 정리</button>:null}<button onClick={() => void print()}>인쇄 · PDF로 저장</button><button onClick={onClose}>미리보기 닫기</button></div></div>
-    <details><summary>면 배치 · 인쇄 설정</summary><p>겉면 4·1 / 안쪽 2·3 · A4 가로 · 배율 100% · 여백 없음 · 머리글/바닥글 끔</p><p>{dirty?"저장 전 변경도 표시합니다. ":""}웹 비공개 항목도 인쇄에 포함됩니다. 문구 수정은 초안 저장에 반영됩니다.{draft.status!=="draft"?" 게시된 주보의 문구는 읽기 전용입니다.":""}</p>{presentationItems(draft.items).map(item=><label className={styles.assignment} key={item.id}>{item.title||"주보 항목"}<select disabled={draft.status!=="draft"} aria-label={`${item.title||"주보 항목"} 인쇄 면`} value={pages[item.id]??defaultPage(item)} onChange={event=>{onPagesChange({...pages,[item.id]:Number(event.target.value)});setMessage("");}}>{pageTitles.map((title,index)=><option value={index+1} key={title}>{index+1}면 · {title}</option>)}</select></label>)}</details>
-    {settingsStatus==="error"?<button onClick={retry}>예배시간 다시 불러오기</button>:null}<p role="status">{overflowPages.length?`${overflowPages.join("·")}면 넘침: 면 배치나 글자 크기를 조절해 주세요.`:""} {message}</p></header>
+  const sides = [{ label: "바깥면", pages: [4, 1] }, { label: "안쪽면", pages: [2, 3] }];
+  const assignable = presentationItems(draft.items);
+  const editable = draft.status === "draft";
+  return createPortal(<PrintEditorProvider bulletinId={draft.id} editable={editable} onReplace={item=>{if(draft.status==="draft"&&draft.items.some(original=>original.id===item.id))onReplace(item);}}><div ref={root} tabIndex={-1} className={`${styles.overlay} ${overflowPages.length ? styles.badLayout : ""}`} role="dialog" aria-modal="true" aria-label="관리자 인쇄 미리보기">
+    <header className={styles.topbar}>
+      <button type="button" className={styles.closeButton} aria-label="미리보기 닫기" onClick={onClose}><span aria-hidden="true">←</span> 닫기</button>
+      <div className={styles.topTitle}><h2 id="print-title">인쇄 미리보기</h2><p>{draft.issueNumber}호 · {draft.serviceDate.replaceAll("-", ". ")} · A4 가로 반접지</p></div>
+      <div className={styles.topActions}>
+        {overflowPages.length ? <span className={styles.warn}>{overflowPages.join("·")}면 넘침</span> : null}
+        {editable && overflowPages.length ? <button type="button" className={styles.tool} onClick={arrange}>지면 자동 정리</button> : null}
+        <button type="button" className={styles.tool} aria-pressed={panel} aria-controls={panel?'print-layout-panel':undefined} onClick={() => setPanel(!panel)}>면 배치</button>
+        <button type="button" className={`${styles.tool} ${styles.primaryTool}`} onClick={() => void print()}>인쇄 · PDF로 저장</button>
+      </div>
+    </header>
     <PrintFormatToolbar/>
+    <div className={styles.notice} role="status" data-empty={!message&&!overflowPages.length&&settingsStatus!=="error"}>{overflowPages.length?`${overflowPages.join("·")}면 넘침: 면 배치나 글자 크기를 조절해 주세요. `:""}{message}{settingsStatus==="error"?<button type="button" className={styles.tool} onClick={retry}>예배시간 다시 불러오기</button>:null}</div>
     <p className={styles.blockedPrint}>내용이 면을 넘쳐 인쇄를 중단했습니다. 미리보기에서 면 배치를 조정한 뒤 다시 인쇄해 주세요.</p>
-    <div className={styles.paper} role="document" aria-label="인쇄 주보">{[[4,1],[2,3]].map((side,index) => <div className={styles.sheet} key={index} aria-label={index === 0 ? "겉면 4·1" : "안쪽 2·3"}>{side.map(number => <section className={styles.panel} key={number} aria-label={`${number}면`}>
-      <header><p>꿈꾸는좋은교회 · {number}면</p><h2>{number === 1 ? `${draft.serviceDate} · ${draft.issueNumber}호 주보` : pageTitles[number - 1]}</h2></header>
-      <div className={styles.panelBody} data-print-panel={number}><div data-print-content><PrintBlocks items={items.filter(item=>(pages[item.id]??defaultPage(item))===number)}/>{number===3&&!draft.items.some(item=>item.title.trim()==="메모")?<section className={styles.item}><h3>메모</h3><div style={{minHeight:"32mm"}}/></section>:null}{number===4&&!draft.items.some(item=>item.title.trim()==="교회 안내")?<section className={styles.item}><h3>교회 안내</h3><p>{fields?.name||"꿈꾸는좋은교회"}</p><p>{fields?.address||CHURCH_ADDRESS}</p><p>{fields?.phone||CHURCH_PHONE}</p></section>:null}</div></div>
-    </section>)}</div>)}
+    <div className={styles.stage} data-panel={panel}>
+      <div ref={stage} className={styles.canvas}>
+        <div className={styles.paper} role="document" aria-label="인쇄 주보" style={{ zoom: scale }}>{sides.map(side => <div key={side.label} className={styles.sheetWrap}>
+          <p className={styles.sheetLabel}>{side.label} <span>{side.pages.join(" · ")}면</span></p>
+          <div className={styles.sheet} aria-label={`${side.label} ${side.pages.join("·")}`}>{side.pages.map(number => <section className={styles.panel} key={number} aria-label={`${number}면`} data-overflow={overflowPages.includes(number)}>
+            <header><p>꿈꾸는좋은교회 · {number}면</p><h2>{number === 1 ? `${draft.serviceDate} · ${draft.issueNumber}호 주보` : pageTitles[number - 1]}</h2></header>
+            <div className={styles.panelBody} data-print-panel={number}><div data-print-content><PrintBlocks items={items.filter(item=>(pages[item.id]??defaultPage(item))===number)}/>{number===3&&!draft.items.some(item=>item.title.trim()==="메모")?<section className={styles.item}><h3>메모</h3><div style={{minHeight:"32mm"}}/></section>:null}{number===4&&!draft.items.some(item=>item.title.trim()==="교회 안내")?<section className={styles.item}><h3>교회 안내</h3><p>{fields?.name||"꿈꾸는좋은교회"}</p><p>{fields?.address||CHURCH_ADDRESS}</p><p>{fields?.phone||CHURCH_PHONE}</p></section>:null}</div></div>
+          </section>)}</div>
+        </div>)}</div>
+      </div>
+      {panel ? <aside id="print-layout-panel" className={styles.side} aria-label="면 배치">
+        <div className={styles.sideHead}><h3>면 배치</h3><button type="button" className={styles.iconButton} aria-label="면 배치 닫기" onClick={() => setPanel(false)}>×</button></div>
+        {pageTitles.map((title, index) => { const number = index + 1; const entries = assignable.filter(item => (pages[item.id] ?? defaultPage(item)) === number); return <section key={title} className={styles.sideGroup}>
+          <h4>{number}면 · {title}{overflowPages.includes(number) ? <span className={styles.warn}>넘침</span> : null}</h4>
+          {entries.length ? entries.map(item => <label className={styles.assignment} key={item.id}><span>{displayTitle(item.title) || "주보 항목"}</span><select disabled={!editable} aria-label={`${item.title||"주보 항목"} 인쇄 면`} value={pages[item.id]??defaultPage(item)} onChange={event=>{onPagesChange({...pages,[item.id]:Number(event.target.value)});setMessage("");}}>{pageTitles.map((option,i)=><option value={i+1} key={option}>{i+1}면</option>)}</select></label>) : <p className={styles.sideEmpty}>배치된 항목 없음</p>}
+        </section>; })}
+        <div className={styles.sideNote}>
+          <p><strong>인쇄 설정</strong> A4 가로 · 배율 100% · 여백 없음 · 머리글/바닥글 끔</p>
+          <p>{dirty?"저장 전 변경도 표시합니다. ":""}웹 비공개 항목도 인쇄에 포함됩니다.{editable?" 문구를 클릭하면 바로 고칠 수 있고, 초안 저장에 반영됩니다.":" 게시된 주보의 문구는 읽기 전용입니다."}</p>
+        </div>
+      </aside> : null}
     </div>
   </div></PrintEditorProvider>, document.body);
 }

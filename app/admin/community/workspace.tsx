@@ -1,4 +1,5 @@
 "use client";
+import ManagementHeading from '../management-heading';
 
 import { useEffect, useRef, useState } from "react";
 import { makeBrowserClient } from "@/lib/bulletin-store";
@@ -85,7 +86,7 @@ export default function CommunityWorkspace() {
   }
   function statusLabel(row:CommunityEntry){if(row.status==='draft')return '임시 저장';if(row.status==='archived')return '보관';if(row.sensitive||!row.is_public)return '비공개';if(row.publish_from&&Date.parse(row.publish_from)>now)return '공개 예정';if(row.publish_until&&Date.parse(row.publish_until)<=now)return '게시 종료';return '공개';}
   const filtered=rows.filter(row=>(filter==='all'||row.kind===filter)&&row.title.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
-  const intro=<header className={ui.intro}><span className={styles.eyebrow}>CHURCH COMMUNITY</span><h1 id="community-heading">공지·일정 관리</h1><p>주보의 공지와 모임 일정을 관리합니다. 변경해도 기존 주보는 바뀌지 않습니다.</p></header>;
+  const intro=<ManagementHeading id="community-heading" eyebrow="CHURCH COMMUNITY" title="공지·일정 관리" description="주보의 공지와 모임 일정을 관리합니다. 변경해도 기존 주보는 바뀌지 않습니다."/>;
   const sections=[{id:'community-editor',label:'내용 편집'},...((entry?.kind??'event')==='event'?[{id:'community-schedule',label:'일정 시간'}]:[]),{id:'community-publication',label:'공개 설정'}];
   return <AdminShell active="community" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} pages={[{id:'list',label:'소식 목록',active:view==='list',onSelect:()=>{if(view!=='list'&&mayLeave()){setView('list');setEntry(null);setDirty(false);setMessage('');}},sections:[{id:'community-list',label:'목록·검색'}]},{id:'editor',label:entry?.revision?'소식 수정':'소식 등록',active:view==='editor',onSelect:()=>{if(view!=='editor'&&!loading&&mayLeave()){setView('editor');setShowPeriod(false);setEntry(newEntry('event'));setDirty(false);setMessage('');}},sections}]}><main id="admin-content" aria-labelledby="community-heading" tabIndex={-1} className={`${styles.page} ${ui.editor}`}>
     {allowed ? <>
