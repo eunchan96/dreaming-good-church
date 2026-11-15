@@ -1,15 +1,12 @@
 "use client";
 
-import {useRef,useState} from "react";
-import rowStyle from "./structured-rows.module.css";
+import RowEditor from "./row-editor";
 import {displayTitle,sectionFor} from '@/lib/bulletin-editor';
-import GrowingTextarea from './growing-textarea';
-import {DatePicker} from "../calendar";
 import { offeringTotal, type BulletinItem, type BlockContent } from "@/lib/bulletins";
 import styles from "./workspace.module.css";
 import { BulletinImageView } from "@/app/bulletin-image";
 
-export function BlockFields({ item, onChange }: { item: BulletinItem; onChange: (content: BlockContent) => void }) {
+export function BlockFields({ item, onChange }: { item: BulletinItem; onChange: (content: BlockContent,body?:string) => void }) {
   const content = item.content ?? {};
   if (item.kind === "image") return <div>{content.assetId ? <BulletinImageView key={content.assetId} id={content.assetId} alt={content.alt ?? ""} editor /> : null}<label>이미지 설명 (대체텍스트)<input required maxLength={500} value={content.alt ?? ""} onChange={e => onChange({ ...content, alt: e.target.value })} /></label></div>;
   if (item.kind === "sermon") return <div className={styles.actions}>
@@ -17,40 +14,7 @@ export function BlockFields({ item, onChange }: { item: BulletinItem; onChange: 
     {!/토라|토브/.test(item.title)?<label>설교자<input maxLength={500} value={content.preacher ?? ""} onChange={(e) => onChange({ ...content, preacher: e.target.value })} /></label>:null}
   </div>;
   if (item.kind !== "worship" && item.kind !== "offering") return null;
-  return <StructuredRows item={item} onChange={onChange}/>;
-}
-function StructuredRows({item,onChange}:{item:BulletinItem;onChange:(content:BlockContent)=>void}) {
-  const content=item.content??{},rows=content.rows??[];
-  const standingControl=item.kind==='worship'&&sectionFor(item)==='예배 순서';
-  const labels=item.kind==='offering'?['헌금 구분','금액']:/섬기는 이들/.test(item.title)?['역할','이름']:/봉사위원/.test(item.title)?['봉사','이름','날짜']:/기도\s*인도.*안내/.test(item.title)?['날짜','기도 인도','안내']:['예배 순서','진행 내용','담당자'];
-  const root=useRef<HTMLDivElement>(null),source=useRef<number|null>(null),destination=useRef<number|null>(null);
-  const [over,setOver]=useState<number|null>(null),[announcement,setAnnouncement]=useState('');
-  function move(from:number,to:number){
-    if(from===to||to<0||to>=rows.length)return;
-    const next=rows.map(row=>[...row]);const [row]=next.splice(from,1);next.splice(to,0,row);
-    onChange({...content,rows:next});setAnnouncement(`${from+1}행을 ${to+1}행으로 이동했습니다.`);
-    requestAnimationFrame(()=>root.current?.querySelector<HTMLButtonElement>(`[data-row="${to}"] [data-handle]`)?.focus());
-  }
-  function finish(){if(source.current!==null&&destination.current!==null)move(source.current,destination.current);source.current=null;destination.current=null;setOver(null);}
-  return <div ref={root} className={rowStyle.editor}>
-    {item.kind==='offering'?<label className={rowStyle.month}>집계 월<DatePicker label="헌금 집계 월" value={content.month?`${content.month}-01`:''} onChange={value=>onChange({...content,month:value.slice(0,7)})}/></label>:null}
-    {rows.map((row,index)=><div data-row={index} data-over={over===index} className={rowStyle.row} data-order={standingControl} data-columns={labels.length} data-kind={item.kind} key={index}>
-      <button type="button" data-handle className={rowStyle.handle} aria-label={`${item.title} ${index+1}행 이동`} title="드래그하거나 위아래 방향키로 이동" onKeyDown={e=>{if(e.key!=='ArrowUp'&&e.key!=='ArrowDown')return;e.preventDefault();move(index,index+(e.key==='ArrowUp'?-1:1));}}
-        onPointerDown={e=>{if(e.button!==0)return;source.current=index;destination.current=index;e.currentTarget.setPointerCapture(e.pointerId);}}
-        onPointerMove={e=>{if(source.current===null)return;const target=document.elementFromPoint(e.clientX,e.clientY)?.closest<HTMLElement>('[data-row]');if(!target||!root.current?.contains(target))return;destination.current=Number(target.dataset.row);setOver(destination.current);}}
-        onPointerUp={e=>{if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);finish();}}
-        onPointerCancel={()=>{source.current=null;destination.current=null;setOver(null);}}>≡</button>
-      {standingControl?<button type="button" className={rowStyle.standing} aria-label={`${item.title} ${index+1}행 일어서서`} title="일어서서 진행" aria-pressed={/^\s*↑/.test(row[0]??'')} onClick={()=>{const marked=/^\s*↑/.test(row[0]??'');onChange({...content,rows:rows.map((r,at)=>at===index?[`${marked?'':'↑ '}${(r[0]??'').replace(/^\s*↑\s*/,'')}`,...r.slice(1)]:r)});}}>↑</button>:null}
-      {labels.map((label,column)=><GrowingTextarea key={label} aria-label={`${item.title} ${index+1}행 ${label}`} placeholder={label} maxLength={column===1&&item.kind==='offering'?12:500} inputMode={column===1&&item.kind==='offering'?'numeric':'text'} value={column===0&&standingControl?(row[column]??'').replace(/^\s*↑\s*/,''):row[column]??''} onChange={e=>{
-        const value=e.target.value;if(item.kind==='offering'&&column===1&&!/^\d{0,12}$/.test(value))return;
-        onChange({...content,rows:rows.map((r,at)=>at===index?Array.from({length:item.kind==='offering'?2:3},(_,col)=>col===column?(column===0&&standingControl&&/^\s*↑/.test(row[0]??'')?'↑ '+value:value):r[col]??''):r)});
-      }}/>)}
-      <button type="button" className={rowStyle.remove} aria-label={`${item.title} ${index+1}행 삭제`} onClick={()=>onChange({...content,rows:rows.filter((_,at)=>at!==index)})}>삭제</button>
-    </div>)}
-    <button type="button" className={rowStyle.add} aria-label={`${item.title} 행 추가`} disabled={rows.length>=100} onClick={()=>onChange({...content,rows:[...rows,Array.from({length:item.kind==='offering'?2:3},()=>'')]})}>행 추가</button>
-    {item.kind==='offering'?<p className={rowStyle.total}>합계 {offeringTotal(content).toLocaleString('ko-KR')}원</p>:null}
-    <span className={rowStyle.srOnly} aria-live="polite">{announcement}</span>
-  </div>;
+  return <RowEditor item={item} onChange={onChange}/>;
 }
 
 export function BlockPreview({ item, editor = false, compact=false, hideTitle=false }: { item: Pick<BulletinItem, "title" | "body" | "kind" | "content">; editor?: boolean;compact?:boolean;hideTitle?:boolean }) {
@@ -58,12 +22,14 @@ export function BlockPreview({ item, editor = false, compact=false, hideTitle=fa
   const Heading=compact?"h4":"h3";
   const serving=/섬기는 이들/.test(item.title)||item.title==="각종 예배 안내";
   const headers=item.kind==="offering"?["구분","금액(원)"]:serving?(item.title==="각종 예배 안내"?["예배","시간"]:["역할","이름"]):/봉사위원/.test(item.title)?["봉사","이름","날짜"]:/기도\s*인도.*안내/.test(item.title)?["날짜","기도 인도","안내"]:["순서","내용","담당"];
-  return <article className={styles.preview}>{hideTitle||item.kind==="image"?null:<Heading>{displayTitle(item.title)}</Heading>}
+  return <article className={styles.preview}>{hideTitle||item.kind==="image"?null:<Heading style={{whiteSpace:"pre-line"}}>{displayTitle(item.title)}</Heading>}
     {item.kind === "image" && content.assetId ? <BulletinImageView key={content.assetId} id={content.assetId} alt={content.alt ?? ""} editor={editor} /> : null}
     {item.kind === "sermon" ? <p>{content.reference} · {content.preacher}</p> : null}
     {item.kind === "offering" ? <p>{content.month} 헌금 내역</p> : null}
-    {item.kind === "worship" || item.kind === "offering" ? <div style={{ overflowX: "auto" }}><table><thead><tr>{headers.map((label) => <th key={label} scope="col">{label}</th>)}</tr></thead><tbody>{content.rows?.map((row, i) => <tr key={i}>{row.slice(0,headers.length).map((cell, j) => <td key={j}>{item.kind === "offering" && j === 1 && cell ? Number(cell).toLocaleString("ko-KR") : cell}</td>)}</tr>)}</tbody></table></div> : null}
+    {item.kind === "worship" || item.kind === "offering" ? <div style={{ overflowX: "auto" }}><table><thead><tr>{headers.map((label) => <th key={label} scope="col">{label}</th>)}</tr></thead><tbody>{content.rows?.map((row, i) => <tr key={i}>{content.fullRows?.includes(i)?<td colSpan={headers.length}>{row[0]}</td>:row.slice(0,headers.length).map((cell, j) => <td key={j}>{item.kind === "offering" && j === 1 && cell ? Number(cell).toLocaleString("ko-KR") : cell}</td>)}</tr>)}</tbody></table></div> : null}
+    {content.footer?<p>{content.footer}</p>:null}
+    {content.attribution?<p>{content.attribution}</p>:null}
     {item.kind === "offering" ? <p>합계: {offeringTotal(content).toLocaleString("ko-KR")}원</p> : null}
-    {item.kind!=="image"&&item.body?<p>{item.body}</p>:null}
+    {item.kind!=="image"&&sectionFor(item)!=="표지"&&item.body?<p>{item.body}</p>:null}
   </article>;
 }

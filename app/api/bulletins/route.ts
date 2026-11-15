@@ -1,3 +1,4 @@
+import {renderedItems} from "@/lib/bulletin-presentation";
 import type { Database } from "@/lib/database.types";
 import { createClient } from "@supabase/supabase-js";
 
@@ -39,7 +40,7 @@ export async function GET(request: Request) {
     if (error) throw error;
     if (!data) return Response.json({ error: "주보를 찾을 수 없습니다." }, { status: 404, headers });
     data.items.sort((a, b) => a.position - b.position);
-    return Response.json(data, { headers });
+    return Response.json({...data,items:renderedItems(data.items)}, { headers });
   } catch {
     return Response.json({ error: "주보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요." }, { status: 503, headers });
   }

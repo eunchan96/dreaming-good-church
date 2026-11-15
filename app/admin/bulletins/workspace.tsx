@@ -7,7 +7,7 @@ import BulletinForm from './editor-form';
 import PrintPreview from "./print-preview";
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { confirmItem, createBulletin, editItem, publicationIssues, type BulletinItem } from "@/lib/bulletins";
+import { confirmItem, createBulletin, copyBulletin, createItem, editItem, publicationIssues, type BulletinItem } from "@/lib/bulletins";
 import { errorMessage, loadBulletins, makeBrowserClient, saveDraft, type SavedBulletin } from "@/lib/bulletin-store";
 import BulletinBlocks from "./grouped-blocks";
 import CommunityLinks from "./community-links";
@@ -38,7 +38,7 @@ export default function BulletinWorkspace() {
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-  const [copyDate, setCopyDate] = useState("");
+  const initialItems=useRef('');
   const [query,setQuery]=useState('');
   const [view,setView]=useState<'library'|'register'|'detail'|'edit'|'settings'>('library');
   const [settingsReturn,setSettingsReturn]=useState<'library'|'register'|'detail'|'edit'>('library');
@@ -106,9 +106,7 @@ export default function BulletinWorkspace() {
   function open(row: SavedBulletin) {
     if (!mayLeave()) return;
     setGroups(Object.fromEntries(row.items.map(item=>[item.id,sectionFor(item)])));setView("detail"); setDraft(structuredClone(row)); setDirty(false); setSavePaused(false); setMessage(""); setPreview(false);
-    const next = new Date(`${row.serviceDate}T00:00:00Z`);
-    next.setUTCDate(next.getUTCDate() + 7);
-    setCopyDate(next.toISOString().slice(0, 10));
+
   }
   function updateItem(id: string, changes: Partial<Pick<BulletinItem, "title" | "body" | "webVisible">>) {
     const item=draft?.items.find(item=>item.id===id);if(item)setGroups(current=>({...current,[id]:current[id]??sectionFor(item)}));
@@ -162,17 +160,15 @@ export default function BulletinWorkspace() {
     return () => window.clearTimeout(timer);
   }, [dirty, busy, saving, savePaused, session, draft, save]);
 
-  async function copy() {
-    if (!client || !draft) return;
-    setBusy(true); setMessage("");
-    try {
-      const { data, error } = await client.rpc("copy_bulletin_draft", { p_source: draft.id, p_service_date: copyDate, p_issue_number: draft.issueNumber + 1 });
-      if (error) throw error;
-      const fresh = await loadBulletins(client); setRows(fresh);
-      const copied = fresh.find((row) => row.id === data.id);
-      if (copied) { open(copied); setMessage("내용과 공개 설정을 복사했습니다. 이번 주 내용을 확인해 주세요."); }
-    } catch (error) { setMessage(errorMessage(error)); }
-    finally { setBusy(false); }
+  async function importPrevious(){
+    if(!client||!draft||draft.revision!==0||busy||inFlight.current)return;
+    if(JSON.stringify(draft.items)!==initialItems.current&&!window.confirm('작성 중인 내용을 지난 주 정보로 바꿀까요? 날짜와 호수는 유지됩니다.'))return;
+    setBusy(true);setMessage('');
+    try{const fresh=await loadBulletins(client);setRows(fresh);const source=fresh.filter(row=>row.serviceDate<draft.serviceDate).sort((a,b)=>b.serviceDate.localeCompare(a.serviceDate))[0];
+      if(!source){setMessage('가져올 지난 주 주보가 없습니다.');return;}
+      const copied={...copyBulletin(source,{id:draft.id,serviceDate:draft.serviceDate,issueNumber:draft.issueNumber},()=>crypto.randomUUID()),revision:0};
+      setDraft(copied);setGroups(Object.fromEntries(copied.items.map(item=>[item.id,sectionFor(item)])));initialItems.current=JSON.stringify(copied.items);markDirty();setSavePaused(false);setMessage('지난 주 정보를 가져왔습니다.');
+    }catch(error){setMessage(errorMessage(error));}finally{setBusy(false);}
   }
 
   async function logout() {
@@ -184,27 +180,31 @@ export default function BulletinWorkspace() {
     setBusy(false);
   }
 
-  async function changePublication(publish: boolean) {
-    if (!client || !draft || dirty || inFlight.current || busy) return;
-    if (publish && publicationIssues(draft).length) { setMessage(publicationIssues(draft).join(" ")); return; }
-    if (!window.confirm(publish ? "공개로 설정한 항목을 웹에 게시할까요?" : "게시를 취소하고 초안으로 돌릴까요? 공개 주보에서 제외됩니다.")) return;
-    setBusy(true); setMessage("");
-    try {
-      const { data, error } = await client.rpc("set_bulletin_publication", { p_id: draft.id, p_revision: draft.revision, p_publish: publish });
-      if (error) throw error;
-      const updated = { ...draft, status: data.status, revision: data.revision } as SavedBulletin;
-      setDraft(updated); setRows((current) => current.map((row) => row.id === updated.id ? updated : row));
-      setMessage(publish ? "주보를 게시했습니다." : "게시를 취소했습니다. 초안을 수정할 수 있습니다.");
-      if(!publish){setView("edit");setPreview(false);}
-    } catch (error) { setMessage(errorMessage(error)); }
-    finally { setBusy(false); }
+  async function changePublication(publish:boolean){
+    if(!client||!draft||busy||inFlight.current)return;
+    const prepared={...draft,items:draft.items.map(confirmItem)};
+    if(publish&&publicationIssues(prepared).length){setMessage(publicationIssues(prepared).join(' '));return;}
+    if(!window.confirm(publish?'주보를 웹에 게시할까요?':'게시를 취소하고 초안으로 돌릴까요? 공개 주보에서 제외됩니다.'))return;
+    setBusy(true);setMessage('');const savedVersion=version.current;
+    try{
+      const {data:{user},error:authError}=await client.auth.getUser();if(authError)throw authError;if(!user||user.id!==editorId.current){setSession('login');throw new Error('로그인이 만료되었습니다. 다시 로그인해 주세요.');}
+      let current=draft;
+      if(publish&&(dirty||draft.revision===0||draft.items.some(item=>item.needsReview))){
+        current=await saveDraft(client,prepared);setDraft(existing=>existing?.id===current.id?{...existing,revision:current.revision,items:version.current===savedVersion?current.items:existing.items}:existing);
+        setDirty(version.current!==savedVersion);setSavePaused(false);setRows(existing=>[current,...existing.filter(row=>row.id!==current.id)].sort((a,b)=>b.serviceDate.localeCompare(a.serviceDate)));
+        if(version.current!==savedVersion){setMessage('추가 입력을 저장한 뒤 다시 게시해 주세요.');return;}
+      }
+      const {data,error}=await client.rpc('set_bulletin_publication',{p_id:current.id,p_revision:current.revision,p_publish:publish});if(error)throw error;
+      const updated={...current,status:data.status,revision:data.revision} as SavedBulletin;setDraft(updated);setRows(existing=>existing.map(row=>row.id===updated.id?updated:row));
+      setMessage(publish?'주보를 게시했습니다.':'게시를 취소했습니다. 초안을 수정할 수 있습니다.');if(!publish){setView('edit');setPreview(false);}
+    }catch(error){setMessage(errorMessage(error));}finally{setBusy(false);}
   }
 
   function createNew() {
     if (!mayLeave()) return;
     const issueNumber=rows.length?Math.max(...rows.map(row=>row.issueNumber))+1:1;
-    setDraft({...createBulletin({id:crypto.randomUUID(),serviceDate:nextSunday(),issueNumber}),revision:0,items:initialBulletinItems()});
-    setCopyDate(new Date(Date.parse(`${nextSunday()}T00:00:00Z`)+7*86400000).toISOString().slice(0,10));setGroups({});setView('register');markDirty();setSavePaused(false);setMessage('');setPreview(false);
+    const items=initialBulletinItems();initialItems.current=JSON.stringify(items);setDraft({...createBulletin({id:crypto.randomUUID(),serviceDate:nextSunday(),issueNumber}),revision:0,items});
+    setGroups({});setView('register');markDirty();setSavePaused(false);setMessage('');setPreview(false);
   }
   function library() {
     if(!mayLeave())return;
@@ -213,9 +213,9 @@ export default function BulletinWorkspace() {
   const editing=view==='register'||view==='edit';
   const visibleItems=presentationItems(draft?.items??[]).filter(item=>!printOnlyItem(item));
   const pages=[{id:'library',label:'주보 보관함',active:view==='library',onSelect:library,sections:[{id:'bulletin-library',label:'주보 목록'}]},
-    {id:'register',label:'주보 등록',active:editing,onSelect:()=>{if(editing)return;if(view==='settings'&&draft&&(settingsReturn==='register'||settingsReturn==='edit')){setView(settingsReturn);return;}createNew();},sections:[{id:'editor-tools',label:'저장·미리보기'},...bulletinSections.map((label,index)=>({id:`bulletin-section-${index}`,label})),{id:"publication-check",label:"게시 전 확인"},{id:"next-copy",label:"다음 주 복사"}]},
+    {id:'register',label:'주보 등록',active:editing,onSelect:()=>{if(editing)return;if(view==='settings'&&draft&&(settingsReturn==='register'||settingsReturn==='edit')){setView(settingsReturn);return;}createNew();},sections:[{id:'editor-tools',label:'저장·미리보기'},...bulletinSections.map((label,index)=>({id:`bulletin-section-${index}`,label})), {id:"bulletin-publish",label:"게시하기"}]},
     {id:'settings',label:'주보 설정',active:view==='settings',onSelect:()=>{if(view==='settings')return;setSettingsReturn(view);setView('settings');},sections:[{id:'bulletin-options',label:'입력 화면 설정'}]},
-    ...(view==='detail'?[{id:'detail',label:'주보 상세',active:true,onSelect:()=>{},sections:[{id:'editor-tools',label:'주보 상세'},...visibleItems.filter(item=>item.webVisible).map(item=>({id:`edit-item-${item.id}`,label:displayTitle(item.title)})),{id:'next-copy',label:'다음 주 복사'}]}]:[])];
+    ...(view==='detail'?[{id:'detail',label:'주보 상세',active:true,onSelect:()=>{},sections:[{id:'editor-tools',label:'주보 상세'},...visibleItems.filter(item=>item.webVisible).map(item=>({id:`edit-item-${item.id}`,label:displayTitle(item.title)}))]}]:[])];
   return <AdminShell active="bulletins" intro={session==='editor'||session==='denied'?<ManagementHeading id="bulletin-heading" eyebrow="WEEKLY BULLETIN" title="주보 관리"/>:undefined} authenticated={session === 'editor'} canLeave={mayLeave} onLogout={session === 'editor' || session === 'denied' ? logout : undefined} busy={busy || saving} pages={pages}><main id="admin-content" tabIndex={-1} aria-labelledby={session==='editor'?'bulletin-heading':undefined} className={`${styles.page} ${session==='editor'?`${ui.surface} ${polish.surface}`:''}`}>
     {session !== 'login' ? <p role="status" aria-live="polite" className={`${styles.message} ${ui.feedback}`}>{message}</p> : null}
     {!client ? <section className={styles.card}>서비스 연결 설정이 필요합니다. 관리자에게 문의해 주세요.</section> : session === "loading" ? <p>로그인 상태를 확인하고 있습니다…</p> : session === "login" ?
@@ -225,24 +225,20 @@ export default function BulletinWorkspace() {
       {rows.length ? <ul className={`${styles.list} ${ui.rowsList}`}>{rows.filter(row=>`${row.serviceDate} ${row.issueNumber}`.includes(query.trim())).map((row) => <li key={row.id}><button aria-pressed={draft?.id===row.id} disabled={busy || saving} onClick={() => open(row)}><strong>{row.serviceDate}</strong><span>{row.issueNumber}호 · {row.status === "draft" ? "초안" : "게시됨"}</span></button></li>)}</ul> : <p className={polish.empty}>등록된 주보가 없습니다.</p>}</aside>:null}
       {view==='settings'?<section id="bulletin-options" className={polish.settings}><div className={ui.heading}><h2>주보 설정</h2><button onClick={()=>setView(settingsReturn)}>돌아가기</button></div><label className={styles.check}><input type="checkbox" checked={showVisibility} onChange={e=>setVisibilityOption(e.target.checked)}/>웹 공개 설정 표시</label></section>:null}
       {view!=='library'&&view!=='settings'?<section>{draft ? <>
-        {printPreview ? <PrintPreview onConfirm={id=>{setDraft(current=>current&&({...current,items:current.items.map(item=>item.id===id?confirmItem(item):item)}));markDirty();}} draft={draft} dirty={dirty} onClose={closePrint} pages={Object.fromEntries(draft.items.filter(item => item.printPage != null).map(item => [item.id, item.printPage!]))} onPagesChange={pages => { if (draft.status !== "draft") return; setDraft(current => current && ({ ...current, items: current.items.map(item => ({ ...item, printPage: pages[item.id] ?? null })) })); markDirty(); }} /> : null}
-        <div id="editor-tools" tabIndex={-1} className={`${ui.flat} ${styles.toolbar} ${styles.editorToolbar} ${polish.toolbar} ${savePaused ? styles.saveWarning : ""}`}><div><div className={styles.compactTitle}><h2>{draft.issueNumber}호 주보</h2>{draft.status==='published'?<span className={polish.readOnly}>게시됨 · 읽기 전용</span>:null}</div>{savePaused?<p role="alert" className={polish.saveError}>자동 저장 중지 · 다시 시도 필요</p>:null}</div><div className={styles.actions}>{view==='detail'?<button disabled={busy||saving} onClick={()=>{if(draft.status==='published'){void changePublication(false);return;}setView('edit');setPreview(false);}}>수정</button>:<button disabled={busy || saving} onClick={() => setPreview(!preview)}>{preview ? "편집으로 돌아가기" : "웹 미리보기"}</button>}<button disabled={busy || saving} onClick={() => setPrintPreview(true)}>인쇄 미리보기</button>{editing?<SaveButton className={styles.primary} disabled={busy || saving || draft.status !== "draft" || (!dirty&&draft.revision>0&&!savePaused)} disabledHint={saving?'저장 중입니다.':draft.status!=='draft'?'게시된 주보는 읽기 전용입니다.':'현재 최신 상태입니다.'} onClick={() => { void save(); }}>{saving ? "저장 중…" : savePaused ? "저장 다시 시도" : "초안 저장"}</SaveButton>:null}</div></div>
+        {printPreview ? <PrintPreview draft={draft} dirty={dirty} onClose={closePrint} pages={Object.fromEntries(draft.items.filter(item => item.printPage != null).map(item => [item.id, item.printPage!]))} onPagesChange={pages => { if (draft.status !== "draft") return; setDraft(current => current && ({ ...current, items: current.items.map(item => ({ ...item, printPage: pages[item.id] ?? null })) })); markDirty(); }} /> : null}
+        <div id="editor-tools" tabIndex={-1} className={`${ui.flat} ${styles.toolbar} ${styles.editorToolbar} ${polish.toolbar} ${savePaused ? styles.saveWarning : ""}`}><div><div className={styles.compactTitle}><h2>{draft.issueNumber}호 주보</h2>{draft.status==='published'?<span className={polish.readOnly}>게시됨 · 읽기 전용</span>:null}</div>{editing&&!preview?<div className={polish.titleMeta}><div className={polish.compactMeta}><div><label htmlFor="bulletin-service-date">예배 날짜</label><DatePicker id="bulletin-service-date" label="예배 날짜" disabled={busy||draft.status!=='draft'} value={draft.serviceDate} onChange={value=>{setDraft(current=>current&&({...current,serviceDate:value}));markDirty();}}/></div><label>호수<input type="number" min="1" step="1" disabled={busy||draft.status!=='draft'} value={draft.issueNumber} onChange={e=>{setDraft(current=>current&&({...current,issueNumber:Number(e.target.value)}));markDirty();}}/></label></div></div>:null}{savePaused?<p role="alert" className={polish.saveError}>자동 저장 중지 · 다시 시도 필요</p>:null}</div><div className={styles.actions}>{editing&&draft.revision===0?<SaveButton className={polish.importPrevious} disabled={busy||saving||!rows.some(row=>row.serviceDate<draft.serviceDate)} disabledHint={busy||saving?'처리 중입니다.':'가져올 지난 주 주보가 없습니다.'} onClick={()=>void importPrevious()}>지난 주 정보 가져오기</SaveButton>:null}{view==='detail'?<button disabled={busy||saving} onClick={()=>{if(draft.status==='published'){void changePublication(false);return;}setView('edit');setPreview(false);}}>수정</button>:<button disabled={busy || saving} onClick={() => setPreview(!preview)}>{preview ? "편집으로 돌아가기" : "웹 미리보기"}</button>}<button disabled={busy || saving} onClick={() => setPrintPreview(true)}>인쇄 미리보기</button>{editing?<SaveButton className={styles.primary} disabled={busy || saving || draft.status !== "draft" || (!dirty&&draft.revision>0&&!savePaused)} disabledHint={saving?'저장 중입니다.':draft.status!=='draft'?'게시된 주보는 읽기 전용입니다.':'현재 최신 상태입니다.'} onClick={() => { void save(); }}>{saving ? "저장 중…" : savePaused ? "저장 다시 시도" : "초안 저장"}</SaveButton>:null}</div></div>
 
 
 
 
         {preview ||view==='detail' ? <section className={`${styles.flatSection} ${polish.section}`}><h2>웹 표시 미리보기</h2><p className={styles.muted}>{draft.status === "published" ? "게시된 주보의 공개 항목입니다." : "현재 화면의 공개 항목만 표시합니다. 아직 웹에 게시되지 않았습니다."}</p><BulletinBlocks items={visibleItems.filter(item=>item.webVisible)} editor idPrefix="edit-item"/></section> :
         <fieldset id="bulletin-fields" tabIndex={-1} disabled={busy || draft.status !== "draft"} className={styles.fields}>
-          <div className={`${ui.flat} ${ui.metaGrid} ${polish.meta}`}><div><label htmlFor="bulletin-service-date">예배 날짜</label><DatePicker id="bulletin-service-date" label="예배 날짜" value={draft.serviceDate} onChange={value => { setDraft((current) => current && ({ ...current, serviceDate: value })); markDirty(); }} /></div><label>호수<input type="number" min="1" step="1" value={draft.issueNumber} onChange={(event) => { const value = Number(event.target.value); setDraft((current) => current && ({ ...current, issueNumber: value })); markDirty(); }} /></label></div>
-          <BulletinForm onRemoveImage={id=>{if(!window.confirm("이 주보에서 이미지 첨부를 해제할까요? 보관함의 원본 이미지는 유지됩니다."))return;setDraft(current=>current&&({...current,items:current.items.filter(item=>item.id!==id||item.kind!=="image")}));markDirty();}} items={visibleItems} groups={groups} showVisibility={showVisibility} onText={updateItem} onContent={(id,content)=>{setDraft(current=>current&&({...current,items:current.items.map(item=>item.id===id?{...item,content,needsReview:JSON.stringify(item.content)===JSON.stringify(content)?item.needsReview:false}:item)}));markDirty();}}
-            coverPicker={<details className={`${ui.options} ${polish.options}`}><summary>이미지 추가</summary><ImagePicker disabled={busy||saving||draft.status!=='draft'||draft.items.length>=100} onAdd={item=>{setDraft(current=>current&&({...current,items:[...current.items,{...item,reviewOnCopy:false}]}));markDirty();}}/></details>}
+
+          <BulletinForm onOrderNews={ids=>{setDraft(current=>{if(!current)return current;const lookup=new Map(current.items.map(item=>[item.id,item]));let at=0;return {...current,items:current.items.map(item=>ids.includes(item.id)?lookup.get(ids[at++])!:item)};});markDirty();}} onAddNews={()=>{setDraft(current=>current&&current.items.length<100?{...current,items:[...current.items,{...createItem({id:crypto.randomUUID(),title:'좋은 소식 · 새 소식'}),printPage:4}]}:current);markDirty();}} onRemoveImage={id=>{if(!window.confirm("이 주보에서 이미지 첨부를 해제할까요? 보관함의 원본 이미지는 유지됩니다."))return;setDraft(current=>current&&({...current,items:current.items.filter(item=>item.id!==id||item.kind!=="image")}));markDirty();}} items={visibleItems} groups={groups} showVisibility={showVisibility} onText={updateItem} onContent={(id,content,body)=>{setDraft(current=>current&&({...current,items:current.items.map(item=>item.id===id?{...item,content,...(body!==undefined?{body}:{}),needsReview:JSON.stringify(item.content)===JSON.stringify(content)?item.needsReview:false}:item)}));markDirty();}}
+            coverPicker={<details className={`${ui.options} ${polish.options} ${polish.coverPicker}`}><summary>이미지 추가</summary><ImagePicker disabled={busy||saving||draft.status!=='draft'||draft.items.length>=100} onAdd={item=>{setDraft(current=>current&&({...current,items:[...current.items,{...item,reviewOnCopy:false}]}));markDirty();}}/></details>}
             newsConnections={<details className={`${ui.options} ${polish.options}`}><summary>공지·일정 연결</summary><CommunityLinks key={draft.id} draft={draft} locked={dirty||busy||saving} onBusy={setBusy} onImported={updated=>{setDraft(updated);setDirty(false);setRows(current=>current.map(row=>row.id===updated.id?updated:row));}}/></details>}/>
         </fieldset>}
-        <section id="publication-check" tabIndex={-1} className={`${styles.flatSection} ${polish.section}`}><div className={styles.compactTitle}><h2>{draft.status === "published" ? "게시된 주보" : "게시 전 확인"}</h2></div>
-          <p>공개 {draft.items.filter((item) => item.webVisible).length}개 · 비공개 {draft.items.filter((item) => !item.webVisible).length}개. 비공개 항목은 웹에 표시되지 않습니다.</p>
-          {draft.status === "draft" ? <><>{draft.items.some(item=>item.needsReview)?<button disabled={busy||saving} onClick={()=>{setDraft(current=>current&&({...current,items:current.items.map(confirmItem)}));markDirty();}}>이번 주 내용 확인 완료</button>:null}</><ul>{publicationIssues(draft).map((issue) => <li key={issue}>{issue}</li>)}</ul><button disabled={busy || saving || dirty || draft.revision === 0 || publicationIssues(draft).length > 0} onClick={() => changePublication(true)}>주보 게시</button></> : <button disabled={busy || saving} onClick={() => changePublication(false)}>게시 취소</button>}
-        </section>
-        <section id="next-copy" tabIndex={-1} className={`${styles.flatSection} ${polish.section}`}><h3>이 주보로 다음 주 준비하기</h3><div className={styles.actions}><div><label htmlFor="bulletin-copy-date">새 주보 날짜</label><DatePicker id="bulletin-copy-date" label="새 주보 날짜" value={copyDate} onChange={setCopyDate} /></div><button onClick={copy} disabled={busy || saving || dirty || draft.revision === 0 || !copyDate}>다음 주 주보 복사</button></div>{dirty || draft.revision === 0 ? <p className={styles.muted}>먼저 현재 주보를 저장해 주세요.</p> : null}</section>
+        <div id="bulletin-publish" tabIndex={-1} className={polish.publishOnly}>{draft.status==='draft'?<SaveButton className={styles.primary} disabled={busy||saving} disabledHint="처리 중입니다." onClick={()=>void changePublication(true)}>게시하기</SaveButton>:<button disabled={busy||saving} onClick={()=>void changePublication(false)}>게시 취소</button>}</div>
       </> : <section className={polish.empty}><p>주보를 선택하거나 새로 작성해 주세요.</p></section>}</section>:null}</div>}
   </main></AdminShell>;
 }

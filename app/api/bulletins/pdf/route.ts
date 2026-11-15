@@ -1,4 +1,4 @@
-import {presentationItems,displayTitle} from "@/lib/bulletin-editor";
+import {renderedItems,displayTitle} from "@/lib/bulletin-editor";
 import { publicClient } from "@/lib/server-access";
 import { publicBulletinPdf } from "@/lib/public-bulletin-pdf";
 
@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     };
     const bulletin = await read();
     if (!bulletin) return Response.json({ error: "게시된 주보를 찾을 수 없습니다." }, { status: 404, headers });
-    const bytes = await publicBulletinPdf({...bulletin,items:presentationItems(bulletin.items).map(item=>({...item,title:displayTitle(item.title)}))}, async id => {
+    const bytes = await publicBulletinPdf({...bulletin,items:renderedItems(bulletin.items).map(item=>({...item,title:displayTitle(item.title)}))}, async id => {
       if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("Invalid image");
       const { data, error } = await client.storage.from("bulletin-images").download(`${id}.webp`);
       if (error || !data) throw new Error("Image unavailable");

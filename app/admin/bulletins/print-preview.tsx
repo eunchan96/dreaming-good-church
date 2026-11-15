@@ -16,10 +16,10 @@ function defaultPage(item: SavedBulletin["items"][number]) {
   return 4;
 }
 const pageTitles = ["표지", "예배", "묵상과 기도", "교회 소식"];
-function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange, onConfirm }: { onConfirm:(id:string)=>void; draft: SavedBulletin; dirty: boolean; onClose: () => void; pages: Record<string, number>; onPagesChange: (pages: Record<string, number>) => void }) {
+function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange }: { draft: SavedBulletin; dirty: boolean; onClose: () => void; pages: Record<string, number>; onPagesChange: (pages: Record<string, number>) => void }) {
   const {fields,settings,settingsStatus,retry}=useChurchContent();
   const schedule=()=>settings.worship_times.map(row=>[timeLabels[row.key],formatWorshipTime(row),'']);
-  const items=presentationItems(draft.items).map(item=>managedSchedule(item)?{...item,content:{rows:schedule()}}:item);
+  const items=presentationItems(draft.items).map(item=>managedSchedule(item)?{...item,content:{...item.content,rows:schedule()}}:item);
   if(!items.some(managedSchedule))items.push({id:'church-managed-schedule',title:'각종 예배 안내',body:'',kind:'worship',content:{rows:schedule()},printPage:2,webVisible:false,reviewOnCopy:false,needsReview:false});
   const root = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState("");
@@ -56,7 +56,7 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange, onCo
   async function print() {
     if(settingsStatus!=="ready"){setMessage("교회 예배시간을 불러온 뒤 인쇄해 주세요.");return;}
     const images = Array.from(root.current?.querySelectorAll("img") ?? []);
-    const expected = items.filter(item => item.kind === "image" && item.content?.assetId).length;
+    const expected = items.filter(item => item.kind === "image" && item.content?.assetId&&!item.content.disabled).length;
     if (images.length !== expected) { setMessage("이미지를 아직 불러오지 못했습니다. 이미지가 모두 표시된 뒤 다시 눌러 주세요."); return; }
     try { await Promise.all(images.map(image => image.decode())); await document.fonts.ready;
       const overflow = checkOverflow(); setOverflowPages(overflow);
@@ -66,7 +66,7 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange, onCo
   }
   return createPortal(<div ref={root} tabIndex={-1} className={`${styles.overlay} ${overflowPages.length ? styles.badLayout : ""}`} role="dialog" aria-modal="true" aria-labelledby="print-title">
     <header className={styles.controls}><div><h2 id="print-title">관리자 인쇄 미리보기</h2><p>웹 비공개 항목을 포함한 전체 {items.length}개 항목입니다. 공개용 PDF가 아닙니다.</p><p>{dirty ? "저장 전 변경을 포함한 현재 화면을 인쇄합니다." : "현재 주보 내용을 인쇄합니다."} A4 가로 반접지 · A5 4면. 겉면 4·1 / 안쪽 2·3입니다.</p><p>면 배치 변경은 초안 저장에 포함됩니다. 첫 저장 전에는 편집 화면에서 초안 저장을 눌러 주세요. 게시된 주보의 배치를 바꾸려면 게시를 취소해 주세요. 실제 인쇄는 A4 가로·배율 100%·여백 없음·머리글/바닥글 끔으로 설정하고 양면 방향은 시험 출력으로 확인하세요.</p></div>
-    <details><summary>항목별 면 배치</summary>{draft.items.filter(item=>item.needsReview).map(item=><div key={item.id}>{item.title}<button disabled={draft.status!=="draft"} onClick={()=>onConfirm(item.id)}>그대로 사용</button></div>)}{presentationItems(draft.items).map(item => <label className={styles.assignment} key={item.id}>{item.title || "주보 항목"} · <span>{item.webVisible ? "웹 공개 · 인쇄 포함" : "웹 비공개 · 인쇄 포함"}</span><select disabled={draft.status !== "draft"} aria-label={`${item.title || "주보 항목"} 인쇄 면`} value={pages[item.id] ?? defaultPage(item)} onChange={event => { onPagesChange({ ...pages, [item.id]: Number(event.target.value) }); setMessage(""); }}>{pageTitles.map((title,index) => <option value={index + 1} key={title}>{index + 1}면 · {title}</option>)}</select></label>)}</details>
+    <details><summary>항목별 면 배치</summary>{presentationItems(draft.items).map(item => <label className={styles.assignment} key={item.id}>{item.title || "주보 항목"} · <span>{item.webVisible ? "웹 공개 · 인쇄 포함" : "웹 비공개 · 인쇄 포함"}</span><select disabled={draft.status !== "draft"} aria-label={`${item.title || "주보 항목"} 인쇄 면`} value={pages[item.id] ?? defaultPage(item)} onChange={event => { onPagesChange({ ...pages, [item.id]: Number(event.target.value) }); setMessage(""); }}>{pageTitles.map((title,index) => <option value={index + 1} key={title}>{index + 1}면 · {title}</option>)}</select></label>)}</details>
     <div>{settingsStatus==="error"?<button onClick={retry}>예배시간 다시 불러오기</button>:null}<button onClick={() => void print()}>인쇄 · PDF로 저장</button><button onClick={onClose}>미리보기 닫기</button></div><p role="status">{overflowPages.length ? `${overflowPages.join("·")}면 넘침: 면 배치를 바꾸거나 내용을 줄여 주세요. 넘친 상태에서는 인쇄하지 않습니다.` : "4면 안에 내용이 들어갑니다."} {message}</p></header>
     <p className={styles.blockedPrint}>내용이 면을 넘쳐 인쇄를 중단했습니다. 미리보기에서 면 배치를 조정한 뒤 다시 인쇄해 주세요.</p>
     <main className={styles.paper}>{[[4,1],[2,3]].map((side,index) => <div className={styles.sheet} key={index} aria-label={index === 0 ? "겉면 4·1" : "안쪽 2·3"}>{side.map(number => <section className={styles.panel} key={number} aria-label={`${number}면`}>

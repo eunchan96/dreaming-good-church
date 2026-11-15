@@ -28,7 +28,7 @@ export function fromRow(row: BulletinRow): SavedBulletin {
         id: item.id, printPage: item.print_page, title: item.title, body: item.body, webVisible: item.web_visible,
         reviewOnCopy: item.review_on_copy, needsReview: item.needs_review,
         // CHECK constraints validate block JSON; generated types cannot express those constraints.
-        ...(item.kind && item.kind !== "text" ? { kind: item.kind as BlockKind, content: item.content as BlockContent } : {}),
+        kind: item.kind as BlockKind, content: item.content as BlockContent,
       })),
   };
 }
