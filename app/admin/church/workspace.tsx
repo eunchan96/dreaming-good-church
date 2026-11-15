@@ -21,7 +21,7 @@ const effectiveField=(field:ChurchField):ChurchField=>({...field,body:field.body
 
 export default function ChurchWorkspace() {
   const [client] = useState(makeBrowserClient);
-  const [allowed, setAllowed] = useState(false), [reload, setReload] = useState(0);
+  const [allowed, setAllowed] = useState(false), [reload, setReload] = useState(0), [view, setView] = useState<'info'|'images'>('info');
   const [fields, setFields] = useState<ChurchField[]>([]), [images, setImages] = useState<BulletinImage[]>([]);
   const [savedFields,setSavedFields]=useState<ChurchField[]>([]), [busy, setBusy] = useState(false), [message, setMessage] = useState("로그인을 확인하고 있습니다…");
   const [infoMessage,setInfoMessage]=useState('');
@@ -105,17 +105,18 @@ export default function ChurchWorkspace() {
   }
   const order=['name','introduction','address','directions','phone','worship'];
   const displayedFields=[...fields].sort((a,b)=>order.indexOf(a.key)-order.indexOf(b.key));
-  const intro=<ManagementHeading id="church-heading" eyebrow="ABOUT OUR CHURCH" title="교회 정보·이미지 관리" description="저장하면 공개 안내에 반영됩니다. 기존 주보의 내용은 바뀌지 않습니다."/>;
-  return <AdminShell active="church" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} sections={[...displayedFields.map(field=>({id:`church-field-${field.key}`,label:churchLabels[field.key]})),...(pagesReady?(Object.keys(defaultPageSettings) as SettingKey[]).map(key=>({id:`page-setting-${key}`,label:settingLabels[key]})):[]),{id:'church-images',label:'이미지 보관함'}]}><main id="admin-content" aria-labelledby="church-heading" tabIndex={-1} className={`${styles.page} ${ui.surface} ${church.surface}`}>
+  const intro=<ManagementHeading id="church-heading" eyebrow="ABOUT OUR CHURCH" title="교회 정보·이미지 관리"/>;
+  return <AdminShell active="church" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} pages={[{id:'info',label:'교회 정보',active:view==='info',onSelect:()=>setView('info'),sections:[...displayedFields.map(field=>({id:`church-field-${field.key}`,label:churchLabels[field.key]})),...(pagesReady?(Object.keys(defaultPageSettings) as SettingKey[]).map(key=>({id:`page-setting-${key}`,label:settingLabels[key]})):[])]},{id:'images',label:'이미지 관리',active:view==='images',onSelect:()=>setView('images'),sections:[{id:'church-images',label:'이미지 보관함'}]}]}><main id="admin-content" aria-labelledby="church-heading" tabIndex={-1} className={`${styles.page} ${ui.surface} ${church.surface}`}>
     {allowed&&message?<p data-page-message role="status" className={`${styles.message} ${ui.feedback}`}>{message}</p>:null}{!allowed ? <ReauthPanel message={message} hasDraft={unsaved} onRetry={()=>{setMessage('로그인 상태를 확인하고 있습니다…');setReload(n=>n+1);}}/> : <>
-      <section id="church-info" aria-label="교회 안내" className={church.section}><SectionHeading title="교회 안내" dirty={infoDirty} busy={busy} onSave={()=>void saveInfo()} onReload={()=>void reloadInfo()} saveLabel="교회 안내 저장" reloadLabel="교회 안내 다시 불러오기"/>
+      {view==='info'?<><section id="church-info" aria-label="교회 안내" className={church.section}><SectionHeading title="교회 안내" dirty={infoDirty} busy={busy} onSave={()=>void saveInfo()} onReload={()=>void reloadInfo()} saveLabel="교회 안내 저장" reloadLabel="교회 안내 다시 불러오기"/>
       {infoMessage?<p role="status" className={`${ui.feedback} ${church.feedback}`}>{infoMessage}</p>:null}<fieldset disabled={busy} className={styles.fields}>
         {displayedFields.map(field=><section key={field.key} id={`church-field-${field.key}`} tabIndex={-1} aria-label={`${churchLabels[field.key]} 편집`} className={`${ui.infoField} ${church.infoField}`}><div className={`${ui.infoLabel} ${church.infoLabel}`}><label htmlFor={`church-${field.key}`}>{churchLabels[field.key]}</label></div><div className={ui.infoControl}>
         <textarea id={`church-${field.key}`} rows={field.key==='introduction'?5:field.key==='directions'||field.key==='worship'?3:1} maxLength={10000} placeholder={defaultInfo[field.key]||''} value={field.body} onChange={e=>{const value=e.target.value;setFields(current=>current.map(row=>row.key===field.key?{...row,body:value}:row));setInfoMessage('');}}/>
 </div></section>)}
       </fieldset></section>
       {pagesReady?<PageSettingsEditor value={pages} saved={savedPages} busy={busy} messages={pageMessages} onChange={(key,payload)=>{setPages(current=>({...current,[key]:payload}));setPageMessages(current=>({...current,[key]:''}));}} onSave={key=>void saveGroup(key)} onReload={key=>void reloadGroup(key)}/>:<section className={ui.flat}><p role="status">예배시간·계좌·지도 설정을 불러오지 못했습니다. 기존 정보는 계속 편집할 수 있습니다.</p><button onClick={()=>setReload(n=>n+1)}>페이지 설정 다시 확인</button></section>}
-      <section id="church-images" tabIndex={-1} className={church.section}><ImageLibrary images={images} busy={busy} file={file} title={title} alt={alt} fileInput={fileInput} onTitle={setTitle} onAlt={setAlt} onFile={setFile} onUpload={()=>void imageRequest('POST')} onDelete={id=>void imageRequest('DELETE',id)} onRefresh={()=>void refreshImages().catch(()=>setMessage('이미지 목록을 불러오지 못했습니다.'))} onCancel={()=>{setFile(null);setTitle('');setAlt('');if(fileInput.current)fileInput.current.value='';}}/>
-      </section></>}
+      </>:null}
+      {view==='images'?<section id="church-images" tabIndex={-1} className={church.section}><ImageLibrary images={images} busy={busy} file={file} title={title} alt={alt} fileInput={fileInput} onTitle={setTitle} onAlt={setAlt} onFile={setFile} onUpload={()=>void imageRequest('POST')} onDelete={id=>void imageRequest('DELETE',id)} onRefresh={()=>void refreshImages().catch(()=>setMessage('이미지 목록을 불러오지 못했습니다.'))} onCancel={()=>{setFile(null);setTitle('');setAlt('');if(fileInput.current)fileInput.current.value='';}}/>
+      </section>:null}</>}
   </main></AdminShell>;
 }

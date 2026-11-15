@@ -14,3 +14,12 @@
 .row[data-disabled=true] .content{opacity:.5}
 .editor textarea{background:#fff;border-radius:6px}
 @media(max-width:700px){.editor .add{margin:0}}
+
+/* Even rhythm with the other sections; tag column fits 〈기도･안내〉 */
+.row{margin:8px 0;grid-template-columns:24px 104px minmax(0,1fr);align-items:start}
+.name{white-space:nowrap}
+.name{min-height:40px;font-size:14px}
+.editor .guide textarea{min-height:0!important;height:auto;padding:6px 3px;line-height:1.45;display:block}
+.guide td{vertical-align:middle}
+.guide th{vertical-align:middle}
+@media(max-width:700px){.row{grid-template-columns:22px minmax(0,1fr);margin:6px 0}}

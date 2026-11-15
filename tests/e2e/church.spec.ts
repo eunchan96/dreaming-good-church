@@ -42,6 +42,7 @@ test("edit church info, upload normalized private image, attach/publish and prot
     const publicName=(await publicInfo.json()).fields.find((f:{key:string})=>f.key==='name');expect(publicName.body).toBe('검증용 교회 안내');
     const reader=await context.newPage();await reader.goto('/church');await expect(reader.getByRole('main').getByText('검증용 교회 안내',{exact:true})).toBeVisible();
     const pixels = await sharp({ create: { width: 3000, height: 1500, channels: 3, background: "#008040" } }).png().toBuffer();
+    await manager.getByRole("navigation",{name:"페이지 메뉴"}).getByRole("button",{name:"이미지 관리",exact:true}).click();
     await manager.getByRole("button",{name:"+ 이미지 추가",exact:true}).click();
     await manager.getByLabel("이미지 제목", { exact: true }).fill("검증용 주보 표지");
     await manager.getByLabel("이미지 설명 (대체텍스트)", { exact: true }).fill("초록색 표지 이미지");

@@ -20,3 +20,7 @@
 .surface .group .useToggle.useToggle{margin-left:auto}
 
 .entryTools{width:94px;justify-content:flex-start}.surface .entry:has(.entryTools)>.coverLines,.surface .entry>.contentOnly,.surface .entry>.labeled{max-width:calc(100% - 94px)}.surface .coverLines{max-width:min(560px,calc(100% - 94px))!important}@media(max-width:700px){.surface .entry>.labeled,.surface .entry>.contentOnly,.surface .entry:has(.entryTools)>.coverLines{max-width:100%!important}}
+
+/* One input look everywhere in the bulletin editor */
+.surface.surface :is(textarea, input:not([type=checkbox]):not([type=radio]):not([type=search])) { background: #fff; border: 1px solid #d9cfbd; border-radius: 6px; }
+.surface.surface :is(textarea, input:not([type=checkbox]):not([type=radio])):focus { border-color: #b39148; box-shadow: 0 0 0 3px #efe3c6; outline: none; }

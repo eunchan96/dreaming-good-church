@@ -12,10 +12,11 @@ test("reader supports section jumps and month history at desktop and mobile widt
   });
   await page.goto("/bulletins", { waitUntil: "domcontentloaded" });
   const contents = page.getByRole("navigation", { name: "주보 구역 바로가기" });
-  await expect(contents.getByRole("link", { name: /이번 주 말씀/ })).toBeVisible();
+  await expect(contents.getByRole("link", { name: "좋은 소식" })).toBeVisible();
   await expect(page.getByRole("button", { name: "2026-10-25 · 1호" })).not.toBeVisible();
-  await contents.getByRole("link", { name: /이번 주 말씀/ }).click();
-  await expect(page.locator("#bulletin-item-new-second")).toBeFocused();
+  await contents.getByRole("link", { name: "좋은 소식" }).click();
+  await expect(page.locator("#bulletin-section-6")).toBeFocused();
+  await expect(page.locator("#bulletin-section-6")).toContainText("말씀 본문입니다.");
   await page.getByText("지난 주보 보기", { exact: false }).click();
   await page.getByLabel("주보 발행 월").fill("2026-10");
   await expect(page.getByRole("button", { name: "2026-11-08 · 2호" })).toHaveCount(0);
@@ -23,7 +24,7 @@ test("reader supports section jumps and month history at desktop and mobile widt
   await expect(page.getByRole("heading", { name: "2026-10-25 · 1호" })).toBeVisible();
   await page.getByRole("button", { name: "2026-10-25 · 1호" }).click();
   await expect(page.getByRole("heading", { name: "2026-10-25 · 1호" })).toBeVisible();
-  await expect(contents.locator('a[href="#bulletin-item-new-second"]')).toHaveCount(0);
+  await expect(contents.getByRole("link", { name: "예배 순서" })).toBeVisible();
   await page.getByLabel("주보 발행 월").fill("2025-01");
   await expect(page.getByText("선택한 범위에 표시할 주보가 없습니다.")).toBeVisible();
   for (const width of [1440, 768, 390, 320]) {

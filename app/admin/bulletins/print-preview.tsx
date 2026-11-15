@@ -11,7 +11,9 @@ import {managedSchedule,presentationItems,sectionFor,isPrayerGuide,displayTitle,
 import {formatWorshipTime,timeLabels} from "@/lib/church-page-settings";
 import styles from "./print-preview.module.css";
 
+/** 헌금 내역 always prints on 4면, like the Word bulletin. */
 function defaultPage(item: SavedBulletin["items"][number]) {
+  if (item.kind === "offering") return 4;
   if (sectionFor(item)==="표지") return 1;
   if (isPrayerGuide(item)) return 4;
   if (item.kind === "sermon" || item.kind === "worship") return 2;
@@ -72,11 +74,12 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
     const panels=Array.from(root.current?.querySelectorAll<HTMLElement>('[data-print-panel]')??[]);
     const heights=new Map(panels.map(node=>[Number(node.dataset.printPanel),{used:node.querySelector<HTMLElement>('[data-print-content]')?.scrollHeight??0,available:node.clientHeight}]));
     const next={...pages};let moved=0;
-    const candidates=items.filter(item=>item.kind==='offering'||item.kind==='sermon').sort((a,b)=>Number(b.kind==='offering')-Number(a.kind==='offering'));
-    for(const item of candidates){const from=next[item.id]??defaultPage(item),current=heights.get(from);if(!current||current.used<=current.available)continue;
-      const node=root.current?.querySelector<HTMLElement>(`[data-print-item="${item.id}"]`);if(!node)continue;const height=node.offsetHeight+2;
+    // 헌금 내역 stays on 4면; 좋은 소식 moves as one block, sermons individually.
+    const news=items.filter(isNewsItem),candidates=[...(news.length?[{ids:news.map(item=>item.id),node:root.current?.querySelector<HTMLElement>('[data-print-group="news"]'),item:news[0]}]:[]),...items.filter(item=>item.kind==='sermon').map(item=>({ids:[item.id],node:root.current?.querySelector<HTMLElement>(`[data-print-item="${item.id}"]`),item}))];
+    for(const {ids,node,item} of candidates){const from=next[item.id]??defaultPage(item),current=heights.get(from);if(!node||!current||current.used<=current.available)continue;
+      const height=node.offsetHeight+2;
       const target=[2,3,4].filter(number=>number!==from).sort((a,b)=>heights.get(a)!.used-heights.get(b)!.used).find(number=>heights.get(number)!.used+height<=heights.get(number)!.available);
-      if(target){next[item.id]=target;current.used-=height;heights.get(target)!.used+=height;moved++;}
+      if(target){ids.forEach(id=>{next[id]=target;});current.used-=height;heights.get(target)!.used+=height;moved++;}
     }
     if(moved){onPagesChange(next);setMessage('내용을 보존하며 지면 배치를 정리했습니다.');}else setMessage('이동할 여유 지면이 없습니다. 글자 크기나 면 배치를 조절해 주세요.');
   }
@@ -91,9 +94,10 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
       setMessage(""); window.print(); }
     catch { setMessage("이미지를 확인하지 못했습니다. 연결을 확인하고 다시 시도해 주세요."); }
   }
+  const pageOf = (item: BulletinItem) => item.kind === "offering" ? 4 : (pages[item.id] ?? defaultPage(item));
   const sides = [{ label: "바깥면", pages: [4, 1] }, { label: "안쪽면", pages: [2, 3] }];
   // 좋은 소식 entries move together in the layout panel.
-  const layoutRows = [...presentationItems(draft.items).filter(item=>!isNewsItem(item)).map(item=>({ id:item.id, label:displayTitle(item.title)||"주보 항목", ids:[item.id], item })), ...(draft.items.some(isNewsItem)?[{ id:"news", label:"좋은 소식", ids:draft.items.filter(isNewsItem).map(item=>item.id), item:draft.items.find(isNewsItem)! }]:[])];
+  const layoutRows = [...presentationItems(draft.items).filter(item=>!isNewsItem(item)&&item.kind!=="offering").map(item=>({ id:item.id, label:displayTitle(item.title)||"주보 항목", ids:[item.id], item })), ...(draft.items.some(isNewsItem)?[{ id:"news", label:"좋은 소식", ids:draft.items.filter(isNewsItem).map(item=>item.id), item:draft.items.find(isNewsItem)! }]:[])];
   const editable = draft.status === "draft";
   return createPortal(<PrintEditorProvider bulletinId={draft.id} editable={editable} onReplace={item=>{if(draft.status==="draft"&&draft.items.some(original=>original.id===item.id))onReplace(item);}}><div ref={root} tabIndex={-1} className={`${styles.overlay} ${overflowPages.length ? styles.badLayout : ""}`} role="dialog" aria-modal="true" aria-label="관리자 인쇄 미리보기">
     <header className={styles.topbar}>
@@ -115,7 +119,7 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
           <p className={styles.sheetLabel}>{side.label}</p>
           <div className={styles.sheet} data-sheet aria-label={side.label}>{side.pages.map(number => <section className={styles.panel} key={number} aria-label={`${number}면`} data-page={number} data-overflow={overflowPages.includes(number)}>
             <div className={styles.panelBody} data-print-panel={number}><div data-print-content className={styles.panelContent}>
-              <PaperBlocks items={items.filter(item=>(pages[item.id]??defaultPage(item))===number)} meta={draft}
+              <PaperBlocks items={items.filter(item=>pageOf(item)===number)} meta={draft}
                 memo={number===3?<Memo item={draft.items.find(item=>item.title.trim()==="메모")}/>:undefined}
 />
             </div>{number===4?<div className={styles.panelFooter}><ChurchInfo item={draft.items.find(item=>item.title.trim()==="교회 안내")} name={fields?.name||"꿈꾸는좋은교회"} address={fields?.address||CHURCH_ADDRESS} phone={fields?.phone||CHURCH_PHONE}/></div>:null}</div>
@@ -124,7 +128,7 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
       </div>
       {panel ? <aside id="print-layout-panel" className={styles.side} aria-label="면 배치">
         <div className={styles.sideHead}><h3>면 배치</h3><button type="button" className={styles.iconButton} aria-label="면 배치 닫기" onClick={() => setPanel(false)}>×</button></div>
-        {pageTitles.map((title, index) => { const number = index + 1; const entries = layoutRows.filter(row => (pages[row.item.id] ?? defaultPage(row.item)) === number); return <section key={title} className={styles.sideGroup}>
+        {pageTitles.map((title, index) => { const number = index + 1; const entries = layoutRows.filter(row => pageOf(row.item) === number); return <section key={title} className={styles.sideGroup}>
           <h4>{title}{overflowPages.includes(number) ? <span className={styles.warn}>넘침</span> : null}</h4>
           {entries.length ? entries.map(row => <label className={styles.assignment} key={row.id}><span>{row.label}</span><select disabled={!editable} aria-label={`${row.label} 인쇄 면`} value={pages[row.item.id]??defaultPage(row.item)} onChange={event=>{const value=Number(event.target.value);onPagesChange({...pages,...Object.fromEntries(row.ids.map(id=>[id,value]))});setMessage("");}}>{pageTitles.map((option,i)=><option value={i+1} key={option}>{option}</option>)}</select></label>) : <p className={styles.sideEmpty}>배치된 항목 없음</p>}
         </section>; })}

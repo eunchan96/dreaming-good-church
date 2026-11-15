@@ -172,7 +172,7 @@ export default function BulletinWorkspace() {
     setBusy(true);setMessage('');
     try{const fresh=await loadBulletins(client);setRows(fresh);const source=fresh.filter(row=>row.serviceDate<draft.serviceDate).sort((a,b)=>b.serviceDate.localeCompare(a.serviceDate))[0];
       if(!source){setMessage('가져올 지난 주 주보가 없습니다.');return;}
-      const copied={...copyBulletin(source,{id:draft.id,serviceDate:draft.serviceDate,issueNumber:draft.issueNumber},()=>crypto.randomUUID()),revision:0};
+      const base=copyBulletin(source,{id:draft.id,serviceDate:draft.serviceDate,issueNumber:draft.issueNumber},()=>crypto.randomUUID());const copied={...base,items:base.items.map(tidyOrder),revision:0};
       setDraft(copied);setGroups(Object.fromEntries(copied.items.map(item=>[item.id,sectionFor(item)])));initialItems.current=JSON.stringify(copied.items);markDirty();setSavePaused(false);setMessage('지난 주 정보를 가져왔습니다.');
     }catch(error){setMessage(errorMessage(error));}finally{setBusy(false);}
   }
@@ -249,13 +249,12 @@ export default function BulletinWorkspace() {
   const saveState=!draft?null:draft.status!=='draft'?{state:'saved',text:'게시됨 · 읽기 전용'}:saving?{state:'pending',text:'저장 중…'}:savePaused?{state:'error',text:'자동 저장 중지 · 다시 시도 필요'}:draft.revision===0?{state:'pending',text:'아직 저장하지 않은 새 주보'}:dirty?{state:'pending',text:'변경 사항 저장 대기'}:{state:'saved',text:'모든 변경 사항 저장됨'};
   const statusPill=(status:SavedBulletin['status'])=><span className={view_.pill} data-status={status}>{status==='draft'?'초안':'게시됨'}</span>;
   const reader=draft?<>
-    {view!=='detail'?<p className={view_.readerNote}>홈페이지에 공개되는 모습입니다. 웹 비공개 항목은 표시되지 않습니다.</p>:null}
     <section className={`${polish.reader} ${view_.reader}`} aria-label="주보 상세 내용">
       {webItems.some(item=>sectionFor(item)==='표지')?null:<header className={view_.readerHead}><span>꿈꾸는좋은교회 · 주일 주보</span><h3>{draft.issueNumber}호 주보</h3><p>{longDate(draft.serviceDate)}</p></header>}
       {webItems.length?<PrintEditorProvider bulletinId={draft.id} editable={false} plain onReplace={()=>{}}><PaperView items={webItems} meta={draft} sectionIdPrefix="detail-section"/></PrintEditorProvider>:<p className={view_.empty}>웹에 공개할 내용이 아직 없습니다.</p>}
     </section></>:null;
 
-  return <AdminShell active="bulletins" intro={session==='editor'||session==='denied'?<ManagementHeading id="bulletin-heading" eyebrow="WEEKLY BULLETIN" title="주보 관리" description={view==='library'?'매주 주보를 작성하고 홈페이지에 게시합니다.':undefined}/>:undefined} authenticated={session === 'editor'} canLeave={mayLeave} onLogout={session === 'editor' || session === 'denied' ? logout : undefined} busy={locked} pages={pages}><main id="admin-content" tabIndex={-1} aria-labelledby={session==='editor'||session==='denied'?'bulletin-heading':undefined} className={`${styles.page} ${session==='editor'||session==='denied'?`${ui.surface} ${polish.surface} ${view_.view}`:''}`}>
+  return <AdminShell active="bulletins" intro={session==='editor'||session==='denied'?<ManagementHeading id="bulletin-heading" eyebrow="WEEKLY BULLETIN" title="주보 관리"/>:undefined} authenticated={session === 'editor'} canLeave={mayLeave} onLogout={session === 'editor' || session === 'denied' ? logout : undefined} busy={locked} pages={pages}><main id="admin-content" tabIndex={-1} aria-labelledby={session==='editor'||session==='denied'?'bulletin-heading':undefined} className={`${styles.page} ${session==='editor'||session==='denied'?`${ui.surface} ${polish.surface} ${view_.view}`:''}`}>
     {!client ? <section className={styles.card}>서비스 연결 설정이 필요합니다. 관리자에게 문의해 주세요.</section> : session === "loading" ? <p>로그인 상태를 확인하고 있습니다…</p> : session === "login" ?
       <div className={styles.authLayout}><section className={styles.authStory}><span className={styles.eyebrow}>WELCOME TO CHURCH WORKSPACE</span><h1>함께 준비하는 예배,<br /><em>함께 나누는 소식.</em></h1><p>교회의 한 주를 차분히 준비하는 공간입니다.<br />주보와 소식, 교회 안내를 이곳에서 관리하세요.</p><div className={styles.authDecoration} aria-hidden="true"><span>+</span>FAITH · HOPE · LOVE</div></section><form action={login} className={`${styles.card} ${styles.login}`}><h2>관리자 로그인</h2><p>등록된 편집 계정으로 로그인해 주세요.</p><label>이메일<input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} required disabled={locked} /></label><PasswordField label="비밀번호" name="password" autoComplete="current-password" required disabled={locked} /><p role="status" aria-live="polite" className={styles.message}>{message}</p><button className={styles.primary} disabled={locked}>{busy ? "확인 중…" : "로그인"}</button><p className={styles.loginHint}>초대받은 운영자만 사용할 수 있습니다.<br />비밀번호를 잊으셨다면 계정 관리 담당자에게 재설정 링크를 요청해 주세요.</p></form></div>
     : session === "denied" ? <><p role="status" aria-live="polite" className={view_.message}>{message}</p><section className={styles.card}><h2>편집 권한이 필요합니다</h2><p>로그인한 계정이 교회 편집자로 등록되지 않았습니다. 관리자에게 등록을 요청해 주세요.</p></section></>
@@ -268,7 +267,7 @@ export default function BulletinWorkspace() {
           :<div className={`${view_.list} ${view_.empty}`}>{rows.length?'검색 결과가 없습니다.':'등록된 주보가 없습니다. 새 주보를 작성해 보세요.'}</div>}
       </section>:null}
 
-      {view==='settings'?<section id="bulletin-options" aria-labelledby="bulletin-options-title"><div className={view_.cardHead}><h2 id="bulletin-options-title">주보 설정</h2><div className={view_.headActions}><button type="button" className={`${view_.btn} ${view_.ghost}`} onClick={library}>← 주보 목록</button><SaveButton className={`${view_.btn} ${view_.primary}`} disabled={visibilityDraft===showVisibility&&connectionsDraft===showConnections} disabledHint="현재 최신 상태입니다." onClick={()=>{setVisibilityOption(visibilityDraft);setConnectionsOption(connectionsDraft);setMessage("주보 설정을 저장했습니다.");}}>저장</SaveButton></div></div><div className={view_.settings}><label className={styles.check}><input type="checkbox" checked={visibilityDraft} onChange={e=>setVisibilityDraft(e.target.checked)}/>웹 공개 설정 표시</label><label className={styles.check}><input type="checkbox" checked={connectionsDraft} onChange={e=>setConnectionsDraft(e.target.checked)}/>공지·일정 연결 표시</label></div><p className={view_.settingsNote}>이 브라우저의 편집 화면에만 적용됩니다.</p></section>:null}
+      {view==='settings'?<section id="bulletin-options" aria-labelledby="bulletin-options-title"><div className={view_.cardHead}><h2 id="bulletin-options-title">주보 설정</h2><div className={view_.headActions}><button type="button" className={`${view_.btn} ${view_.ghost}`} onClick={library}>← 주보 목록</button><SaveButton className={`${view_.btn} ${view_.primary}`} disabled={visibilityDraft===showVisibility&&connectionsDraft===showConnections} disabledHint="현재 최신 상태입니다." onClick={()=>{setVisibilityOption(visibilityDraft);setConnectionsOption(connectionsDraft);setMessage("주보 설정을 저장했습니다.");}}>저장</SaveButton></div></div><div className={view_.settings}><label className={styles.check}><input type="checkbox" checked={visibilityDraft} onChange={e=>setVisibilityDraft(e.target.checked)}/>웹 공개 설정 표시</label><label className={styles.check}><input type="checkbox" checked={connectionsDraft} onChange={e=>setConnectionsDraft(e.target.checked)}/>공지·일정 연결 표시</label></div></section>:null}
 
       {view!=='library'&&view!=='settings'?(draft?<>
         {printPreview ? <PrintPreview onReplace={item=>{if(draft.status!=="draft"||busy)return;setDraft(current=>current&&({...current,items:current.items.map(original=>original.id===item.id?item:original)}));markDirty();}} draft={draft} dirty={dirty} onClose={closePrint} pages={Object.fromEntries(draft.items.filter(item => item.printPage != null).map(item => [item.id, item.printPage!]))} onPagesChange={pages => { if (draft.status !== "draft") return; setDraft(current => current && ({ ...current, items: current.items.map(item => ({ ...item, printPage: pages[item.id] ?? null })) })); markDirty(); }} /> : null}
@@ -308,6 +307,12 @@ export default function BulletinWorkspace() {
       </>:<section className={view_.empty}><p>주보를 선택하거나 새로 작성해 주세요.</p></section>):null}
     </>}
   </main></AdminShell>;
+}
+
+/** The offering line is a fixed phrase without a trailing period. */
+function tidyOrder(item:BulletinItem):BulletinItem{
+  if(item.kind!=='worship'||!item.content?.rows)return item;
+  return {...item,content:{...item.content,rows:item.content.rows.map(row=>/헌금함에 하시면 됩니다\.$/.test(row[1]??'')?[row[0],row[1].replace(/\.$/,''),...row.slice(2)]:row)}};
 }
 
 const weekdays=['일','월','화','수','목','금','토'];

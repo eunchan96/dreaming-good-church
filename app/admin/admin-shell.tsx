@@ -30,14 +30,21 @@ function SectionLinks({ sections, onPick }: { sections: ContentsSection[]; onPic
   return <>{sections.map(section => <a key={section.id} href={`#${section.id}`} data-child={section.group ? true : undefined} onClick={event => onPick(section.id, event)}>{section.label}</a>)}</>;
 }
 
+function TocLinks({ toc, onPick }: { toc: ContentsSection[]; onPick: (id: string, event: MouseEvent<HTMLAnchorElement>) => void }) {
+  return <>{toc.map((section, index) => <div key={section.id} className={styles.tocItem}>
+    {section.group && section.group !== toc[index - 1]?.group ? <p className={styles.tocGroup}>{section.group}</p> : null}
+    <SectionLinks sections={[section]} onPick={onPick} />
+  </div>)}</>;
+}
+
 export default function AdminShell({ children, intro, active, authenticated = false, canLeave = () => true, onLogout, busy = false, sections = [], pages = [] }: { children: ReactNode; intro?: ReactNode; active: 'bulletins' | 'community' | 'church' | 'account' | 'worship' | 'home'; authenticated?: boolean; canLeave?: () => boolean; onLogout?: () => void | Promise<void>; busy?: boolean; sections?: ContentsSection[]; pages?: WorkspacePage[] }) {
   const [menu, setMenu] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
   const activePage = pages.find(page => page.active);
   const toc = activePage ? activePage.sections : sections;
-  const closeDetails = (node: HTMLElement) => node.closest('details')?.removeAttribute('open');
-  const pick = (id: string, event: MouseEvent<HTMLAnchorElement>) => { event.preventDefault(); closeDetails(event.currentTarget); if (!busy) focusSection(id); };
-  return <div className={styles.shell} data-auth={authenticated} onKeyDown={e => { if (e.key === 'Escape' && menu) { setMenu(false); menuButton.current?.focus(); } }}>
+  const [tocOpen, setTocOpen] = useState(false);
+  const pick = (id: string, event: MouseEvent<HTMLAnchorElement>) => { event.preventDefault(); setTocOpen(false); if (!busy) focusSection(id); };
+  return <div className={styles.shell} data-auth={authenticated} onKeyDown={e => { if (e.key !== 'Escape') return; setTocOpen(false); if (menu) { setMenu(false); menuButton.current?.focus(); } }}>
     <a className={styles.skip} href="#admin-content">본문으로 바로가기</a>
     <header className={styles.header}><div className={styles.headerInner}>
       <a href="/" target="_blank" rel="noreferrer" className={styles.brand} title="홈페이지 새 탭에서 열기"><ChurchBrand /><span className={styles.badge}>관리</span></a>
@@ -51,27 +58,18 @@ export default function AdminShell({ children, intro, active, authenticated = fa
       </div>
     </div></header>
     {intro ? <section aria-label="페이지 제목" className={styles.titleBar}>{intro}</section> : null}
-    {authenticated && pages.length ? <nav className={styles.tabs} aria-label="페이지 메뉴">
-      {pages.map(page => <button key={page.id} type="button" aria-current={page.active ? 'page' : undefined} disabled={busy} onClick={() => { if (!page.active) page.onSelect(); }}>{page.label}</button>)}
+    {authenticated && (pages.length || toc.length > 1) ? <nav className={styles.tabs} aria-label="페이지 메뉴">
+      {(pages.length ? pages : [{ id: 'contents', label: '목차', active: true, onSelect: () => {}, sections }]).map(page => {
+        const menu = page.active && toc.length > 1;
+        return <div key={page.id} className={styles.tabItem} data-menu={menu} data-virtual={!pages.length} data-open={menu && tocOpen} onMouseLeave={() => setTocOpen(false)}>
+          <button type="button" aria-current={page.active && pages.length ? 'page' : undefined} aria-expanded={menu ? tocOpen : undefined} aria-controls={menu ? 'admin-toc-menu' : undefined} disabled={busy} onClick={() => { if (!page.active) page.onSelect(); else if (menu) setTocOpen(!tocOpen); }}>{page.label}{menu ? <SiteIcon name="chevron" size={12} /> : null}</button>
+          {menu ? <nav id="admin-toc-menu" className={styles.tocMenu} aria-label="빠른 이동 선택"><TocLinks toc={toc} onPick={pick} /></nav> : null}
+        </div>;
+      })}
     </nav> : null}
-    <div className={styles.layout} data-sidebar={authenticated && toc.length > 0}>
-      {authenticated && toc.length ? <aside className={styles.sidebar} aria-label="빠른 이동">
-        <nav className={styles.desktopContents} aria-label="페이지 목차">
-          <p className={styles.tocLabel}>빠른 이동</p>
-          {toc.map((section, index) => <div key={section.id} className={styles.tocItem}>
-            {section.group && section.group !== toc[index - 1]?.group ? <p className={styles.tocGroup}>{section.group}</p> : null}
-            <SectionLinks sections={[section]} onPick={pick} />
-          </div>)}
-        </nav>
-        <details className={styles.mobileContents}>
-          <summary>빠른 이동 <span>{activePage?.label ?? '목차'}</span></summary>
-          <nav aria-label="빠른 이동 선택">
-            {toc.map((section, index) => <div key={section.id}>
-              {section.group && section.group !== toc[index - 1]?.group ? <p className={styles.tocGroup}>{section.group}</p> : null}
-              <SectionLinks sections={[section]} onPick={pick} />
-            </div>)}
-          </nav>
-        </details>
+    <div className={styles.layout} data-sidebar={authenticated && toc.length > 1}>
+      {authenticated && toc.length > 1 ? <aside className={styles.sidebar} aria-label="빠른 이동">
+        <nav className={styles.desktopContents} aria-label="페이지 목차"><TocLinks toc={toc} onPick={pick} /></nav>
       </aside> : null}
       <div className={styles.content}>{children}</div>
     </div>

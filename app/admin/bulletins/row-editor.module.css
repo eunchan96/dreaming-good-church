@@ -15,10 +15,10 @@
 .cells[data-columns="2"] { grid-template-columns: 140px minmax(0, 1fr); }
 .name, .cell, .person { min-width: 0; }
 .editor.editor.editor textarea { display: block; width: 100%; min-width: 0; min-height: var(--cell); height: var(--cell); margin: 0; padding: 5px 10px; font: inherit; font-size: 15px; line-height: 1.5; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
-.editor.editor.editor .underlined { border: 0; border-bottom: 1px solid #c8b58f; border-radius: 0; background: transparent; padding-inline: 4px; }
+.editor.editor.editor.editor .underlined { border: 0; border-bottom: 1px solid #c8b58f; border-radius: 0; background: transparent; padding-inline: 4px; }
 
 /* Liturgy row: name ……… content ……… person (like the Word bulletin) */
-.liturgy { display: grid; grid-template-columns: 110px minmax(0, 1fr) minmax(96px, max-content); align-items: center; gap: 0; min-width: 0; }
+.liturgy { display: grid; grid-template-columns: 110px minmax(0, 1fr) 132px; align-items: center; gap: 0; min-width: 0; }
 .liturgy .name { padding-right: 6px; }
 .liturgy .person { padding-left: 6px; }
 .leader { position: relative; display: flex; align-items: center; min-width: 0; height: var(--cell); }
@@ -111,3 +111,8 @@
 :is(.liturgy, .full, .footer) .editLink:hover { background: #ece2cd !important; }
 .liturgy .person .editLink { left: auto; right: 100%; margin: 0 2px 0 0; }
 @media (max-width: 700px) { :is(.liturgy, .full, .footer) .editLink { position: static; transform: none; margin: 0; } }
+
+/* Person column: box and fixed text share one left edge */
+.liturgy .person .editable { padding-left: 0; }
+.liturgy .person .editable:hover, .liturgy .person .editable:focus-within { background: transparent; }
+.liturgy .person .fit > input.fitInput { padding-left: 8px; }

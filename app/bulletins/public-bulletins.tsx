@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import BulletinBlocks from "../admin/bulletins/grouped-blocks";
-import {printOnlyItem,presentationItems,displayTitle} from '@/lib/bulletin-editor';
+import {PaperView} from "../admin/bulletins/paper";
+import {PrintEditorProvider} from "../admin/bulletins/print-editor";
+import {printOnlyItem,presentationItems,bulletinSections,sectionFor,renderedItems} from '@/lib/bulletin-editor';
 import type { BulletinItem } from "@/lib/bulletins";
 import styles from "./reader.module.css";
 import PublicPdfDownload from "./public-pdf-download";
@@ -99,7 +100,7 @@ export default function PublicBulletins({ initialDate }: { initialDate?: string 
     {message ? <p role="status" className={styles.message}>{message}</p> : null}
     {failed ? <button onClick={() => setRetry(value => value + 1)}>다시 불러오기</button> : null}
     {bulletin ? <div className={styles.reading}>
-      <nav aria-label="주보 구역 바로가기" className={styles.contents}><h2>주보 목차</h2><ul>{bulletin.items.map((item, index) => <li key={item.id}><a href={`#bulletin-item-${item.id}`}>{String(index + 1).padStart(2, "0")} · {displayTitle(item.title) || "주보 항목"}</a></li>)}</ul><a href="#public-content">맨 위로 ↑</a></nav>
+      <nav aria-label="주보 구역 바로가기" className={styles.contents}><h2>주보 목차</h2><ul>{bulletinSections.flatMap((section, index) => renderedItems(bulletin.items).some(item => sectionFor(item) === section) ? [<li key={section}><a href={`#bulletin-section-${index}`}>{section}</a></li>] : [])}</ul><a href="#public-content">맨 위로 ↑</a></nav>
       <section className={styles.paper} aria-label="선택한 주보"><h2>{bulletin.service_date} · {bulletin.issue_number}호</h2>
         <div><a href={`/bulletins/${bulletin.service_date}`}>이 주보의 고유 주소</a> · <button onClick={async () => {
           const url = new URL(`/bulletins/${bulletin.service_date}`, window.location.origin).href;
@@ -108,7 +109,7 @@ export default function PublicBulletins({ initialDate }: { initialDate?: string 
         }}>링크 복사</button><p role="status">{copyMessage}</p></div>
         <PublicPdfDownload key={bulletin.id} date={bulletin.service_date} />
         {!bulletin.items.length ? <p>웹에 공개된 주보 항목이 없습니다.</p> : null}
-        <BulletinBlocks items={bulletin.items} className={styles.block}/>
+        {bulletin.items.length ? <PrintEditorProvider bulletinId={bulletin.id} editable={false} plain onReplace={() => {}}><PaperView items={bulletin.items.map(item => ({ webVisible: true, reviewOnCopy: false, needsReview: false, printPage: null, ...item }) as BulletinItem)} meta={{ serviceDate: bulletin.service_date, issueNumber: bulletin.issue_number }} sectionIdPrefix="bulletin-section"/></PrintEditorProvider> : null}
         <a className={styles.top} href="#public-content">주보 맨 위로 ↑</a>
       </section>
     </div> : null}
