@@ -8,7 +8,6 @@ import css from './video-calendar.module.css';
 
 const weekdays=['일','월','화','수','목','금','토'];
 const shortName:Record<string,string>={sunday:'주일',afternoon:'오후',friday:'금요',dawn:'새벽'};
-const statusName=(status:string)=>status==='published'?'공개':status==='archived'?'공개 안 함':'임시 저장';
 const dayLabel=(date:string)=>{const [,m,d]=date.split('-').map(Number);const w=weekdays[new Date(`${date}T00:00:00Z`).getUTCDay()];return `${m}월 ${d}일 (${w})`;};
 
 function shift(month:string,delta:number){const [y,m]=month.split('-').map(Number);const d=new Date(Date.UTC(y,m-1+delta,1));return d.toISOString().slice(0,7);}
@@ -46,7 +45,7 @@ export default function VideoCalendar({month,onMonth,rows,filter,onFilter,onOpen
   </div>
   <div className={css.dayList}>
    <div className={css.dayHead}><h3>{selected?dayLabel(selected):`${mon}월 전체`}</h3><span>{listed.length}개</span>{selected?<button type="button" className={`${btn.btn} ${btn.ghost} ${btn.small}`} onClick={()=>setPicked(null)}>{mon}월 전체 보기</button>:null}</div>
-   {listed.length?<ul>{listed.map(row=><li key={row.id}><button type="button" disabled={busy} onClick={()=>onOpen(row)}><span className={css.tag} data-type={row.service_type} data-status={row.status}>{shortName[row.service_type]??''}</span><span className={css.rowTitle}><strong>{row.title}</strong><small>{selected?'':dayLabel(row.service_date)+' · '}{statusName(row.status)}{row.featured?' · 대표':''}</small></span><AdminIcon name="edit" size={15}/></button></li>)}</ul>
+   {listed.length?<ul>{listed.map(row=><li key={row.id}><button type="button" disabled={busy} onClick={()=>onOpen(row)}><span className={css.tag} data-type={row.service_type} data-status={row.status}>{shortName[row.service_type]??''}</span><span className={css.rowTitle}><strong>{row.title}</strong>{selected&&!row.featured?null:<small>{[selected?'':dayLabel(row.service_date),row.featured?'대표':''].filter(Boolean).join(' · ')}</small>}</span><AdminIcon name="edit" size={15}/></button></li>)}</ul>
     :<p className={css.empty}>{selected?'이 날 등록된 영상이 없습니다.':'이 달에 등록된 영상이 없습니다.'}</p>}
   </div>
  </section>;

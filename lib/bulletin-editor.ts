@@ -1,5 +1,5 @@
-import {createItem,type BlockKind,type BulletinItem} from './bulletins';
-import {defaultOrderRows,defaultStaffRows,defaultAccountBody,defaultOfferingRows,standingFooter,volunteerDefaults,shiftPrayerRows} from './bulletin-defaults.mjs';
+import {createItem,type BlockContent,type BlockKind,type BulletinItem} from './bulletins';
+import {rowIdentity,defaultOrderRows,defaultStaffRows,defaultAccountBody,defaultOfferingRows,standingFooter,volunteerDefaults,shiftPrayerRows} from './bulletin-defaults.mjs';
 export const defaultGuideBody='1층 남선교회 김동주 집사, 김형신 집사';
 const defaultNews=['환영','예배','중보','광고','성경','기도･안내','안내','헌금'];
 /** Items every new bulletin starts with. They can be disabled but not deleted; added items can be deleted. */
@@ -12,11 +12,18 @@ export function defaultItem(item:Pick<BulletinItem,'title'|'kind'|'printPage'>){
  if(section==='좋은 소식')return defaultNews.includes(title.replace(/^좋은 소식\s*[·ㆍ:]\s*/,'').replace(/\s/g,''))||isPrayerGuide(item);
  return false;
 }
-import {newsGroups,accountBody,isPrayerGuide,sectionFor} from './bulletin-presentation';
+import {newsGroups,accountBody,isPrayerGuide,sectionFor,moveRow} from './bulletin-presentation';
 import {bulletinSections,type BulletinSection} from './bulletin-presentation';
 export * from './bulletin-presentation';
 export function sectionItem(title: BulletinSection,kind?:BlockKind) {
  return createItem({id:crypto.randomUUID(),title,kind:kind??(title==='예배 순서'||title==='예배 안내'?'worship':title==='헌금 내역'?'offering':title==='토라&토브'?'sermon':'text'),reviewOnCopy:false});
+}
+/** 섬기는 이들 for a new week: last week's rows (or defaults), with 교회 청소 moved last and left empty to fill in. */
+function staffContent(staff?:BulletinItem){
+ let content:BlockContent={disabled:staff?.content?.disabled??false,disabledRows:structuredClone(staff?.content?.disabledRows??[]),rows:structuredClone(staff?.content?.rows??defaultStaffRows).map(row=>/성경.*(?:통독|봉독)/.test(row[0])&&/판독 확인 필요/.test(row[1])?['성경 봉독','조근혜','']:row)};
+ const rows=content.rows??[],at=rows.findIndex(row=>rowIdentity(row[0])==='교회청소');
+ if(at>=0&&at!==rows.length-1)content=moveRow(content,at,rows.length-1);
+ return {...content,rows:(content.rows??[]).map(row=>rowIdentity(row[0])==='교회청소'?[row[0],'',row[2]??'']:row)};
 }
 export function initialBulletinItems(serviceDate=new Date().toISOString().slice(0,10),previous?:{serviceDate:string;items:BulletinItem[]}):BulletinItem[]{
  const prior=previous?.items??[],staff=prior.find(item=>/섬기는 이들/.test(item.title)),offering=prior.find(item=>item.kind==='offering'),prayer=prior.find(isPrayerGuide),welcome=prior.find(item=>/환영/.test(item.title));
@@ -25,7 +32,7 @@ export function initialBulletinItems(serviceDate=new Date().toISOString().slice(
   if(title==='예배 안내')return [
    {...sectionItem('예배 안내','text'),title:'예배 공지사항',body:'새벽예배 말씀:\n금요예배 말씀:\n주일예배 말씀:'},
    {...createItem({id:crypto.randomUUID(),title:'다음 주 봉사위원',kind:'worship'}),content:{rows:volunteerDefaults(serviceDate)}},
-   {...createItem({id:crypto.randomUUID(),title:'섬기는 이들',kind:'worship'}),webVisible:staff?.webVisible??true,content:{disabled:staff?.content?.disabled??false,disabledRows:structuredClone(staff?.content?.disabledRows??[]),rows:structuredClone(staff?.content?.rows??defaultStaffRows).map(row=>/성경.*(?:통독|봉독)/.test(row[0])&&/판독 확인 필요/.test(row[1])?['성경 봉독','조근혜','']:row)}}
+   {...createItem({id:crypto.randomUUID(),title:'섬기는 이들',kind:'worship'}),webVisible:staff?.webVisible??true,content:staffContent(staff)}
   ].map(item=>({...item,printPage:2}));
   if(title==='좋은 소식')return ['환영','예배','중보','광고','성경','기도･안내','안내','헌금'].flatMap(name=>{
    if(name==='헌금'&&accountItems?.length)return accountItems.map(source=>({...createItem({id:crypto.randomUUID(),title:'좋은 소식 · 헌금'}),body:accountBody(source),webVisible:source.webVisible,content:{disabled:source.content?.disabled??false},printPage:4}));

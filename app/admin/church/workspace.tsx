@@ -5,7 +5,7 @@ import { churchLabels, type ChurchField, type BulletinImage } from "@/lib/church
 import ImageLibrary from "./image-library";
 import { homeTabs } from "../home-tabs";
 import PortraitField, { type PortraitDraft } from "./portrait-field";
-import { checkImageFile, moveImage, uploadImage, withFolder } from "@/lib/image-upload";
+import { checkImageFile, updateImage, uploadImage, withFolder } from "@/lib/image-upload";
 import styles from "../bulletins/workspace.module.css";
 import AdminShell from '../admin-shell';
 import ReauthPanel from '../reauth-panel';
@@ -73,7 +73,7 @@ export default function ChurchWorkspace() {
   }
   useEffect(() => { if (!unsaved) return; const guard = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; }; window.addEventListener("beforeunload", guard); return () => window.removeEventListener("beforeunload", guard); }, [unsaved]);
   async function refreshImages() { const result = await client!.from("bulletin_images").select("*").order("created_at", { ascending: false }).limit(300); if (result.error) throw result.error; setImages(result.data.map(withFolder)); }
-  async function moveTo(id: string, folder: string) { if (!client || busy) return; setBusy(true); try { const moved = await moveImage(client, id, folder); setImages(current => current.map(image => image.id === id ? moved : image)); setMessage(folder ? `'${folder}' 폴더로 옮겼습니다.` : "폴더에서 뺐습니다."); } catch (error) { setMessage(error instanceof Error ? error.message : "폴더를 옮기지 못했습니다."); } finally { setBusy(false); } }
+  async function editImage(id: string, changes: { title?: string; alt?: string; folder?: string }) { if (!client || busy) return false; setBusy(true); try { const saved = await updateImage(client, id, changes); setImages(current => current.map(image => image.id === id ? saved : image)); setMessage("이미지 정보를 저장했습니다."); return true; } catch (error) { setMessage(error instanceof Error ? error.message : "이미지 정보를 바꾸지 못했습니다."); return false; } finally { setBusy(false); } }
   async function saveGroup(key:SettingKey){
     if(!client||!allowed||!pagesReady||busy)return;
     if(!validPageSetting(key,pages[key])){setPageMessages(current=>({...current,[key]:key==='worship_times'?'요일·주기와24시간제 시각을 확인해 주세요.':key==='offering_accounts'?'은행·예금주와 숫자/하이픈 계좌번호를 확인해 주세요.':'위치 안내 내용을 확인해 주세요.'}));return;}
@@ -147,7 +147,7 @@ export default function ChurchWorkspace() {
         </fieldset>
       </section>)}
       </>:null}
-      {view==='images'?<section id="church-images" tabIndex={-1} className={church.section}><ImageLibrary images={images} busy={busy} file={file} title={title} alt={alt} fileInput={fileInput} onTitle={setTitle} onAlt={setAlt} onFile={setFile} onUpload={folder=>void imageRequest('POST',undefined,folder)} onMove={(id,folder)=>void moveTo(id,folder)} onDelete={id=>void imageRequest('DELETE',id)} onCancel={()=>{setFile(null);setTitle('');setAlt('');if(fileInput.current)fileInput.current.value='';}}/>
+      {view==='images'?<section id="church-images" tabIndex={-1} className={church.section}><ImageLibrary images={images} busy={busy} file={file} title={title} alt={alt} fileInput={fileInput} onTitle={setTitle} onAlt={setAlt} onFile={setFile} onUpload={folder=>void imageRequest('POST',undefined,folder)} onEdit={editImage} onDelete={id=>void imageRequest('DELETE',id)} onCancel={()=>{setFile(null);setTitle('');setAlt('');if(fileInput.current)fileInput.current.value='';}}/>
       </section>:null}</>}
   </main></AdminShell>;
 }

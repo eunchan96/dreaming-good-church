@@ -11,3 +11,23 @@
 .newFolder input{height:34px;min-height:0!important;width:150px;padding:0 12px!important;border:1px solid #8d6d2f!important;border-radius:999px!important;font-size:13px!important;background:#fff!important}
 .move{display:flex!important;align-items:center;gap:8px;margin:6px 0 0!important;font-size:12px!important;color:#6f604a}
 .move select{flex:1;min-width:0;height:30px;min-height:0!important;padding:0 8px!important;border:1px solid #e3dbcd!important;border-radius:6px!important;background:#fffdf8!important;font-size:12.5px!important}
+
+/* Cards: 이미지 · 이름 · 폴더 칩 (크기 정보는 상세에서) */
+.library .card{display:grid;gap:8px;width:100%;min-height:0;padding:0;border:0;background:transparent;text-align:left;cursor:pointer;color:inherit}
+.library .card .thumbnail{display:grid;place-items:center;width:100%;height:175px;border-radius:8px;overflow:hidden;background:#eae3d4;color:#8a7a62;border:1px solid transparent}
+.library .card:hover .thumbnail{border-color:#c8b48c}
+.library .card:focus-visible .thumbnail{outline:2px solid #8d6d2f;outline-offset:2px}
+.library .card .caption{display:flex;align-items:center;gap:8px;min-width:0;padding:0}
+.library .card .caption strong{min-width:0;overflow:hidden;font-size:13.5px;font-weight:500;white-space:nowrap;text-overflow:ellipsis}
+.folderChip{flex:none;padding:1px 8px;border-radius:999px;background:#efe7d6;color:#5d4930!important;font-size:11.5px!important;margin:0!important}
+/* Detail dialog */
+.detail{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:22px;align-items:start}
+.detailImage{display:grid;gap:8px;justify-items:center}
+.detailImage img{max-height:55dvh!important}
+.detailImage small{font-size:12px;color:#6f604a}
+.detailFields{display:grid;gap:12px;margin:0;padding:0;border:0;min-width:0}
+.library .detailFields label{display:grid!important;gap:6px;margin:0!important;font-size:13px!important;color:#4a3f33}
+.library .detailFields input,.library .detailFields select{min-height:38px!important;font-size:14px!important}
+.detailActions{display:flex;justify-content:space-between;gap:8px;margin-top:6px}
+.library .danger{color:#9b3434!important}
+@media(max-width:640px){.detail{grid-template-columns:minmax(0,1fr)}.library .card .thumbnail{height:135px}}

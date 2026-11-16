@@ -15,3 +15,6 @@
   .alt.alt { grid-template-columns: minmax(0, 1fr); gap: 2px; }
   .alt > span { font-size: 12px; }
 }
+/* 설명 칸 없이: 썸네일 · 이름 · 빼기 */
+.cards > li { grid-template-columns: 88px minmax(0, 1fr) auto; }
+.name { overflow: hidden; font-size: 14px; color: #4a3f33; white-space: nowrap; text-overflow: ellipsis; }

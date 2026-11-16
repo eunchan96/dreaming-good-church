@@ -31,11 +31,11 @@ export const folderNames = (images: BulletinImage[], extra: string[] = []) => [.
 
 async function editorToken(client: Client) { const token = (await client.auth.getSession()).data.session?.access_token; if (!token) throw new Error("관리자 로그인이 필요합니다."); return token; }
 
-/** Move one image into a folder ('' = 폴더 없음). */
-export async function moveImage(client: Client, id: string, folder: string): Promise<BulletinImage> {
-  const response = await fetch("/api/images", { method: "PATCH", headers: { Authorization: `Bearer ${await editorToken(client)}`, "Content-Type": "application/json" }, body: JSON.stringify({ id, folder }) });
+/** Update an image's name, description or folder ('' = 폴더 없음). */
+export async function updateImage(client: Client, id: string, changes: { title?: string; alt?: string; folder?: string }): Promise<BulletinImage> {
+  const response = await fetch("/api/images", { method: "PATCH", headers: { Authorization: `Bearer ${await editorToken(client)}`, "Content-Type": "application/json" }, body: JSON.stringify({ id, ...changes }) });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error ?? "폴더를 옮기지 못했습니다.");
+  if (!response.ok) throw new Error(data.error ?? "이미지 정보를 바꾸지 못했습니다.");
   return withFolder(data as BulletinImage);
 }
 

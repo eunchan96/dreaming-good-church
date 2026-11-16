@@ -98,10 +98,13 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
   }
   async function print() {
     if(settingsStatus!=="ready"){setMessage("교회 예배시간을 불러온 뒤 인쇄해 주세요.");return;}
-    const images = Array.from(root.current?.querySelectorAll<HTMLImageElement>("[data-print-item] img") ?? []);
-    const expected = items.filter(item => item.kind === "image" && item.content?.assetId&&!item.content.disabled).length;
-    if (images.length !== expected) { setMessage("이미지를 아직 불러오지 못했습니다. 이미지가 모두 표시된 뒤 다시 눌러 주세요."); return; }
-    try { await Promise.all(images.map(image => image.decode())); await document.fonts.ready;
+    // Only photos count here (decorative wings/map are <img> too); each must have finished loading.
+    const photos = Array.from(root.current?.querySelectorAll<HTMLImageElement>("img[data-asset-id]") ?? []);
+    const expected = new Set(items.filter(item => item.kind === "image" && item.content?.assetId&&!item.content.disabled).map(item=>item.content!.assetId)).size;
+    if (new Set(photos.map(photo=>photo.dataset.assetId)).size < expected) { setMessage("사진을 아직 불러오는 중입니다. 사진이 표시된 뒤 다시 눌러 주세요."); return; }
+    const all = Array.from(root.current?.querySelectorAll<HTMLImageElement>("img") ?? []);
+    all.forEach(image => { image.loading = "eager"; });
+    try { await Promise.all(all.map(image => image.decode())); await document.fonts.ready;
       const overflow = checkOverflow(); setOverflowPages(overflow);
       if (overflow.length) { setMessage(`${overflow.join("·")}면의 내용이 넘칩니다. 면 배치를 바꾸거나 편집 화면에서 내용을 줄여 주세요.`); return; }
       setMessage(""); window.print(); }

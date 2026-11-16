@@ -19,5 +19,5 @@ export function BulletinImageView({ id, alt, editor = false, fallback }: { id: s
   }, [id, editor]);
   // A blob URL keeps authenticated images out of Next's shared image optimization cache.
   // eslint-disable-next-line @next/next/no-img-element
-  return src ? <img src={src} alt={alt} style={{ maxWidth: "100%", height: "auto" }} /> : fallback !== undefined ? fallback : <span aria-hidden="true" style={{ display: "block", minHeight: 24 }} />;
+  return src ? <img src={src} alt={alt} data-asset-id={id} style={{ maxWidth: "100%", height: "auto" }} /> : fallback !== undefined ? fallback : <span aria-hidden="true" style={{ display: "block", minHeight: 24 }} />;
 }

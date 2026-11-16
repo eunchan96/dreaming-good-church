@@ -67,6 +67,8 @@ test("one bulletin travels from published source through copy, print, public PDF
       page.once("dialog", dialog => dialog.accept());
       await page.getByRole("button", { name: "게시하기", exact: true }).click();
       await expect(page.getByRole("status")).toContainText("주보를 게시했습니다");
+      // Publishing returns to 주보 목록; reopen the bulletin for the later steps.
+      await page.getByRole("button", { name: /\(2086-11-10\)/ }).click();
       await reader.goto("/bulletins/2086-11-10");
       await expect(reader.getByText("이번 주 성도 공개 안내", { exact: true })).toBeVisible();
       await expect(reader.getByText("인쇄 전용 안내", { exact: true })).toHaveCount(0);

@@ -208,7 +208,7 @@ export default function BulletinWorkspace() {
       }
       const {data,error}=await client.rpc('set_bulletin_publication',{p_id:current.id,p_revision:current.revision,p_publish:publish});if(error)throw error;
       const updated={...current,status:data.status,revision:data.revision} as SavedBulletin;setDraft(updated);setRows(existing=>existing.map(row=>row.id===updated.id?updated:row));
-      setMessage(publish?'주보를 게시했습니다.':'게시를 취소했습니다. 초안을 수정할 수 있습니다.');if(!publish){setView('edit');setPreview(false);}
+      setMessage(publish?'주보를 게시했습니다.':'게시를 취소했습니다. 초안을 수정할 수 있습니다.');if(publish){setView('library');setDraft(null);setPreview(false);setPrintPreview(false);}else{setView('edit');setPreview(false);}
     }catch(error){setMessage(errorMessage(error));}finally{setBusy(false);}
   }
 
@@ -301,7 +301,7 @@ export default function BulletinWorkspace() {
         {preview||view==='detail'?reader:
         <fieldset id="bulletin-fields" tabIndex={-1} disabled={busy || draft.status !== "draft"} className={styles.fields}>
           <BulletinForm previous={previous} onImport={importItems} onRemove={ids=>{setDraft(current=>current&&({...current,items:current.items.filter(item=>!ids.includes(item.id))}));markDirty();}} onOrderNews={ids=>{setDraft(current=>{if(!current)return current;const lookup=new Map(current.items.map(item=>[item.id,item]));let at=0;return {...current,items:current.items.map(item=>ids.includes(item.id)?lookup.get(ids[at++])!:item)};});markDirty();}} onAddNews={()=>{setDraft(current=>current&&current.items.length<100?{...current,items:[...current.items,{...createItem({id:crypto.randomUUID(),title:'좋은 소식 · 새 소식 '+(current.items.filter(item=>/새 소식/.test(item.title)).length+1)}),printPage:4}]}:current);markDirty();}} items={visibleItems} groups={groups} showVisibility={showVisibility} onText={updateItem} onContent={(id,content,body)=>{setDraft(current=>current&&({...current,items:current.items.map(item=>item.id===id?{...item,content,...(body!==undefined?{body}:{}),needsReview:JSON.stringify(item.content)===JSON.stringify(content)?item.needsReview:false}:item)}));markDirty();}}
-            coverImages={images=><CoverImages items={images} disabled={locked||draft.status!=='draft'} onAdd={added=>{setDraft(current=>current&&({...current,items:[...current.items,...added].slice(0,Math.max(current.items.length,100))}));markDirty();}} onContent={(id,content)=>{setDraft(current=>current&&({...current,items:current.items.map(item=>item.id===id?{...item,content,needsReview:false}:item)}));markDirty();}} onRemove={id=>{setDraft(current=>current&&({...current,items:current.items.filter(item=>item.id!==id||item.kind!=="image")}));markDirty();}}/>}
+            coverImages={images=><CoverImages items={images} disabled={locked||draft.status!=='draft'} onAdd={added=>{setDraft(current=>current&&({...current,items:[...current.items,...added].slice(0,Math.max(current.items.length,100))}));markDirty();}} onRemove={id=>{setDraft(current=>current&&({...current,items:current.items.filter(item=>item.id!==id||item.kind!=="image")}));markDirty();}}/>}
             newsConnections={showConnections?<details className={`${ui.options} ${polish.options}`}><summary>공지·일정 연결</summary><CommunityLinks key={draft.id} draft={draft} locked={dirty||locked} onBusy={setBusy} onImported={updated=>{setDraft(updated);setDirty(false);setRows(current=>current.map(row=>row.id===updated.id?updated:row));}}/></details>:null}/>
         </fieldset>}
 

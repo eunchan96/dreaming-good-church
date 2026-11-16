@@ -57,15 +57,16 @@ export async function DELETE(request: Request) {
   } catch { return reply("이미지 서비스를 이용할 수 없습니다.", 503); }
 }
 
-/** Move an image to a folder or rename it: { id, folder?, title? } */
+/** Edit an image's folder, title or description: { id, folder?, title?, alt? } (an empty description falls back to the title). */
 export async function PATCH(request: Request) {
   try {
     if (!await requireEditor(request)) return reply("관리자 로그인이 필요합니다.", 401);
-    const body = await request.json().catch(() => null) as { id?: string; folder?: unknown; title?: unknown } | null;
+    const body = await request.json().catch(() => null) as { id?: string; folder?: unknown; title?: unknown; alt?: unknown } | null;
     if (!body || !validId(body.id ?? null)) return reply("이미지를 찾을 수 없습니다.", 404);
-    const changes: { folder?: string; title?: string } = {};
+    const changes: { folder?: string; title?: string; alt?: string } = {};
     if (body.folder !== undefined) { if (typeof body.folder !== "string" || body.folder.trim().length > 40) return reply("폴더 이름은 40자 이하로 입력해 주세요.", 400); changes.folder = body.folder.trim(); }
     if (body.title !== undefined) { if (typeof body.title !== "string" || !body.title.trim() || body.title.trim().length > 200) return reply("이미지 제목을 확인해 주세요.", 400); changes.title = body.title.trim(); }
+    if (body.alt !== undefined) { if (typeof body.alt !== "string" || body.alt.trim().length > 500) return reply("설명은 500자 이하로 입력해 주세요.", 400); const fallback = changes.title ?? (await imageWriter().from("bulletin_images").select("title").eq("id", body.id!).maybeSingle()).data?.title ?? ""; changes.alt = body.alt.trim() || fallback; }
     if (!Object.keys(changes).length) return reply("바꿀 내용이 없습니다.", 400);
     const { data, error } = await imageWriter().from("bulletin_images").update(changes).eq("id", body.id!).select("*").maybeSingle();
     if (error) return reply(error.code === "42703" || error.code === "PGRST204" ? "폴더 기능은 DB 업데이트 후 사용할 수 있습니다." : "이미지 정보를 바꾸지 못했습니다.", 503);
