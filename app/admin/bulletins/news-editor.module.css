@@ -34,3 +34,11 @@
 .row{grid-template-columns:24px var(--name-w,104px) minmax(0,1fr)}
 .name{font-size:14px}
 @media(max-width:700px){.row{grid-template-columns:22px minmax(0,1fr)}}
+
+/* Phones: no drag handle (same as 예배 순서); ↑↓ buttons in the tools instead. */
+.editor .tools .mobileMove { display: none; }
+@media (max-width: 700px) {
+  .editor .handle { display: none; }
+  .row { grid-template-columns: minmax(0, 1fr); }
+  .editor .tools .mobileMove { display: grid; place-items: center; }
+}

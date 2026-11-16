@@ -65,7 +65,7 @@ test("edit church info, upload normalized private image, attach/publish and prot
     const printPreview = page.getByRole("dialog", { name: "관리자 인쇄 미리보기", exact: true });
     await expect(printPreview.getByRole("img", { name: "초록색 표지 이미지" })).toBeVisible();
     await page.evaluate(() => { window.print = () => { document.documentElement.dataset.printInvoked = "yes"; }; });
-    await printPreview.getByRole("button", { name: "인쇄 · PDF로 저장", exact: true }).click();
+    await printPreview.getByRole("button", { name: "인쇄", exact: true }).click();
     await expect(page.locator("html")).toHaveAttribute("data-print-invoked", "yes");
     await printPreview.screenshot({ path: ".local/admin-print-preview.png" });
     const bookletPdf = await page.pdf({ path: ".local/admin-booklet.pdf", preferCSSPageSize: true });

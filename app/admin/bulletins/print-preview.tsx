@@ -21,7 +21,7 @@ function defaultPage(item: SavedBulletin["items"][number]) {
   return 4;
 }
 const pageTitles = ["표지", "예배", "묵상과 기도", "교회 소식"];
-function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onReplace }: { draft: SavedBulletin; dirty: boolean; onClose: () => void; pages: Record<string, number>; onPagesChange: (pages: Record<string, number>) => void;onReplace:(item:BulletinItem)=>void }) {
+function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onReplace,onEdit }: { draft: SavedBulletin; dirty: boolean; onClose: () => void; pages: Record<string, number>; onPagesChange: (pages: Record<string, number>) => void;onReplace:(item:BulletinItem)=>void;onEdit?:()=>void }) {
   const {fields,settings,settingsStatus,retry}=useChurchContent();
   const items=useScheduledItems(presentationItems(draft.items),true);
   const root = useRef<HTMLDivElement>(null);
@@ -107,7 +107,7 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
     try { await Promise.all(all.map(image => image.decode())); await document.fonts.ready;
       const overflow = checkOverflow(); setOverflowPages(overflow);
       if (overflow.length) { setMessage(`${overflow.join("·")}면의 내용이 넘칩니다. 면 배치를 바꾸거나 편집 화면에서 내용을 줄여 주세요.`); return; }
-      setMessage(""); window.print(); }
+      setMessage(""); const title = document.title; document.title = `${draft.serviceDate.slice(2).replaceAll("-", "")} 주일 주보`; const restore = () => { document.title = title; window.removeEventListener("afterprint", restore); }; window.addEventListener("afterprint", restore); window.print(); window.setTimeout(restore, 1000); }
     catch { setMessage("이미지를 확인하지 못했습니다. 연결을 확인하고 다시 시도해 주세요."); }
   }
   const pageOf = (item: BulletinItem) => item.kind === "offering" ? 4 : (pages[item.id] ?? defaultPage(item));
@@ -123,7 +123,8 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
         {overflowPages.length ? <span className={styles.warn}>{overflowPages.join("·")}면 넘침</span> : null}
         {editable && overflowPages.length ? <button type="button" className={styles.tool} onClick={arrange}>지면 자동 정리</button> : null}
         <button type="button" className={styles.tool} aria-pressed={panel} aria-controls={panel?'print-layout-panel':undefined} onClick={() => setPanel(!panel)}>면 배치</button>
-        <button type="button" className={`${styles.tool} ${styles.primaryTool}`} onClick={() => void print()}>인쇄 · PDF로 저장</button>
+        {draft.status!=="draft"&&onEdit?<button type="button" className={styles.tool} title="게시를 취소하고 초안으로 돌린 뒤 수정합니다." onClick={onEdit}>수정</button>:null}
+        <button type="button" className={`${styles.tool} ${styles.primaryTool}`} onClick={() => void print()}>인쇄</button>
       </div>
     </header>
     <PrintFormatToolbar/>

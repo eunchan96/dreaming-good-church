@@ -19,7 +19,7 @@ test('인사말 사진: upload from 교회 소개, show on the public greeting, 
   await expect(chooser).toBeHidden();
   await expect(greeting.getByLabel('목사님 사진 설명',{exact:true})).toHaveValue('담임목사 사진');
   await greeting.getByLabel('목사님 사진 설명',{exact:true}).fill('담임목사 검증 사진');
-  await greeting.getByRole('button',{name:'인사말 저장',exact:true}).click();await expect(greeting.getByRole('button',{name:'인사말 저장',exact:true})).toBeDisabled();
+  await greeting.getByRole('button',{name:'인사말 저장',exact:true}).click();await expect.poll(async()=>(await db.from('church_portrait').select('alt').eq('id',1).single()).data?.alt).toBe('담임목사 검증 사진');
   const saved=(await db.from('church_portrait').select('*').eq('id',1).single()).data!;expect(saved.image_asset_id).toBeTruthy();expect(saved.alt).toBe('담임목사 검증 사진');expect(saved.revision).toBe(before.revision+1);imageId=saved.image_asset_id!;
   const api=await (await request.get('/api/church-settings')).json();expect(api.portrait).toEqual({imageId,alt:'담임목사 검증 사진'});
   expect((await request.get(`/api/images?id=${imageId}`)).status()).toBe(200);
@@ -27,8 +27,8 @@ test('인사말 사진: upload from 교회 소개, show on the public greeting, 
   // A photo in use cannot be deleted from the library.
   const token=(await page.evaluate(()=>{const key=Object.keys(localStorage).find(k=>/auth-token/.test(k))!;return JSON.parse(localStorage.getItem(key)!).access_token as string;}));
   expect((await request.delete(`/api/images?id=${imageId}`,{headers:{Authorization:`Bearer ${token}`}})).status()).toBe(409);
-  await greeting.getByRole('button',{name:'사진 빼기',exact:true}).click();await greeting.getByRole('button',{name:'인사말 저장',exact:true}).click();await expect(greeting.getByRole('button',{name:'인사말 저장',exact:true})).toBeDisabled();
-  expect((await db.from('church_portrait').select('image_asset_id').eq('id',1).single()).data!.image_asset_id).toBeNull();
+  await greeting.getByRole('button',{name:'사진 빼기',exact:true}).click();await greeting.getByRole('button',{name:'인사말 저장',exact:true}).click();
+  await expect.poll(async()=>(await db.from('church_portrait').select('image_asset_id').eq('id',1).single()).data?.image_asset_id).toBeNull();
   expect((await request.get(`/api/images?id=${imageId}`)).status()).toBe(404);
   await reader.reload();await expect(reader.getByRole('img',{name:'담임목사 검증 사진'})).toHaveCount(0);
  }finally{

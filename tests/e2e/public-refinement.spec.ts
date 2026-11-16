@@ -52,7 +52,7 @@ test('weekly service passages sit under their own times and stay out of the intr
   fail=false;await times.getByRole('button',{name:'다시 불러오기'}).click();
   await expect(times.getByText('사도행전 11장',{exact:false})).toBeVisible();
   await page.goto('/church/worship-times');
-  await expect(page.getByRole('heading',{name:'학생 예배',exact:true}).locator('..')).toContainText('주일 오전 09:30');
+  await expect(page.getByRole('heading',{name:'학생부 예배',exact:true}).locator('..')).toContainText('주일 오전 09:30');
   await expect(page.getByRole('heading',{name:'월삭새벽예배',exact:true}).locator('..')).toContainText('매월 첫날 오전 05:25');
   await expect(page.getByText('이번 주 말씀',{exact:true})).toHaveCount(0);
 });

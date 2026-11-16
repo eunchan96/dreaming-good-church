@@ -10,7 +10,7 @@ test('content settings remain reversible and auto-sizing preserves private flags
   await db.from('church_editors').insert({user_id:user.data.user.id});expect((await db.from('bulletins').insert({id,service_date:'2190-11-19',issue_number:591})).error).toBeNull();expect((await db.from('bulletin_items').insert([
    {id:ids[0],bulletin_id:id,position:0,title:'묵상 가이드',body:'묵상',kind:'text',content:{},web_visible:true,review_on_copy:true},
    {id:ids[1],bulletin_id:id,position:1,title:'좋은 소식 · 중보',body:'인쇄에만 포함할 내용',kind:'text',content:{},web_visible:false,review_on_copy:true},
-   {id:ids[2],bulletin_id:id,position:2,title:'섬기는 이들',body:'',kind:'worship',content:{rows:[['담임 목사','담임','']]},web_visible:true,review_on_copy:true},
+   {id:ids[2],bulletin_id:id,position:2,title:'섬기는 이들',body:'',kind:'worship',content:{rows:[['교회 청소','담임','']]},web_visible:true,review_on_copy:true},
   ])).error).toBeNull();
   await page.goto('/admin/bulletins');await page.getByLabel('이메일',{exact:true}).fill(email);await page.getByLabel('비밀번호',{exact:true}).fill(password);await page.getByRole('button',{name:'로그인',exact:true}).click();await page.getByRole('button',{name:/2190-11-19/}).click();await page.getByRole('button',{name:'수정',exact:true}).click();await expect(page.getByLabel('웹에 공개',{exact:true})).toHaveCount(0);
   const body=page.getByLabel('묵상',{exact:true}),small=(await body.boundingBox())!.height;await body.fill('긴 내용\n'.repeat(10));await expect.poll(async()=>(await body.boundingBox())!.height).toBeGreaterThan(small+100);await body.fill('간단한 묵상');await expect.poll(async()=>(await body.boundingBox())!.height).toBeLessThan(small+20);

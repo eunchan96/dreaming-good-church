@@ -12,7 +12,7 @@ export const worshipTypes = [
 ] as const;
 export type WorshipType = typeof worshipTypes[number]['key'];
 export const additionalWorshipTimes = [
-  { key: 'students', name: '학생 예배', english: 'STUDENT WORSHIP', time: '주일 오전 09:30' },
+  { key: 'students', name: '학생부 예배', english: 'STUDENT WORSHIP', time: '주일 오전 09:30' },
   { key: 'monthly', name: '월삭새벽예배', english: 'FIRST DAY PRAYER', time: '매월 첫날 오전 05:25' },
 ] as const;
 export const siteNavigation = [

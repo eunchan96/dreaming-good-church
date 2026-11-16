@@ -408,3 +408,27 @@ small.churchLine { font-size: .88em; }
 /* 봉사위원: 한 줄이 기본, 길면 날짜만 다음 줄로. 이름이 비면 날짜만 가운데 */
 .volunteerWho { flex-wrap: wrap; justify-content: center; column-gap: .45em; row-gap: 0; }
 .volunteerWho > *:empty, .volunteerWho > [data-empty=true] { display: none; }
+
+/* 예배 순서 점선: vector dots (prints crisp; the radial-gradient dots smeared in print) */
+.leader > i { height: .44em; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10'%3E%3Ccircle cx='5' cy='5' r='1.25' fill='%238f8476'/%3E%3C/svg%3E"); background-size: .44em .44em; background-repeat: repeat-x; background-position: left center; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+/* 온라인 건축헌금 줄은 기본 초록 (인쇄 서식 색을 고르면 그 색이 우선) */
+.accountBuilding { color: #0b7d38; }
+/* 다음 주 봉사위원: 교회 청소 · 기도 인도 굵게 */
+.volunteerRole { font-weight: 700; }
+
+/* 예배 안내: 세 열은 색으로 구분(워드처럼), 열 안에서는 예배 | 시간을 세로선으로 나누고 각각 가운데 */
+.schedule { gap: 0 !important; padding: 0 !important; background: none !important; }
+.schedule > .scheduleColumn { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; justify-content: stretch !important; column-gap: 0 !important; row-gap: .2em; padding: .5em .2em !important; border: 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.schedule > .scheduleColumn:nth-child(1) { background: #d9e0bb; }
+.schedule > .scheduleColumn:nth-child(2) { background: #e4e8cf; }
+.schedule > .scheduleColumn:nth-child(3) { background: #eef0e0; }
+.schedule > .scheduleColumn > .scheduleLabel { text-align: center !important; padding: 0 .5em; border-right: 1px solid #a9b27a; }
+.schedule > .scheduleColumn > .scheduleTime { text-align: center !important; padding: 0 .5em; }
+.flow .scheduleNarrow { padding: 0 !important; background: none !important; }
+.flow .scheduleNarrow > div { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; column-gap: 0 !important; padding: .45em .2em !important; border: 0 !important; }
+.flow .scheduleNarrow > div:nth-child(1) { background: #dfe5c4; }
+.flow .scheduleNarrow > div:nth-child(2) { background: #eaedd8; }
+.flow .scheduleNarrow > div > .scheduleLabel { text-align: center !important; padding: 0 .4em; border-right: 1px solid #a9b27a; }
+.flow .scheduleNarrow > div > .scheduleTime { text-align: center; padding: 0 .4em; }
+.schedule > .scheduleColumn { row-gap: 0 !important; }
+.schedule > .scheduleColumn > :is(.scheduleLabel, .scheduleTime) { padding-top: .12em; padding-bottom: .12em; align-self: stretch; display: flex; align-items: center; justify-content: center; }
