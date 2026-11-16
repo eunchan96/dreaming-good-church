@@ -7,7 +7,7 @@ test("public home adapts navigation without horizontal overflow", async ({ page 
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
-    await expect(page.getByText("2026-11-08 · 45호")).toBeVisible();
+    await expect(page.getByText("2026년 11월 8일 주일 · 45호")).toBeVisible();
     if (width < 900) await page.getByRole('button', { name: '전체 메뉴 열기' }).click();
     await expect(page.getByRole("navigation", { name: width < 900 ? "모바일 주 메뉴" : "주 메뉴", exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -30,5 +30,5 @@ test("a failed home feed can recover without blocking the other feeds", async ({
   await expect(page.getByText("공개된 교회 소개")).toBeVisible();
   fail = false;
   await bulletin.getByRole("button", { name: "다시 불러오기" }).click();
-  await expect(bulletin.getByText("현재 공개된 소식이 없습니다.")).toBeVisible();
+  await expect(bulletin.getByText("게시된 주보가 없습니다.")).toBeVisible();
 });

@@ -51,7 +51,8 @@ export function presentationItems<T extends PresentationItem>(items:readonly T[]
    if(reference&&orders.some(order=>{const text=((order.content as BlockContent)?.rows??[]).filter((_,i)=>!(order.content as BlockContent)?.disabledRows?.includes(i)).flat().join('\n');return order.webVisible===item.webVisible&&text.includes(reference)&&text.includes(item.title.trim());}))return false;
   }
   // Old generic additions should not create another empty box beside a filled section.
-  if(bulletinSections.some(title=>title===item.title)&&!item.body.trim()&&item.kind!=='image'){
+  // 토라&토브 is both the section and its second sub-heading (나의 묵상 · 토라&토브), so it is never a stray duplicate.
+  if(bulletinSections.some(title=>title===item.title)&&item.title!=='토라&토브'&&!item.body.trim()&&item.kind!=='image'){
    const rows=(item.content as BlockContent)?.rows;const reference=(item.content as BlockContent)?.reference;
    if(!reference&&!rows?.some(row=>row.some(cell=>cell.trim()))&&items.some(other=>other!==item&&other.title!==item.title&&other.kind!=='image'&&!printOnlyItem(other)&&sectionFor(other)===sectionFor(item)&&!/^표지\s*사진$/.test(other.title)))return false;
   }
@@ -75,8 +76,19 @@ export function moveRow(content:BlockContent,from:number,to:number):BlockContent
  return {...content,rows:order.map(i=>[...content.rows![i]]),disabledRows:order.flatMap((old,i)=>content.disabledRows?.includes(old)?[i]:[]),...(content.fullRows?{fullRows:order.flatMap((old,i)=>content.fullRows?.includes(old)?[i]:[])}:{})};
 }
 export function emptyNews(item:PresentationItem){return isNewsItem(item)&&!item.body.trim()&&!((item.content as BlockContent)?.rows??[]).some(row=>row.some(cell=>cell.trim()));}
+/** Nothing filled in (labels and auto dates don't count): treated like a disabled item and left out of the bulletin. */
+export function emptyItem(item:PresentationItem){
+ if(item.kind==='image'||printOnlyItem(item)||managedSchedule(item)||sectionFor(item)==='표지'||isPrayerGuide(item))return false;
+ const content=(item.content??{}) as BlockContent;
+ // A body made only of prompts like "주일예배 말씀:" counts as empty.
+ if(item.body.split(/\r?\n/).some(line=>line.trim()&&!/^[^:：]{1,20}[:：]\s*$/.test(line.trim()))||content.reference?.trim()||content.attribution?.trim()||content.footer?.trim())return false;
+ const rows=(content.rows??[]).filter((_,i)=>!content.disabledRows?.includes(i));
+ if(item.kind==='worship'&&sectionFor(item)==='예배 순서')return !rows.some(row=>row.some(cell=>cell.trim()));
+ // 봉사위원·섬기는 이들·헌금: the first column is a label, dates are pre-filled — only names/amounts count.
+ return !rows.some(row=>row.slice(1).some((cell,i)=>cell.trim()&&!(/봉사위원/.test(item.title)&&i===1)));
+}
 export function renderedItems<T extends PresentationItem>(items:readonly T[]):T[]{
- return presentationItems(items).filter(item=>!(item.content as BlockContent)?.disabled&&!emptyNews(item)).map(item=>{
+ return presentationItems(items).filter(item=>!(item.content as BlockContent)?.disabled&&!emptyNews(item)&&!emptyItem(item)).map(item=>{
   const ordered=item.kind==='worship'&&sectionFor(item)==='예배 순서';
   const content=item.kind==='offering'?offeringRows(structuredClone((item.content??{}) as BlockContent)):ordered?worshipRows(item):structuredClone((item.content??{}) as BlockContent);
   if(content.rows){const enabled=content.rows.map((_,i)=>i).filter(i=>!content.disabledRows?.includes(i));content.rows=enabled.map(i=>content.rows![i]);if(content.fullRows)content.fullRows=enabled.flatMap((old,i)=>content.fullRows!.includes(old)?[i]:[]);delete content.disabledRows;}

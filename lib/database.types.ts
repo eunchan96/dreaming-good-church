@@ -10,6 +10,7 @@ export type Database = {
                     "alt": string;
                     "bytes": number;
                     "created_at": string;
+                    "folder": string;
                     "height": number;
                     "id": string;
                     "title": string;
@@ -20,6 +21,7 @@ export type Database = {
                     "alt": string;
                     "bytes": number;
                     "created_at"?: string;
+                    "folder"?: string;
                     "height": number;
                     "id": string;
                     "title": string;
@@ -29,6 +31,7 @@ export type Database = {
                     "alt"?: string;
                     "bytes"?: number;
                     "created_at"?: string;
+                    "folder"?: string;
                     "height"?: number;
                     "id"?: string;
                     "title"?: string;

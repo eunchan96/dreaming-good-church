@@ -35,7 +35,7 @@ test('shared admin navigation protects unsaved church edits and all workspaces f
     await page.goto('/admin/bulletins');await page.getByLabel('이메일',{exact:true}).fill(email);await page.getByLabel('비밀번호',{exact:true}).fill(password);await page.getByRole('button',{name:'로그인',exact:true}).click();
     await expect(page.getByRole('navigation',{name:'관리 메뉴',exact:true})).toBeVisible();
     await expect(page.getByRole('navigation',{name:'페이지 메뉴',exact:true})).toBeVisible();
-    for(const [path,title] of [['/admin/bulletins','주보 관리'],['/admin/community','공지·일정 관리'],['/admin/church','교회 정보·이미지 관리']]){
+    for(const [path,title] of [['/admin/bulletins','주보 관리'],['/admin/community','공지·일정 관리'],['/admin/church','홈페이지 관리']]){
       await page.goto(path);await expect(page.getByRole('button',{name:'로그아웃',exact:true})).toBeVisible();
       await expect(page.getByRole('heading',{name:title,level:1,exact:true})).toBeVisible();
       for(const width of [1440,768,390,320]){await page.setViewportSize({width,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
@@ -44,16 +44,16 @@ test('shared admin navigation protects unsaved church edits and all workspaces f
         const mobile=page.getByRole('button',{name:'관리 메뉴 열기',exact:true});await mobile.click();await expect(page.getByRole('navigation',{name:'관리 메뉴',exact:true})).toBeVisible();
         const menuBox=await page.getByRole('navigation',{name:'관리 메뉴',exact:true}).boundingBox();expect(menuBox!.y).toBeLessThan(150);
         await page.keyboard.press('Escape');await expect(mobile).toBeFocused();await expect(mobile).toHaveAttribute('aria-expanded','false');await mobile.click();
-        await page.getByLabel('교회 소개',{exact:true}).fill('저장하지 않은 인사말');
+        await page.getByLabel('인사말 글',{exact:true}).fill('저장하지 않은 인사말');
         page.once('dialog',d=>d.dismiss());await page.getByRole('navigation',{name:'관리 메뉴',exact:true}).getByRole('link',{name:/주보 관리/}).click();
-        await expect(page).toHaveURL(/\/admin\/church$/);await expect(page.getByLabel('교회 소개',{exact:true})).toHaveValue('저장하지 않은 인사말');
-        page.once('dialog',d=>d.dismiss());await page.getByRole('button',{name:'로그아웃',exact:true}).click();await expect(page.getByLabel('교회 소개',{exact:true})).toHaveValue('저장하지 않은 인사말');
+        await expect(page).toHaveURL(/\/admin\/church$/);await expect(page.getByLabel('인사말 글',{exact:true})).toHaveValue('저장하지 않은 인사말');
+        page.once('dialog',d=>d.dismiss());await page.getByRole('button',{name:'로그아웃',exact:true}).click();await expect(page.getByLabel('인사말 글',{exact:true})).toHaveValue('저장하지 않은 인사말');
       }
       const axe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();
       expect(axe.violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)})),path).toEqual([]);
     }
     page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'로그아웃',exact:true}).click();
     await expect(page.getByRole('button',{name:'로그인 다시 확인',exact:true})).toBeVisible();
-    await expect(page.getByLabel('교회 소개',{exact:true})).toHaveCount(0);
+    await expect(page.getByLabel('인사말 글',{exact:true})).toHaveCount(0);
   }finally{const removed=await local.auth.admin.deleteUser(id);if(removed.error)throw removed.error;}
 });

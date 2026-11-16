@@ -18,12 +18,12 @@ test("edit church info, upload normalized private image, attach/publish and prot
     const manager = await context.newPage(); await manager.goto("/admin/church");
     await manager.getByLabel("교회 이름", { exact: true }).fill("검증용 교회 안내");
     await manager.getByLabel("연락처", { exact: true }).fill("010-5678-1234");
-    await expect(manager.getByRole('region',{name:'교회 안내',exact:true}).getByRole('checkbox')).toHaveCount(0);
+    await expect(manager.getByRole('region',{name:'인사말',exact:true}).getByRole('checkbox')).toHaveCount(0);
     await manager.setViewportSize({ width: 320, height: 844 });
     expect(await manager.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await manager.route("**/rest/v1/rpc/save_church_info", route => route.fulfill({ status: 503, json: { message: "unavailable" } }), { times: 1 });
-    await manager.getByRole("button", { name: "교회 안내 저장", exact: true }).click();
-    await expect(manager.getByRole('region',{name:'교회 안내',exact:true}).getByRole("status")).not.toBeEmpty();
+    await manager.getByRole("button", { name: "인사말 저장", exact: true }).click();
+    await expect(manager.getByRole("status").filter({ hasText: /./ }).first()).toBeVisible();
     await expect(manager.getByLabel("교회 이름", { exact: true })).toHaveValue("검증용 교회 안내");
     const authTab = await context.newPage(); await authTab.goto("/admin/bulletins");
     await authTab.getByRole("button", { name: "로그아웃", exact: true }).click();
@@ -36,18 +36,19 @@ test("edit church info, upload normalized private image, attach/publish and prot
     await page.getByLabel("이메일", { exact: true }).fill(email);
     await page.getByLabel("비밀번호", { exact: true }).fill(password);
     await page.getByRole("button", { name: "로그인", exact: true }).click();
-    await manager.getByRole("button", { name: "교회 안내 저장", exact: true }).click(); await expect(manager.getByRole('region',{name:'교회 안내',exact:true}).getByRole("status")).toContainText("저장했습니다");
+    await manager.getByRole("button", { name: "인사말 저장", exact: true }).click(); await expect(manager.getByRole("status").filter({ hasText: "저장했습니다" })).toBeVisible();
+    await manager.getByRole("button", { name: "오시는 길 저장", exact: true }).click(); await expect(manager.getByRole("button", { name: "오시는 길 저장", exact: true })).toBeDisabled();
 
     const publicInfo = await page.request.get("/api/church"); expect(await publicInfo.text()).toContain("010-5678-1234");
     const publicName=(await publicInfo.json()).fields.find((f:{key:string})=>f.key==='name');expect(publicName.body).toBe('검증용 교회 안내');
     const reader=await context.newPage();await reader.goto('/church');await expect(reader.getByRole('main').getByText('검증용 교회 안내',{exact:true})).toBeVisible();
     const pixels = await sharp({ create: { width: 3000, height: 1500, channels: 3, background: "#008040" } }).png().toBuffer();
     await manager.getByRole("navigation",{name:"페이지 메뉴"}).getByRole("button",{name:"이미지 관리",exact:true}).click();
-    await manager.getByRole("button",{name:"+ 이미지 추가",exact:true}).click();
+    await manager.getByRole("button",{name:"이미지 추가",exact:true}).click();
     await manager.getByLabel("이미지 제목", { exact: true }).fill("검증용 주보 표지");
     await manager.getByLabel("이미지 설명 (대체텍스트)", { exact: true }).fill("초록색 표지 이미지");
     await manager.getByLabel("이미지 파일", { exact: true }).setInputFiles({ name: "cover.png", mimeType: "image/png", buffer: pixels });
-    await manager.getByRole("button", { name: "이미지 올리기", exact: true }).click(); await expect(manager.locator('[data-page-message]')).toContainText("이미지를 올렸습니다");
+    await manager.getByRole("button", { name: "올리기", exact: true }).click(); await expect(manager.locator('[data-page-message]')).toContainText("이미지를 올렸습니다");
     const asset = await admin.from("bulletin_images").select("*").eq("title", "검증용 주보 표지").single(); if (asset.error) throw asset.error; imageId = asset.data.id;
     expect(asset.data.width).toBe(2400); expect(asset.data.height).toBe(1200);
     expect((await page.request.get(`/api/images?id=${imageId}`)).status()).toBe(404);

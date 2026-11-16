@@ -3,3 +3,19 @@
 .headingTitle{display:flex;align-items:center;gap:12px;min-width:0}.surface .headingActions .reload{display:grid;place-items:center;width:40px;min-height:40px;padding:8px}.surface .infoField{padding:10px 0}.headingActions{gap:8px}@media(max-width:540px){.headingTitle{gap:8px}.heading{gap:8px}.headingActions{gap:6px}}
 
 .times{display:grid;gap:14px}.surface .timeRow{display:grid;grid-template-columns:130px minmax(120px,1fr) minmax(150px,220px);align-items:center;gap:14px}.surface .timeRow>label{display:block!important;margin:0!important;font-size:14px!important}.surface .timeRow>input{margin:0;font-size:14px;background:#fbf9f3}.surface .headingActions .reload:disabled{cursor:default}@media(max-width:760px){.surface .timeRow{grid-template-columns:95px minmax(80px,1fr) minmax(110px,135px);gap:8px}.surface .timeRow>label{font-size:12px!important}.surface .timeRow>input{font-size:13px;padding:10px 8px}}@media(max-width:390px){.surface .timeRow{grid-template-columns:78px minmax(62px,1fr) 112px;gap:6px}.surface .timeRow>label{font-size:11px!important}}
+
+/* 교회 소개 categories */
+.groupFields { display: grid; gap: 14px; margin-top: 6px; }
+.photoSlot { display: flex; align-items: center; gap: 16px; }
+.photoSlot > span { display: grid; place-items: center; flex: none; width: 72px; aspect-ratio: 3 / 4; border: 1.5px dashed #cdbb94; border-radius: 8px; background: #f7f1e4; color: #6b5a42; font-size: 12px; }
+.photoSlot p { margin: 0; font-size: 13.5px; color: #6b5a42; line-height: 1.6; }
+/* Settings rows share the 110px label column with the info rows above them */
+.surface .groupFields .timeRow { grid-template-columns: 110px minmax(120px, 1fr) minmax(150px, 220px); gap: 12px; }
+.surface .groupFields label:not(:has(input[type=checkbox])) { grid-template-columns: 110px minmax(0, 1fr) !important; gap: 12px !important; }
+.surface .groupFields .settingRow label:not(:has(input[type=checkbox])) { grid-template-columns: 70px minmax(0, 1fr) !important; }
+.surface .infoLabel label, .surface .infoLabel > span { font-size: 14px !important; color: #4a3f33; }
+.surface .infoLabel > span { margin: 0; }
+@media (max-width: 760px) {
+  .surface .groupFields .timeRow { grid-template-columns: 84px minmax(70px, 1fr) minmax(110px, 135px); gap: 8px; }
+  .surface .groupFields label:not(:has(input[type=checkbox])) { grid-template-columns: 1fr !important; gap: 6px !important; }
+}

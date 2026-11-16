@@ -356,3 +356,10 @@ small.churchLine { font-size: .88em; }
   .flow .torahHead { padding: .35em .6em .35em .2em; }
   .flow .torahHead > * { white-space: nowrap; }
 }
+
+/* 섬기는 이들: rows sit inside the box with even breathing room (lead rows no longer touch the edges) */
+.supportGrid [data-role=staff] .tinted { padding: .55em .5em; }
+.supportGrid [data-role=staff] .table tr[data-lead] td:first-child { border-radius: .25em 0 0 .25em; }
+.supportGrid [data-role=staff] .table tr[data-lead] td:last-child { border-radius: 0 .25em .25em 0; }
+/* 봉사위원: name and date wrap inside the box instead of spilling out */
+.volunteerWho { flex-wrap: wrap; column-gap: .5em; row-gap: 0; }

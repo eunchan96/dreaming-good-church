@@ -35,3 +35,7 @@
   .surface .entry > .entryTools + :not(h3) { margin-right: 40px; max-width: calc(100% - 40px) !important; }
   .surface .entry > .entryTools:has(> button + button) + :not(h3) { margin-right: 74px; max-width: calc(100% - 74px) !important; }
 }
+
+/* 비활성화한 기본 항목: 흐리게 (도구는 그대로) */
+.surface .entry[data-disabled] > :not(.entryTools) { opacity: .42; }
+.surface .entryTools button[aria-pressed=true] { color: #8a4b13; }

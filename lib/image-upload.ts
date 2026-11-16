@@ -9,9 +9,9 @@ export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 type Client = SupabaseClient<any, any, any>;
 
 export async function listImages(client: Client): Promise<BulletinImage[]> {
-  const result = await client.from("bulletin_images").select("id,title,alt,width,height,bytes").order("created_at", { ascending: false }).limit(200);
+  const result = await client.from("bulletin_images").select("*").order("created_at", { ascending: false }).limit(300);
   if (result.error) throw new Error("이미지 목록을 불러오지 못했습니다.");
-  return result.data as BulletinImage[];
+  return (result.data as BulletinImage[]).map(withFolder);
 }
 
 /** File name without extension, used as the default title. */
@@ -24,16 +24,31 @@ export function checkImageFile(file: File) {
   return "";
 }
 
+/** Rows from before the folder column existed read as "no folder". */
+export const withFolder = (image: BulletinImage): BulletinImage => ({ ...image, folder: image.folder ?? "" });
+/** Distinct folder names, 가나다 order. */
+export const folderNames = (images: BulletinImage[], extra: string[] = []) => [...new Set([...images.map(image => image.folder ?? ""), ...extra].filter(Boolean))].sort((a, b) => a.localeCompare(b, "ko"));
+
+async function editorToken(client: Client) { const token = (await client.auth.getSession()).data.session?.access_token; if (!token) throw new Error("관리자 로그인이 필요합니다."); return token; }
+
+/** Move one image into a folder ('' = 폴더 없음). */
+export async function moveImage(client: Client, id: string, folder: string): Promise<BulletinImage> {
+  const response = await fetch("/api/images", { method: "PATCH", headers: { Authorization: `Bearer ${await editorToken(client)}`, "Content-Type": "application/json" }, body: JSON.stringify({ id, folder }) });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error ?? "폴더를 옮기지 못했습니다.");
+  return withFolder(data as BulletinImage);
+}
+
 /** Uploads one image to the library. Title defaults to the file name; the description defaults to the title. */
-export async function uploadImage(client: Client, file: File, options: { title?: string; alt?: string } = {}): Promise<BulletinImage> {
+export async function uploadImage(client: Client, file: File, options: { title?: string; alt?: string; folder?: string } = {}): Promise<BulletinImage> {
   const problem = checkImageFile(file);
   if (problem) throw new Error(problem);
   const token = (await client.auth.getSession()).data.session?.access_token;
   if (!token) throw new Error("관리자 로그인이 필요합니다.");
   const title = (options.title?.trim() || titleFromFile(file)).slice(0, 200);
   const alt = (options.alt?.trim() || title).slice(0, 500);
-  const response = await fetch("/api/images", { method: "POST", headers: { Authorization: `Bearer ${token}`, "x-image-title": encodeURIComponent(title), "x-image-alt": encodeURIComponent(alt) }, body: file });
+  const response = await fetch("/api/images", { method: "POST", headers: { Authorization: `Bearer ${token}`, "x-image-title": encodeURIComponent(title), "x-image-alt": encodeURIComponent(alt), ...(options.folder?.trim() ? { "x-image-folder": encodeURIComponent(options.folder.trim()) } : {}) }, body: file });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error ?? "이미지를 올리지 못했습니다. 다시 시도해 주세요.");
-  return data as BulletinImage;
+  return withFolder(data as BulletinImage);
 }

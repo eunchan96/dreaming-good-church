@@ -1,7 +1,8 @@
 'use client';
 import {shortDate} from '@/lib/bulletin-defaults.mjs';
 import type {ReactNode} from 'react';
-import {bodyField,displayTitle,managedSchedule,newsTitle,type BulletinSection} from '@/lib/bulletin-editor';
+import {bodyField,defaultItem,displayTitle,managedSchedule,newsTitle,type BulletinSection} from '@/lib/bulletin-editor';
+import AdminIcon from '../admin-icons';
 import type {BulletinItem,BlockContent} from '@/lib/bulletins';
 import {BlockFields} from './block-fields';
 import NewsEditor from './news-editor';
@@ -20,7 +21,8 @@ export default function BulletinForm({items,previous,onRemove,onImport,groups,sh
    const prev=previous?.items.find(old=>old.title===item.title)??previous?.items.find(old=>old.kind===item.kind&&sectionFor(old)===section);
    const cleaning=previous?.items.find(old=>/봉사위원/.test(old.title))?.content?.rows?.find(row=>/교회\s*청소/.test(row[0]));
    const hint=previous&&cleaning?.[1]?`${shortDate(previous.serviceDate)}(지난주)은 ${cleaning[1]}였어요`:undefined;
-   return <article id={`edit-item-${item.id}`} key={item.id} tabIndex={-1} aria-label={title} className={`${polish.entry} ${item.kind==='image'?polish.imageEntry:''}`}>{item.kind!=='worship'&&item.kind!=='offering'?<div className={polish.entryTools}>{prev?<button type="button" aria-label={`${title} 지난 주 가져오기`} title="지난 주 가져오기" onClick={()=>onImport([item.id],[prev])}>↶</button>:null}<button type="button" aria-label={`${title} 삭제`} title="항목 삭제" onClick={()=>onRemove([item.id])}>×</button></div>:null}
+   const fixed=defaultItem(item),off=!!item.content?.disabled,tools=item.kind!=='worship'||!/예배 순서/.test(section);
+   return <article id={`edit-item-${item.id}`} key={item.id} tabIndex={-1} aria-label={title} data-disabled={off||undefined} className={`${polish.entry} ${item.kind==='image'?polish.imageEntry:''}`}>{tools&&item.kind!=='offering'?<div className={polish.entryTools}>{prev?<button type="button" aria-label={`${title} 지난 주 가져오기`} title="지난 주 가져오기" onClick={()=>onImport([item.id],[prev])}><AdminIcon name="undo"/></button>:null}{fixed?<button type="button" aria-label={`${title} ${off?'활성화':'비활성화'}`} aria-pressed={off} title={off?'활성화':'비활성화'} onClick={()=>onContent(item.id,{...item.content,disabled:!off})}><AdminIcon name={off?'on':'off'}/></button>:<button type="button" aria-label={`${title} 삭제`} title="항목 삭제" onClick={()=>onRemove([item.id])}><AdminIcon name="remove"/></button>}</div>:null}
     {section==='표지'&&item.kind!=='image'?<div className={polish.coverLines}>{[0,1].map(line=>{const values=item.title.split(/\n|\s*[·ㆍ]\s*/);const first=values[0]??'',second=values.slice(1).join('\n');return <GrowingTextarea key={line} aria-label={line===0?'표지 첫째 줄':'표지 둘째 줄'} value={line===0?first:second} maxLength={99} onChange={e=>onText(item.id,{title:line===0?`${e.target.value}\n${second}`:`${first}\n${e.target.value}`})}/>;})}</div>:<>
      {(title!==section||section==='토라&토브')&&item.kind!=='image'?<h3 id={heading}>{title}</h3>:null}
      {section==='묵상 가이드'?<><label className={polish.labeled}><span>묵상</span><GrowingTextarea aria-label="묵상" value={item.body} maxLength={20000} onChange={e=>onText(item.id,{body:e.target.value})}/></label><label className={`${polish.labeled} ${polish.attribution}`}><span>담당</span><GrowingTextarea aria-label="담당" value={item.content?.attribution??''} maxLength={200} onChange={e=>onContent(item.id,{...item.content,attribution:e.target.value})}/></label></>:section==='토라&토브'?<><label className={polish.labeled}><span>본문</span><GrowingTextarea aria-label={`${title} 본문`} value={item.content?.reference??''} maxLength={500} onChange={e=>onContent(item.id,{preacher:'',...item.content,reference:e.target.value})}/></label><label className={polish.labeled}><span>구절</span><GrowingTextarea aria-label={`${title} 구절`} value={item.body} maxLength={20000} onChange={e=>onText(item.id,{body:e.target.value})}/></label></>:<>

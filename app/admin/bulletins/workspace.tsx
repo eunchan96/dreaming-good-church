@@ -14,6 +14,7 @@ import {PrintEditorProvider} from "./print-editor";
 import ChurchContentProvider from '@/app/church-content';
 import CommunityLinks from "./community-links";
 import { CoverImages } from "./image-picker";
+import { useEditHistory } from "./use-edit-history";
 import styles from "./workspace.module.css";
 import AdminShell from '../admin-shell';
 import PasswordField from '../password-field';
@@ -240,6 +241,8 @@ export default function BulletinWorkspace() {
     setView('library');setDirty(false);setDraft(null);setSavePaused(false);setMessage('');
   }
   const editing=view==='register'||view==='edit';
+  const restore=useCallback((next:Pick<SavedBulletin,'serviceDate'|'issueNumber'|'items'>)=>{setDraft(current=>current&&current.status==='draft'?{...current,...next}:current);version.current+=1;setDirty(true);},[]);
+  useEditHistory(draft,editing&&!preview&&!printPreview,restore);
   const previous=draft?previousFor(draft.serviceDate):undefined;
   const visibleItems=presentationItems(draft?.items??[]).filter(item=>!printOnlyItem(item));
   const webItems=visibleItems.filter(item=>item.webVisible);
@@ -272,7 +275,7 @@ export default function BulletinWorkspace() {
           :<div className={`${view_.list} ${view_.empty}`}>{rows.length?'검색 결과가 없습니다.':'등록된 주보가 없습니다. 새 주보를 작성해 보세요.'}</div>}
       </section>:null}
 
-      {view==='settings'?<section id="bulletin-options" aria-labelledby="bulletin-options-title"><div className={view_.cardHead}><h2 id="bulletin-options-title">주보 설정</h2><div className={view_.headActions}><button type="button" className={`${view_.btn} ${view_.ghost}`} aria-label="주보 목록 돌아가기" onClick={library}><AdminIcon name="back" size={16}/>주보 목록</button><SaveButton className={`${view_.btn} ${view_.primary}`} disabled={visibilityDraft===showVisibility&&connectionsDraft===showConnections} disabledHint="현재 최신 상태입니다." onClick={()=>{setVisibilityOption(visibilityDraft);setConnectionsOption(connectionsDraft);setMessage("주보 설정을 저장했습니다.");}}>저장</SaveButton></div></div><div className={view_.settings}><label className={styles.check}><input type="checkbox" checked={visibilityDraft} onChange={e=>setVisibilityDraft(e.target.checked)}/>웹 공개 설정 표시</label><label className={styles.check}><input type="checkbox" checked={connectionsDraft} onChange={e=>setConnectionsDraft(e.target.checked)}/>공지·일정 연결 표시</label></div></section>:null}
+      {view==='settings'?<section id="bulletin-options" aria-labelledby="bulletin-options-title"><div className={view_.cardHead}><h2 id="bulletin-options-title">주보 설정</h2><div className={view_.headActions}><SaveButton className={`${view_.btn} ${view_.primary}`} disabled={visibilityDraft===showVisibility&&connectionsDraft===showConnections} disabledHint="현재 최신 상태입니다." onClick={()=>{setVisibilityOption(visibilityDraft);setConnectionsOption(connectionsDraft);setMessage("주보 설정을 저장했습니다.");}}>저장</SaveButton></div></div><div className={view_.settings}><label className={styles.check}><input type="checkbox" checked={visibilityDraft} onChange={e=>setVisibilityDraft(e.target.checked)}/>웹 공개 설정 표시</label><label className={styles.check}><input type="checkbox" checked={connectionsDraft} onChange={e=>setConnectionsDraft(e.target.checked)}/>공지·일정 연결 표시</label></div></section>:null}
 
       {view!=='library'&&view!=='settings'?(draft?<>
         {printPreview ? <PrintPreview onReplace={item=>{if(draft.status!=="draft"||busy)return;printEdited.current=true;setDraft(current=>current&&({...current,items:current.items.map(original=>original.id===item.id?item:original)}));markDirty();}} draft={draft} dirty={dirty} onClose={closePrint} pages={Object.fromEntries(draft.items.filter(item => item.printPage != null).map(item => [item.id, item.printPage!]))} onPagesChange={pages => { if (draft.status !== "draft") return; printEdited.current = true; setDraft(current => current && ({ ...current, items: current.items.map(item => ({ ...item, printPage: pages[item.id] ?? null })) })); markDirty(); }} /> : null}

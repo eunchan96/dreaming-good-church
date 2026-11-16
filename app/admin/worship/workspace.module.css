@@ -26,3 +26,7 @@
 .pager button[aria-current=page] { border-color: #342b25 !important; background: #342b25 !important; color: #fff; font-weight: 600; }
 .pager button:disabled { color: #c9bda8; }
 .gap { display: inline-grid; place-items: center; min-width: 20px; color: #9a8b74; }
+
+/* 목록 머리: 필터와 버튼 간격 */
+.filter { margin: 0 0 12px; }
+.actions { display: flex; align-items: center; gap: 6px; }

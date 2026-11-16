@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { makeBrowserClient, errorMessage } from "@/lib/bulletin-store";
 import { churchLabels, type ChurchField, type BulletinImage } from "@/lib/church";
 import ImageLibrary from "./image-library";
-import { checkImageFile, uploadImage } from "@/lib/image-upload";
+import { homeTabs } from "../home-tabs";
+import { checkImageFile, moveImage, uploadImage, withFolder } from "@/lib/image-upload";
 import styles from "../bulletins/workspace.module.css";
 import AdminShell from '../admin-shell';
 import ReauthPanel from '../reauth-panel';
@@ -15,14 +16,14 @@ import { saveChurchInfo } from '@/lib/church-info-store';
 import { CHURCH_ADDRESS,CHURCH_PHONE,CHURCH_VISIT } from '@/lib/site-content';
 import {defaultPageSettings,settingLabels,validPageSetting,type ChurchPageSettings,type SettingKey} from '@/lib/church-page-settings';
 import {readPageSettings,savePageSetting} from '@/lib/church-page-store';
-import PageSettingsEditor from './page-settings-editor';
+import {SettingFields} from './page-settings-editor';
 const defaultInfo:Record<string,string>={name:'꿈꾸는좋은교회',address:CHURCH_ADDRESS,phone:CHURCH_PHONE,directions:CHURCH_VISIT,introduction:'꿈꾸는좋은교회에 오신 여러분을 주님의 이름으로 환영합니다.\n하나님 앞에서 더 나은 예배를 드리고, 일상에서 사랑을 나누는 공동체를 함께 꿈꿉니다.'};
 
 const effectiveField=(field:ChurchField):ChurchField=>({...field,body:field.body.trim()?field.body:defaultInfo[field.key]||field.body});
 
 export default function ChurchWorkspace() {
   const [client] = useState(makeBrowserClient);
-  const [allowed, setAllowed] = useState(false), [reload, setReload] = useState(0), [view, setView] = useState<'info'|'images'>('info');
+  const [allowed, setAllowed] = useState(false), [reload, setReload] = useState(0), [view, setView] = useState<'info'|'images'>(()=>typeof window!=='undefined'&&new URLSearchParams(window.location.search).get('view')==='images'?'images':'info');
   const [fields, setFields] = useState<ChurchField[]>([]), [images, setImages] = useState<BulletinImage[]>([]);
   const [savedFields,setSavedFields]=useState<ChurchField[]>([]), [busy, setBusy] = useState(false), [message, setMessage] = useState("로그인을 확인하고 있습니다…");
   const [infoMessage,setInfoMessage]=useState('');
@@ -67,7 +68,8 @@ export default function ChurchWorkspace() {
     finally { setBusy(false); }
   }
   useEffect(() => { if (!unsaved) return; const guard = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; }; window.addEventListener("beforeunload", guard); return () => window.removeEventListener("beforeunload", guard); }, [unsaved]);
-  async function refreshImages() { const result = await client!.from("bulletin_images").select("*").order("created_at", { ascending: false }).limit(100); if (result.error) throw result.error; setImages(result.data); }
+  async function refreshImages() { const result = await client!.from("bulletin_images").select("*").order("created_at", { ascending: false }).limit(300); if (result.error) throw result.error; setImages(result.data.map(withFolder)); }
+  async function moveTo(id: string, folder: string) { if (!client || busy) return; setBusy(true); try { const moved = await moveImage(client, id, folder); setImages(current => current.map(image => image.id === id ? moved : image)); setMessage(folder ? `'${folder}' 폴더로 옮겼습니다.` : "폴더에서 뺐습니다."); } catch (error) { setMessage(error instanceof Error ? error.message : "폴더를 옮기지 못했습니다."); } finally { setBusy(false); } }
   async function saveGroup(key:SettingKey){
     if(!client||!allowed||!pagesReady||busy)return;
     if(!validPageSetting(key,pages[key])){setPageMessages(current=>({...current,[key]:key==='worship_times'?'요일·주기와24시간제 시각을 확인해 주세요.':key==='offering_accounts'?'은행·예금주와 숫자/하이픈 계좌번호를 확인해 주세요.':'위치 안내 내용을 확인해 주세요.'}));return;}
@@ -75,28 +77,29 @@ export default function ChurchWorkspace() {
     if(!window.confirm(`${settingLabels[key]} 설정을 공개 화면에 반영할까요?${detail}`))return;
     setBusy(true);setMessage('');try{const row=await savePageSetting(client,key,pageVersions[key],pages[key]);setPages(current=>({...current,[key]:row.payload} as ChurchPageSettings));setSavedPages(current=>({...current,[key]:row.payload} as ChurchPageSettings));setPageVersions(current=>({...current,[key]:row.revision}));setPageMessages(current=>({...current,[key]:'저장했습니다. 공개 안내에 반영됩니다.'}));}catch(e){setPageMessages(current=>({...current,[key]:(e as {code?:string}).code==='23505'?'다른 곳에서 먼저 등록했습니다. 입력을 보관한 뒤 다시 불러와 주세요.':errorMessage(e)}));}finally{setBusy(false);}
   }
-  async function reloadGroup(key:SettingKey){if(!client||busy)return;if(JSON.stringify(pages[key])!==JSON.stringify(savedPages[key])&&!window.confirm('이 묶음의 수정 내용을 버리고 현재 저장값을 불러올까요?'))return;setBusy(true);try{const r=await client.from('church_page_settings').select('*').eq('key',key).maybeSingle();if(r.error)throw r.error;const current=readPageSettings(r.data?[r.data]:[]);setPages(value=>({...value,[key]:current.values[key]}));setSavedPages(value=>({...value,[key]:current.values[key]}));setPageVersions(value=>({...value,[key]:current.revisions[key]}));setPageMessages(value=>({...value,[key]:'현재 저장된 설정을 불러왔습니다.'}));}catch(e){setPageMessages(value=>({...value,[key]:errorMessage(e)}));}finally{setBusy(false);}}
-  async function saveInfo(){
-    if(!client||!allowed||busy||!infoDirty)return;
+  async function reloadGroup(key:SettingKey,confirmed=false){if(!client||busy)return;if(!confirmed&&JSON.stringify(pages[key])!==JSON.stringify(savedPages[key])&&!window.confirm('이 묶음의 수정 내용을 버리고 현재 저장값을 불러올까요?'))return;setBusy(true);try{const r=await client.from('church_page_settings').select('*').eq('key',key).maybeSingle();if(r.error)throw r.error;const current=readPageSettings(r.data?[r.data]:[]);setPages(value=>({...value,[key]:current.values[key]}));setSavedPages(value=>({...value,[key]:current.values[key]}));setPageVersions(value=>({...value,[key]:current.revisions[key]}));setPageMessages(value=>({...value,[key]:'현재 저장된 설정을 불러왔습니다.'}));}catch(e){setPageMessages(value=>({...value,[key]:errorMessage(e)}));}finally{setBusy(false);}}
+  /** Saves the given fields (one category) in the existing all-or-nothing RPC; other categories keep their unsaved edits. */
+  async function saveInfo(keys?:string[]){
+    const mine=(key:string)=>!keys||keys.includes(key);
+    if(!client||!allowed||busy||!fields.some(f=>mine(f.key)&&changed(f)))return;
     setBusy(true);setInfoMessage('');
-    try{const result=(await saveChurchInfo(client,fields)).map(effectiveField);setFields(result);setSavedFields(result);setInfoMessage('저장했습니다.');}
+    try{const payload=fields.map(f=>mine(f.key)?f:{...(savedFields.find(row=>row.key===f.key)??f),revision:f.revision});const result=(await saveChurchInfo(client,payload)).map(effectiveField);setSavedFields(result);setFields(current=>result.map(row=>mine(row.key)?row:{...(current.find(old=>old.key===row.key)??row),revision:row.revision}));setInfoMessage('저장했습니다.');}
     catch(error){setInfoMessage(errorMessage(error));}finally{setBusy(false);}
   }
-  async function reloadInfo(){
+  async function reloadInfo(keys?:string[]){
     if(!client||!allowed||busy)return;
-    if(infoDirty&&!window.confirm('교회 안내의 수정 내용을 버리고 저장된 내용을 불러올까요?'))return;
     setBusy(true);setInfoMessage('');
-    try{const {data,error}=await client.from('church_info').select('*').order('key');if(error)throw error;const result=data.map(effectiveField);setFields(result);setSavedFields(result);setInfoMessage('저장된 내용을 불러왔습니다.');}
+    try{const {data,error}=await client.from('church_info').select('*').order('key');if(error)throw error;const result=data.map(effectiveField);const pick=(row:ChurchField,fallback:ChurchField[])=>!keys||keys.includes(row.key)?row:fallback.find(old=>old.key===row.key)??row;setFields(current=>result.map(row=>pick(row,current)));setSavedFields(current=>result.map(row=>pick(row,current)));setInfoMessage('저장된 내용을 불러왔습니다.');}
     catch(error){setInfoMessage(errorMessage(error));}finally{setBusy(false);}
   }
-  async function imageRequest(method: "POST" | "DELETE", id?: string) {
+  async function imageRequest(method: "POST" | "DELETE", id?: string, folder = "") {
     if (!client || !allowed || busy) return;
     if (method === "DELETE" && !window.confirm("사용하지 않는 이미지를 삭제할까요? 주보에서 사용 중인 이미지는 삭제되지 않습니다.")) return;
     if (method === "POST" && !file) { setMessage("올릴 이미지를 선택해 주세요."); return; }
     const problem = method === "POST" && file ? checkImageFile(file) : ""; if (problem) { setMessage(problem); return; }
     setBusy(true); setMessage("");
     try {
-      if (method === "POST" && file) { await uploadImage(client!, file, { title, alt }); setFile(null); setTitle(""); setAlt(""); if (fileInput.current) fileInput.current.value = ""; }
+      if (method === "POST" && file) { await uploadImage(client!, file, { title, alt, folder }); setFile(null); setTitle(""); setAlt(""); if (fileInput.current) fileInput.current.value = ""; }
       else {
         const token = (await client!.auth.getSession()).data.session?.access_token;
         if (!token) { setAllowed(false); throw new Error("관리자 로그인이 필요합니다."); }
@@ -106,20 +109,35 @@ export default function ChurchWorkspace() {
       await refreshImages(); setMessage(method === "POST" ? "이미지를 올렸습니다." : "이미지를 삭제했습니다.");
     } catch (error) { setMessage(error instanceof Error ? error.message : "처리하지 못했습니다."); } finally { setBusy(false); }
   }
-  const order=['name','introduction','address','directions','phone','worship'];
-  const displayedFields=[...fields].sort((a,b)=>order.indexOf(a.key)-order.indexOf(b.key));
-  const intro=<ManagementHeading id="church-heading" eyebrow="ABOUT OUR CHURCH" title="교회 정보·이미지 관리"/>;
-  return <AdminShell active="church" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} pages={[{id:'info',label:'교회 정보',active:view==='info',onSelect:()=>setView('info'),sections:[...displayedFields.map(field=>({id:`church-field-${field.key}`,label:churchLabels[field.key]})),...(pagesReady?(Object.keys(defaultPageSettings) as SettingKey[]).map(key=>({id:`page-setting-${key}`,label:settingLabels[key]})):[])]},{id:'images',label:'이미지 관리',active:view==='images',onSelect:()=>setView('images'),sections:[{id:'church-images',label:'이미지 보관함'}]}]}><main id="admin-content" aria-labelledby="church-heading" tabIndex={-1} className={`${styles.page} ${ui.surface} ${church.surface}`}>
+  // 교회 소개 follows the public 교회 소개 menu: 인사말 · 오시는 길 · 예배시간 안내 · 온라인 헌금.
+  const categories:{id:string;title:string;fields:string[];groups:SettingKey[]}[]=[
+    {id:'greeting',title:'인사말',fields:['name','introduction'],groups:[]},
+    {id:'directions',title:'오시는 길',fields:['address','phone','directions'],groups:['location']},
+    {id:'worship',title:'예배시간 안내',fields:['worship'],groups:['worship_times']},
+    {id:'offering',title:'온라인 헌금',fields:[],groups:['offering_accounts']},
+  ];
+  const fieldLabel=(key:string)=>key==='introduction'?'인사말 글':key==='directions'?'찾아오는 길 설명':key==='worship'?'추가 안내':churchLabels[key];
+  const groupDirty=(key:SettingKey)=>JSON.stringify(pages[key])!==JSON.stringify(savedPages[key]);
+  const categoryDirty=(c:typeof categories[number])=>fields.some(f=>c.fields.includes(f.key)&&changed(f))||c.groups.some(groupDirty);
+  async function saveCategory(c:typeof categories[number]){if(fields.some(f=>c.fields.includes(f.key)&&changed(f)))await saveInfo(c.fields);for(const key of c.groups)if(groupDirty(key))await saveGroup(key);}
+  async function reloadCategory(c:typeof categories[number]){if(categoryDirty(c)&&!window.confirm(`${c.title}의 수정 내용을 버리고 저장된 내용을 불러올까요?`))return;if(c.fields.length)await reloadInfo(c.fields);for(const key of c.groups)if(groupDirty(key))await reloadGroup(key,true);}
+  const intro=<ManagementHeading id="church-heading" eyebrow="HOMEPAGE CONTENT" title="홈페이지 관리"/>;
+  return <AdminShell active="church" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} pages={homeTabs(view==='images'?'images':'church',view==='images'?[{id:'church-images',label:'이미지 보관함'}]:categories.map(c=>({id:`church-section-${c.id}`,label:c.title})),{canLeave:mayLeave,onSelect:tab=>{if(tab==='home')return false;setView(tab==='images'?'images':'info');history.replaceState(null,'',tab==='images'?'/admin/church?view=images':'/admin/church');return true;}})}><main id="admin-content" aria-labelledby="church-heading" tabIndex={-1} className={`${styles.page} ${ui.surface} ${church.surface}`}>
     {allowed&&message?<p data-page-message role="status" className={`${styles.message} ${ui.feedback}`}>{message}</p>:null}{!allowed ? <ReauthPanel message={message} hasDraft={unsaved} onRetry={()=>{setMessage('로그인 상태를 확인하고 있습니다…');setReload(n=>n+1);}}/> : <>
-      {view==='info'?<><section id="church-info" aria-label="교회 안내" className={church.section}><SectionHeading title="교회 안내" dirty={infoDirty} busy={busy} onSave={()=>void saveInfo()} onReload={()=>void reloadInfo()} saveLabel="교회 안내 저장" reloadLabel="교회 안내 다시 불러오기"/>
-      {infoMessage?<p role="status" className={`${ui.feedback} ${church.feedback}`}>{infoMessage}</p>:null}<fieldset disabled={busy} className={styles.fields}>
-        {displayedFields.map(field=><section key={field.key} id={`church-field-${field.key}`} tabIndex={-1} aria-label={`${churchLabels[field.key]} 편집`} className={`${ui.infoField} ${church.infoField}`}><div className={`${ui.infoLabel} ${church.infoLabel}`}><label htmlFor={`church-${field.key}`}>{churchLabels[field.key]}</label></div><div className={ui.infoControl}>
-        <textarea id={`church-${field.key}`} rows={field.key==='introduction'?5:field.key==='directions'||field.key==='worship'?3:1} maxLength={10000} placeholder={defaultInfo[field.key]||''} value={field.body} onChange={e=>{const value=e.target.value;setFields(current=>current.map(row=>row.key===field.key?{...row,body:value}:row));setInfoMessage('');}}/>
-</div></section>)}
-      </fieldset></section>
-      {pagesReady?<PageSettingsEditor value={pages} saved={savedPages} busy={busy} messages={pageMessages} onChange={(key,payload)=>{setPages(current=>({...current,[key]:payload}));setPageMessages(current=>({...current,[key]:''}));}} onSave={key=>void saveGroup(key)} onReload={key=>void reloadGroup(key)}/>:<section className={ui.flat}><p role="status">예배시간·계좌·지도 설정을 불러오지 못했습니다. 기존 정보는 계속 편집할 수 있습니다.</p><button onClick={()=>setReload(n=>n+1)}>페이지 설정 다시 확인</button></section>}
+      {view==='info'?<>{infoMessage?<p role="status" className={`${ui.feedback} ${church.feedback}`}>{infoMessage}</p>:null}
+      {categories.map(c=><section key={c.id} id={`church-section-${c.id}`} tabIndex={-1} aria-label={c.title} className={church.section}>
+        <SectionHeading title={c.title} dirty={categoryDirty(c)} busy={busy} onSave={()=>void saveCategory(c)} onReload={()=>void reloadCategory(c)} saveLabel={`${c.title} 저장`} reloadLabel={`${c.title} 다시 불러오기`}/>
+        <fieldset disabled={busy} className={`${styles.fields} ${ui.formRows}`}>
+          {c.id==='greeting'?<div className={`${ui.infoField} ${church.infoField}`}><div className={`${ui.infoLabel} ${church.infoLabel}`}><span>목사님 사진</span></div><div className={ui.infoControl}><div className={church.photoSlot}><span aria-hidden="true">사진</span><p>사진이 준비되면 이곳에서 넣을 수 있게 됩니다. 지금은 공개 인사말에 빈 자리로 보입니다.</p></div></div></div>:null}
+          {c.fields.flatMap(key=>fields.filter(f=>f.key===key)).map(field=><div key={field.key} id={`church-field-${field.key}`} className={`${ui.infoField} ${church.infoField}`}><div className={`${ui.infoLabel} ${church.infoLabel}`}><label htmlFor={`church-${field.key}`}>{fieldLabel(field.key)}</label></div><div className={ui.infoControl}>
+            <textarea id={`church-${field.key}`} rows={field.key==='introduction'?5:field.key==='directions'||field.key==='worship'?3:1} maxLength={10000} placeholder={defaultInfo[field.key]||''} value={field.body} onChange={e=>{const value=e.target.value;setFields(current=>current.map(row=>row.key===field.key?{...row,body:value}:row));setInfoMessage('');}}/>
+          </div></div>)}
+          {pagesReady?c.groups.map(key=><div key={key} id={`page-setting-${key}`} className={church.groupFields}><SettingFields settingKey={key} value={pages} onChange={(k,payload)=>{setPages(current=>({...current,[k]:payload}));setPageMessages(current=>({...current,[k]:''}));}}/>{pageMessages[key]?<p role="status" className={`${styles.message} ${ui.feedback}`}>{pageMessages[key]}</p>:null}</div>)
+            :c.groups.length?<p role="status">예배시간·계좌·지도 설정을 불러오지 못했습니다. <button type="button" onClick={()=>setReload(n=>n+1)}>다시 확인</button></p>:null}
+        </fieldset>
+      </section>)}
       </>:null}
-      {view==='images'?<section id="church-images" tabIndex={-1} className={church.section}><ImageLibrary images={images} busy={busy} file={file} title={title} alt={alt} fileInput={fileInput} onTitle={setTitle} onAlt={setAlt} onFile={setFile} onUpload={()=>void imageRequest('POST')} onDelete={id=>void imageRequest('DELETE',id)} onRefresh={()=>void refreshImages().catch(()=>setMessage('이미지 목록을 불러오지 못했습니다.'))} onCancel={()=>{setFile(null);setTitle('');setAlt('');if(fileInput.current)fileInput.current.value='';}}/>
+      {view==='images'?<section id="church-images" tabIndex={-1} className={church.section}><ImageLibrary images={images} busy={busy} file={file} title={title} alt={alt} fileInput={fileInput} onTitle={setTitle} onAlt={setAlt} onFile={setFile} onUpload={folder=>void imageRequest('POST',undefined,folder)} onMove={(id,folder)=>void moveTo(id,folder)} onDelete={id=>void imageRequest('DELETE',id)} onCancel={()=>{setFile(null);setTitle('');setAlt('');if(fileInput.current)fileInput.current.value='';}}/>
       </section>:null}</>}
   </main></AdminShell>;
 }

@@ -1,7 +1,7 @@
 'use client';
 import {useRef,useState} from 'react';
 import type {BulletinItem,BlockContent} from '@/lib/bulletins';
-import {newsGroups,accountBody,isPrayerGuide,newsCategory} from '@/lib/bulletin-editor';
+import {defaultItem,newsGroups,accountBody,isPrayerGuide,newsCategory} from '@/lib/bulletin-editor';
 import GrowingTextarea from './growing-textarea';
 import EditableText from './editable-text';
 import AdminIcon from '../admin-icons';
@@ -20,7 +20,7 @@ export default function NewsEditor({items,previous=[],onText,onContent,onOrder,o
   <div className={css.name}><EditableText brackets value={group.title} label={`${group.title} 이름 수정`} maxLength={160} onChange={value=>group.entries.forEach(item=>onText(item.id,{title:`좋은 소식 · ${value}`}))}/></div>
   <div className={css.content}>{group.entries.filter(isPrayerGuide).map(item=><PrayerGuide key={item.id} item={item} onContent={onContent}/>)}<TextGroup title={group.title} items={group.entries.filter(item=>!isPrayerGuide(item))} onText={onText}/>
    {group.entries.map(item=><div key={item.id} className={css.options}>{showVisibility?<label><input type="checkbox" checked={item.webVisible} onChange={e=>onText(item.id,{webVisible:e.target.checked})}/>{group.title} 웹에 공개</label>:null}</div>)}
-  </div><div className={css.tools}>{prior?<button type="button" aria-label={`${group.title} 지난 주 가져오기`} title="지난 주 가져오기" onClick={()=>onImport(ids,prior)}><AdminIcon name="undo"/></button>:null}<button type="button" aria-label={`${group.title} ${off?'활성화':'비활성화'}`} title={off?'활성화':'비활성화'} onClick={()=>{group.entries.forEach(item=>onContent(item.id,{...item.content,disabled:!off}));}}><AdminIcon name={off?'on':'off'}/></button><button type="button" aria-label={`${group.title} 삭제`} title="소식 삭제" onClick={()=>onRemove(ids)}><AdminIcon name="remove"/></button></div>
+  </div><div className={css.tools}>{prior?<button type="button" aria-label={`${group.title} 지난 주 가져오기`} title="지난 주 가져오기" onClick={()=>onImport(ids,prior)}><AdminIcon name="undo"/></button>:null}<button type="button" aria-label={`${group.title} ${off?'활성화':'비활성화'}`} title={off?'활성화':'비활성화'} onClick={()=>{group.entries.forEach(item=>onContent(item.id,{...item.content,disabled:!off}));}}><AdminIcon name={off?'on':'off'}/></button>{group.entries.every(defaultItem)?null:<button type="button" aria-label={`${group.title} 삭제`} title="소식 삭제" onClick={()=>onRemove(ids)}><AdminIcon name="remove"/></button>}</div>
  </section>;
  })}<div className={css.addRow}><button className={css.add} type="button" onClick={onAdd}><AdminIcon name="plus" size={14}/>소식 추가</button></div><span className={css.srOnly} aria-live="polite">{status}</span></div>;
 }

@@ -22,3 +22,7 @@
 
 .editor .primaryAction{display:inline-flex;align-items:center;gap:4px;min-height:38px;padding:0 16px;border:1px solid #342b25;border-radius:8px;background:#342b25;color:#fff;font-size:13px;font-weight:600}
 .editor .primaryAction:hover:not(:disabled){background:#4a3e33}
+
+/* 좁은 화면: 목록 버튼 줄이 넘치지 않게 */
+.listActions { flex-wrap: wrap; justify-content: flex-end; min-width: 0; }
+@media (max-width: 400px) { .listActions > a, .listActions > button:last-child { padding-inline: 12px !important; } }
