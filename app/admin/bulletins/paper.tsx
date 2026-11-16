@@ -63,7 +63,7 @@ function Order({item}:{item:BulletinItem}){
  return <Scope item={item}><h3 className={css.orderTitle}><Image className={css.wing} src="/brand/wing-left.png" width={168} height={116} alt="" unoptimized/><span>{title}</span><Image className={css.wing} src="/brand/wing-right.png" width={168} height={117} alt="" unoptimized/></h3>
   <div className={css.order}>{rows.map(({row,i})=>content.fullRows?.includes(i)
    ?<PrintText key={i} className={css.orderIntro} id={`${item.id}:row:${i}:0`} label={`${item.title} ${i+1}행 내용`} value={row[0]} maxLength={500} onChange={value=>cell(i,0,value)}/>
-   :<div key={i} className={css.orderRow} data-emph={/^성경봉독$/.test(rowIdentity(row[0]))?'scripture':/^말씀선포$/.test(rowIdentity(row[0]))?'sermon':undefined}>
+   :<div key={i} className={css.orderRow} data-order-row data-emph={/^성경봉독$/.test(rowIdentity(row[0]))?'scripture':/^말씀선포$/.test(rowIdentity(row[0]))?'sermon':undefined}>
      <span className={css.stand}>{/^\s*↑/.test(row[0])?'↑':''}</span>
      <Spread className={css.orderName} value={strip(row[0])}><PrintText id={`${item.id}:row:${i}:0`} label={`${item.title} ${i+1}행 1열`} value={strip(row[0])} maxLength={500} onChange={value=>cell(i,0,(/^\s*↑/.test(row[0])?'↑ ':'')+value)}/></Spread>
      <span className={css.leader}><i/>{row[1]?<><PrintText className={css.orderWhat} id={`${item.id}:row:${i}:1`} label={`${item.title} ${i+1}행 2열`} value={row[1]} maxLength={500} onChange={value=>cell(i,1,value)}/><i/></>:null}</span>
@@ -77,37 +77,40 @@ function Table({item,columns}:{item:BulletinItem;columns:number}){
  const {rows,cell}=useEdit(item);
  return <table className={css.table}><tbody>{rows.map(({row,i})=><tr key={i} data-lead={/담임|협동/.test(row[0])||undefined}>{row.slice(0,columns).map((value,col)=><td key={col}><PrintText id={`${item.id}:row:${i}:${col}`} label={`${item.title} ${i+1}행 ${col+1}열`} value={value} maxLength={500} onChange={next=>cell(i,col,next)}/></td>)}</tr>)}</tbody></table>;
 }
-/** 예배 안내 like the Word bulletin: 주일 | 학생·월삭 | 새벽·금요, times only. */
-const scheduleColumns:[RegExp,string][][]=[[[/^주일예배$/,'주일\n하늘보좌예배']],[[/학생/,'학생 예배'],[/월삭/,'매월 첫 월삭']],[[/^새벽/,'새벽 예배'],[/금요/,'금요 예배']]];
+/** 예배 안내 like the Word bulletin: 주일 | 학생·월삭 | 새벽·금요, times only.
+ *  Labels are matched loosely so renamed rows (주일 하늘보좌예배, 초·중·고 예배…) still land in place. */
+function scheduleColumn(label:string){
+ const name=label.replace(/\s+/g,'');
+ if(/주일.*오후|오후예배/.test(name))return -1;
+ if(/학생|초.?중.?고|청소년|월삭|첫/.test(name))return 1;
+ if(/새벽|금요/.test(name))return 2;
+ if(/주일|하늘보좌/.test(name))return 0;
+ return 3;
+}
+function scheduleLabel(label:string){
+ const name=label.replace(/\s+/g,'');
+ if(/^주일(예배|하늘보좌예배)$|^하늘보좌예배$/.test(name))return '주일\n하늘보좌예배';
+ if(/^월삭새벽예배$/.test(name))return '매월 첫 월삭';
+ if(/^(새벽|금요)예배$/.test(name))return name.replace('예배',' 예배');
+ return label;
+}
 const timeOnly=(value:string)=>value.match(/(오전|오후|저녁|새벽|밤)\s*\d{1,2}:\d{2}\s*$/)?.[0]??value;
 function Schedule({item}:{item:BulletinItem}){
  const {rows}=useEdit(item);
- return <Scope item={item}><Band title="예배 안내" tone="olive"/><div className={css.schedule}>{scheduleColumns.map((column,index)=><div key={index}>{column.flatMap(([pattern,label])=>{const entry=rows.find(({row})=>pattern.test(row[0].replace(/\s+/g,'')));return entry?[<div key={label} className={css.scheduleRow}><span className={css.scheduleLabel}>{label}</span><span>{timeOnly(entry.row[1]??'')}</span></div>]:[];})}</div>)}</div></Scope>;
+ const columns:{row:string[];i:number}[][]=[[],[],[]];
+ for(const entry of rows){const column=scheduleColumn(entry.row[0]);if(column<0)continue;const target=column<3?columns[column]:columns.reduce((a,b)=>b.length<a.length?b:a);target.push(entry);}
+ const order=[/주일|하늘보좌/,/학생|초.?중.?고|청소년/,/월삭|첫/,/^새벽/,/금요/],rank=(label:string)=>{const name=label.replace(/\s+/g,'');const index=order.findIndex(pattern=>pattern.test(name));return index<0?order.length:index;};
+ columns.forEach(column=>column.sort((a,b)=>rank(a.row[0])-rank(b.row[0])));
+ return <Scope item={item}><Band title="예배 안내" tone="olive"/><div className={css.schedule}>{columns.map((column,index)=><div key={index} className={css.scheduleColumn}>{column.map(({row,i})=><Fragment key={i}><span className={css.scheduleLabel}>{scheduleLabel(row[0])}</span><span className={css.scheduleTime}>{timeOnly(row[1]??'')}</span></Fragment>)}</div>)}</div></Scope>;
 }
 function Volunteers({item}:{item:BulletinItem}){
  const {rows,cell}=useEdit(item);
  return <div className={css.volunteers}>{rows.map(({row,i})=><div key={i}><PrintText className={css.volunteerRole} id={`${item.id}:row:${i}:0`} label={`${item.title} ${i+1}행 1열`} value={row[0]} maxLength={500} onChange={v=>cell(i,0,v)}/><div className={css.volunteerWho}><PrintText id={`${item.id}:row:${i}:1`} label={`${item.title} ${i+1}행 2열`} value={row[1]??''} maxLength={500} onChange={v=>cell(i,1,v)}/><PrintText id={`${item.id}:row:${i}:2`} label={`${item.title} ${i+1}행 3열`} value={row[2]??''} maxLength={500} onChange={v=>cell(i,2,v)}/></div></div>)}</div>;
 }
-/** 섬기는 이들 like the Word file: short entries two per line (담임 목사 | 토브 지휘자),
- *  lists of several names on their own line. Saves height on 2면. */
-function StaffTable({item}:{item:BulletinItem}){
- const {rows,cell}=useEdit(item);
- const long=(row:string[])=>/[·･,]/.test(row[1]??'')||(row[1]??'').length>8;
- const lead=(row:string[])=>/담임|협동/.test(row[0]);
- const shorts=rows.filter(({row})=>!long(row)),leads=shorts.filter(({row})=>lead(row)),others=shorts.filter(({row})=>!lead(row));
- const pairs:{row:string[];i:number}[][]=[];
- leads.forEach((entry,index)=>pairs.push(others[index]?[entry,others[index]]:[entry]));
- const rest=others.slice(leads.length);for(let k=0;k<rest.length;k+=2)pairs.push(rest.slice(k,k+2));
- const cells=(entry:{row:string[];i:number})=>[0,1].map(col=><td key={col}><PrintText id={`${item.id}:row:${entry.i}:${col}`} label={`${item.title} ${entry.i+1}행 ${col+1}열`} value={entry.row[col]??''} maxLength={500} onChange={next=>cell(entry.i,col,next)}/></td>);
- return <table className={`${css.table} ${css.staffTable}`}><tbody>
-  {pairs.map((pair,index)=><tr key={'p'+index} data-lead={pair.some(({row})=>lead(row))||undefined}>{cells(pair[0])}{pair[1]?cells(pair[1]):<><td/><td/></>}</tr>)}
-  {rows.filter(({row})=>long(row)).map(entry=><tr key={entry.i}><td><PrintText id={`${item.id}:row:${entry.i}:0`} label={`${item.title} ${entry.i+1}행 1열`} value={entry.row[0]} maxLength={500} onChange={next=>cell(entry.i,0,next)}/></td><td colSpan={3}><PrintText id={`${item.id}:row:${entry.i}:1`} label={`${item.title} ${entry.i+1}행 2열`} value={entry.row[1]??''} maxLength={500} onChange={next=>cell(entry.i,1,next)}/></td></tr>)}
- </tbody></table>;
-}
 function Support({item}:{item:BulletinItem}){
  const {text}=useEdit(item),title=displayTitle(item.title),staff=/섬기는 이들/.test(item.title),volunteer=/봉사위원/.test(item.title);
  return <Scope item={item} role={staff?'staff':undefined}><Band title={title} tone={/공지/.test(title)?'lime':'green'}/><div className={css.tinted}>
-  {item.kind==='worship'?volunteer?<Volunteers item={item}/>:staff?<StaffTable item={item}/>:<Table item={item} columns={3}/>:null}
+  {item.kind==='worship'?volunteer?<Volunteers item={item}/>:<Table item={item} columns={staff?2:3}/>:null}
   {bodyField(item)&&item.body?<PrintText className={css.dashList} id={`${item.id}:body`} label={`${item.title} 내용`} value={item.body} onChange={v=>text('body',v)}/>:null}
  </div></Scope>;
 }

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {CHURCH_ADDRESS,CHURCH_PHONE} from '@/lib/site-content';
 import ChurchContentProvider,{useChurchContent} from '@/app/church-content';
@@ -40,6 +40,20 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
     fit(); const observer = new ResizeObserver(fit); observer.observe(node);
     return () => observer.disconnect();
   }, []);
+  // Spread the worship order to fill its page: widest row height that still fits (2.7em → 1.6em).
+  useLayoutEffect(() => {
+    const fit = () => root.current?.querySelectorAll<HTMLElement>('[data-print-panel]').forEach(body => {
+      const panel = body.closest<HTMLElement>('[data-page]');
+      if (!panel || !body.querySelector('[data-order-row]')) { panel?.style.removeProperty('--order-row'); return; }
+      let size = 2.7;
+      panel.style.setProperty('--order-row', `${size}em`);
+      while (size > 1.6 && body.scrollHeight > body.clientHeight + 1) { size = Math.round((size - 0.05) * 100) / 100; panel.style.setProperty('--order-row', `${size}em`); }
+    });
+    fit();
+    let active = true;
+    void document.fonts.ready.then(() => { if (active) fit(); });
+    return () => { active = false; };
+  }, [draft, pages, settings, fields]);
   function checkOverflow() {
     // A few pixels of tolerance: sub-pixel rounding should not block printing.
     return Array.from(root.current?.querySelectorAll<HTMLElement>('[data-print-panel]') ?? []).filter(node => node.scrollHeight > node.clientHeight + 6 || node.scrollWidth > node.clientWidth + 6).map(node => Number(node.dataset.printPanel));

@@ -251,3 +251,14 @@ small.churchLine { font-size: .88em; }
 
 .staffTable td:nth-child(2):not([colspan]) { border-right: 1px solid #b9c08f; }
 .staffTable tr > td:last-child { border-right: 0 !important; }
+
+/* 예배 안내 columns: labels centred, times share one left edge */
+.scheduleColumn { display: grid !important; grid-template-columns: max-content max-content; justify-content: center; align-content: center; column-gap: .9em; row-gap: .15em; }
+.scheduleColumn > .scheduleLabel { text-align: center; white-space: pre-line; line-height: 1.35; align-self: center; }
+.scheduleColumn > .scheduleTime { text-align: left; white-space: nowrap; align-self: center; }
+
+/* 예배 순서 row height follows --order-row, tuned by the print preview to fill 2면 */
+.orderRow { min-height: var(--order-row, 2.2em); }
+.orderRow[data-emph] { min-height: calc(var(--order-row, 2.2em) + .5em); }
+
+.schedule > .scheduleColumn { column-gap: .9em; row-gap: .2em; }

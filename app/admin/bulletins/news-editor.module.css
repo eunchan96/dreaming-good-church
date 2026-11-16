@@ -29,3 +29,8 @@
  .tools{position:static!important;grid-column:1/-1;display:none;justify-content:flex-end;opacity:1;width:auto}
  .row:focus-within .tools{display:flex}
 }
+
+/* Name column sized to the longest category so names never wrap */
+.row{grid-template-columns:24px var(--name-w,104px) minmax(0,1fr)}
+.name{font-size:14px}
+@media(max-width:700px){.row{grid-template-columns:22px minmax(0,1fr)}}
