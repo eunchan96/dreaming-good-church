@@ -31,7 +31,7 @@ test('confirmed offering and afternoon time, zoomed directions and anonymous API
   for(const number of ['301-0223-0182-71','301-0220-0484-81'])await expect(page.getByText(number,{exact:true})).toBeVisible();
   await page.goto('/church/worship-times');await expect(page.getByText('첫째·셋째 주일 오후 1:00',{exact:true})).toBeVisible();
   await page.goto('/church/directions');await expect(page.locator('iframe[title="꿈꾸는좋은교회 위치 지도"]')).toHaveAttribute('src',/q=37\.6223746%2C126\.8354385&z=16/);
-  await expect(page.getByText('샘터마을2단지아파트 앞 · 행신초등학교에서 도보 2분',{exact:true})).toBeVisible();
+  await expect(page.getByText('샘터마을2단지아파트 앞에 있습니다.',{exact:false})).toBeVisible();
   await expect(page.getByText('경기도 고양시 덕양구 충장로 118-35, 선아빌딩 5층',{exact:true}).first()).toBeVisible();
   expect((await request.get('/api/bulletin-sections?section=invalid')).status()).toBe(400);
   const r=await request.get('/api/bulletin-sections?section=torah-tov');expect(r.ok()).toBe(true);expect(Array.isArray((await r.json()).items)).toBe(true);

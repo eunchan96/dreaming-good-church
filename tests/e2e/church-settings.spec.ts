@@ -53,9 +53,9 @@ test('individual church settings save publicly, enforce permissions/conflicts an
   const location=manager.getByRole('region',{name:'오시는 길',exact:true});
   await expect(times).toBeVisible();
   await selectTime(manager,timeControl(manager,'주일오후예배 시간'),'13:30');
-  await location.getByLabel('주변 위치 안내',{exact:true}).fill('미저장 위치 초안');
+  await location.getByRole('textbox',{name:'대중교통·도보 안내',exact:true}).fill('미저장 위치 초안');
   manager.once('dialog',d=>d.accept());await times.getByRole('button',{name:'예배시간 안내 저장',exact:true}).click();await expect(times.getByRole('status')).toContainText('저장했습니다');
-  await expect(location.getByLabel('주변 위치 안내',{exact:true})).toHaveValue('미저장 위치 초안');
+  await expect(location.getByRole('textbox',{name:'대중교통·도보 안내',exact:true})).toHaveValue('미저장 위치 초안');
   const rows=await service.from('church_page_settings').select('*');expect(rows.data?.map(row=>row.key)).toEqual(['worship_times']);
   await accounts.getByRole('group',{name:'온라인 헌금',exact:true}).getByLabel('계좌번호',{exact:true}).fill('123-456-789');
   manager.once('dialog',async d=>{expect(d.message()).toContain('농협 123-456-789 / 좋은교회');await d.dismiss();});await accounts.getByRole('button',{name:'온라인 헌금 저장',exact:true}).click();

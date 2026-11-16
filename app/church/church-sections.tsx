@@ -1,17 +1,17 @@
 'use client';
 import { useState } from 'react';
 import type { ChurchPageSettings } from '@/lib/church-page-settings';
-import { PASTOR_PHOTO, YOUTUBE_CHANNEL } from '@/lib/site-content';
+import { YOUTUBE_CHANNEL } from '@/lib/site-content';
+import { BulletinImageView } from '../bulletin-image';
+import type { Portrait } from '../church-content';
 import SiteIcon from '../site-icon';
 import css from './church.module.css';
 
 /** 인사말: pastor photo (placeholder until the photo is ready) beside the greeting. */
-export function Greeting({ name, introduction }: { name: string; introduction: string | null }) {
+export function Greeting({ name, introduction, portrait }: { name: string; introduction: string | null; portrait: Portrait }) {
   return <section className={css.greeting} aria-label="인사말">
     <figure className={css.portrait}>
-      {/* eslint-disable-next-line @next/next/no-img-element -- static brand photo, swapped in when ready */}
-      {PASTOR_PHOTO ? <img src={PASTOR_PHOTO.src} alt={PASTOR_PHOTO.alt} /> : <div className={css.portraitEmpty} aria-hidden="true"><svg viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="24" cy="18" r="8" /><path d="M9 41c2-8 8-12 15-12s13 4 15 12" /></svg></div>}
-      {PASTOR_PHOTO?.caption ? <figcaption>{PASTOR_PHOTO.caption}</figcaption> : null}
+      {portrait ? <BulletinImageView key={portrait.imageId} id={portrait.imageId} alt={portrait.alt || '담임목사 사진'} fallback={<div className={css.portraitEmpty} aria-hidden="true" />} /> : <div className={css.portraitEmpty} aria-hidden="true"><svg viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="24" cy="18" r="8" /><path d="M9 41c2-8 8-12 15-12s13 4 15 12" /></svg></div>}
     </figure>
     <div className={css.greetingText}>
       <p className={css.eyebrow}>{name}</p>

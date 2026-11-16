@@ -148,3 +148,4 @@
   .selection { width: auto; max-width: 160px; }
   .side { top: 0; }
 }
+.swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; border: 1px solid #0002; }

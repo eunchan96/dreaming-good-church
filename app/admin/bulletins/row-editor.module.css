@@ -150,3 +150,6 @@
 
 /* 섬기는 이들·봉사위원·헌금 입력칸: 글자가 테두리에 붙지 않게 */
 .editor.editor.editor .cells textarea { padding: 6px 12px; }
+
+/* 섬기는 이들·봉사위원 입력칸: 글자가 테두리에 붙지 않게 (이전 4중 클래스 규칙보다 우선) */
+.editor.editor.editor.editor.editor .cells textarea { padding-left: 12px; padding-right: 12px; }

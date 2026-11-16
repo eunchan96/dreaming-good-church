@@ -18,13 +18,13 @@ test('교회 소개 categories save only their own fields, roll back conflicts a
   const save=greeting.getByRole('button',{name:'인사말 저장',exact:true}),reload=greeting.getByRole('button',{name:'인사말 다시 불러오기',exact:true});
   await expect(save).toBeDisabled();await expect(reload).toBeDisabled();
   const before=await db.from('church_info').select('*').order('key');
-  await page.getByLabel('인사말 글',{exact:true}).fill('함께 예배하는 인사말');await page.getByLabel('연락처',{exact:true}).fill('010-1234-5678');await page.getByLabel('주변 위치 안내',{exact:true}).fill('다른 묶음의 미저장 초안');
+  await page.getByLabel('인사말 글',{exact:true}).fill('함께 예배하는 인사말');await page.getByLabel('연락처',{exact:true}).fill('010-1234-5678');await page.getByRole('textbox',{name:'대중교통·도보 안내',exact:true}).fill('다른 묶음의 미저장 초안');
   await expect(save).toBeEnabled();await expect(visit.getByRole('button',{name:'오시는 길 저장',exact:true})).toBeEnabled();
   await save.click();await expect(page.getByRole('status').filter({hasText:'저장했습니다'})).toBeVisible();await expect(save).toBeDisabled();
   const after=await db.from('church_info').select('*').order('key');
   expect(after.data!.find(r=>r.key==='introduction')!.body).toBe('함께 예배하는 인사말');
   expect(after.data!.find(r=>r.key==='phone')!.body).toBe(before.data!.find(r=>r.key==='phone')!.body);
-  await expect(page.getByLabel('연락처',{exact:true})).toHaveValue('010-1234-5678');await expect(page.getByLabel('주변 위치 안내',{exact:true})).toHaveValue('다른 묶음의 미저장 초안');
+  await expect(page.getByLabel('연락처',{exact:true})).toHaveValue('010-1234-5678');await expect(page.getByRole('textbox',{name:'대중교통·도보 안내',exact:true})).toHaveValue('다른 묶음의 미저장 초안');
   // A conflict anywhere rolls the whole save back and keeps the drafts.
   const other=await context.newPage();await other.goto('/admin/church');await other.getByLabel('교회 이름',{exact:true}).fill('저장되지 않아야 할 이름');
   const worship=after.data!.find(row=>row.key==='worship')!;await db.from('church_info').update({body:'다른 화면에서 저장한 예배 안내',revision:worship.revision+1}).eq('key','worship');const beforeConflict=await db.from('church_info').select('*').order('key');

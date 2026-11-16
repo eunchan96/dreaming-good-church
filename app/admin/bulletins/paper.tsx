@@ -170,7 +170,7 @@ export function ChurchInfo({name,address,phone,item}:{name:string;address:string
  const clean=address.split(/\r?\n/).filter(line=>!/오시는\s*길/.test(line)).join(' ').replace(/\[[^\]]*오시는\s*길[^\]]*\]/g,'').trim();
  const [main,extra]=(()=>{const m=clean.match(/^(.*?)\s*(\([^)]*\))\s*$/);return m?[m[1],m[2]]:[clean,''];})();
  const lines=main.split(/,\s*/).filter(Boolean);
- return <section className={css.church}><div data-print-item={item?.id}><h3><span>{name.replace(/^꿈꾸는\s*/,'')}</span><i aria-hidden="true">♥</i></h3><ul className={css.churchList}>
+ return <section className={css.church}><div data-print-item={item?.id}><h3><span>{name.replace(/^꿈꾸는\s*/,'')}</span><svg className={css.heart} viewBox="0 0 24 22" aria-hidden="true"><path fill="#e0262b" d="M12 22 2.4 12.2A6 6 0 0 1 12 4.6a6 6 0 0 1 9.6 7.6Z"/></svg></h3><ul className={css.churchList}>
   <li><Pin/><span>{lines.map((line,i)=><span key={i} className={css.churchLine}>{line}{i<lines.length-1?',':''}</span>)}{extra?<small className={css.churchLine}>{extra}</small>:null}</span></li>
   {phone?<li><Phone/><span>{phone}</span></li>:null}
   <li><Youtube/><span>Youtube [꿈꾸는 좋은교회]</span></li>

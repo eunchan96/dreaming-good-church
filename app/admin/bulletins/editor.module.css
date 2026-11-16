@@ -39,3 +39,21 @@
 /* 비활성화한 기본 항목: 흐리게 (도구는 그대로) */
 .surface .entry[data-disabled] > :not(.entryTools) { opacity: .42; }
 .surface .entryTools button[aria-pressed=true] { color: #8a4b13; }
+
+/* Item tools live on a heading line: the sub-heading (나의 묵상 …) or the section heading for single-item sections. */
+.surface .entryHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0 8px; }
+.surface .entryHead > h3 { margin: 0 !important; }
+.surface .sectionHead { display: flex; align-items: center; gap: 10px; }
+.surface .sectionHead > .entryTools { margin-left: auto; }
+.surface .entry .entryTools, .surface .sectionHead .entryTools, .surface .entryTools { position: static !important; display: flex; gap: 2px; width: auto !important; opacity: 1 !important; transform: none; margin: 0; }
+.surface .entryTools button { display: grid; place-items: center; width: 32px; height: 32px; min-width: 0 !important; min-height: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 7px !important; background: transparent !important; color: #8a7a62; }
+.surface .entryTools button:hover { background: #f1eadb !important; color: #2f2720; }
+.surface .entry, .surface .entry:has(.entryTools) { padding-top: 10px; }
+.surface .entry > :is(.contentOnly, .labeled, .coverLines), .surface .entry:has(.entryTools) > .coverLines { margin-right: 0 !important; max-width: 100% !important; }
+.surface .coverLines { max-width: min(560px, 100%) !important; }
+@media (max-width: 700px) {
+  .surface .entry > .entryTools + :not(h3), .surface .entry > .entryTools:has(> button + button) + :not(h3) { margin-right: 0 !important; max-width: 100% !important; }
+}
+/* An entry without a heading (e.g. extra 표지 lines) keeps its tools at the right of the box. */
+.surface .entry > .entryTools { justify-content: flex-end; margin-bottom: 4px; }
+.surface.surface .sectionHead > .entryTools { margin-left: auto !important; }

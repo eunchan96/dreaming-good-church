@@ -198,6 +198,40 @@ export type Database = {
                 Relationships: [
                 ];
             };
+            "church_portrait": {
+                Row: {
+                    "alt": string;
+                    "id": number;
+                    "image_asset_id": string | null;
+                    "revision": number;
+                };
+                ComputedFields: never;
+                Insert: {
+                    "alt"?: string;
+                    "id"?: number;
+                    "image_asset_id"?: string | null;
+                    "revision"?: number;
+                };
+                Update: {
+                    "alt"?: string;
+                    "id"?: number;
+                    "image_asset_id"?: string | null;
+                    "revision"?: number;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "church_portrait_image_asset_id_fkey";
+                        columns: [
+                            "image_asset_id"
+                        ];
+                        isOneToOne: false;
+                        referencedRelation: "bulletin_images";
+                        referencedColumns: [
+                            "id"
+                        ];
+                    }
+                ];
+            };
             "community_entries": {
                 Row: {
                     "body": string;

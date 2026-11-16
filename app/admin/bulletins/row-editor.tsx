@@ -10,7 +10,7 @@ import AdminIcon from '../admin-icons';
 import {MonthPicker} from '../calendar';
 import css from './row-editor.module.css';
 const strip=(value:string)=>value.replace(/^\s*↑\s*/,'');
-type Props={onImported?:()=>void;item:BulletinItem;previous?:BulletinItem;volunteerHint?:string;onChange:(content:BlockContent,body?:string)=>void};
+type Props={onImported?:()=>void;item:BulletinItem;previous?:BulletinItem;volunteerHints?:Record<string,string>;onChange:(content:BlockContent,body?:string)=>void};
 
 /** Single-line input whose box grows with its text (CSS grid mirror, no measuring). */
 function FitInput({value,className,...props}:Omit<InputHTMLAttributes<HTMLInputElement>,'value'>&{value:string}){
@@ -32,7 +32,7 @@ function LeaderCell({value,label,fixed,required,disabled,onChange}:{value:string
  </div>;
 }
 
-export default function RowEditor({item,previous,volunteerHint,onChange,onImported}:Props){
+export default function RowEditor({item,previous,volunteerHints,onChange,onImported}:Props){
  const order=item.kind==='worship'&&sectionFor(item)==='예배 순서',staff=/섬기는 이들/.test(item.title),volunteer=/봉사위원/.test(item.title),offering=item.kind==='offering';
  const content=order?worshipRows(item):offering?offeringRows(item.content??{}):item.content??{},rows=content.rows??[],prior=previous?(order?worshipRows(previous):offering?offeringRows(previous.content??{}):previous.content??{}):{};
  const root=useRef<HTMLDivElement>(null),source=useRef<number|null>(null),target=useRef<number|null>(null),[over,setOver]=useState<number|null>(null),[status,setStatus]=useState('');
@@ -61,7 +61,7 @@ export default function RowEditor({item,previous,volunteerHint,onChange,onImport
     </div>
     :<div className={css.cells} data-columns={columns.length}>{columns.map((column,col)=>{
      const label=`${item.title} ${index+1}행 ${column}`,fixed=col===0;
-     return <div key={column} className={col===0?css.name:css.cell}>{fixed?<EditableText value={row[0]??''} label={`${item.title} ${index+1}행 이름 수정`} disabled={disabled} onChange={value=>update(index,0,value)}/>:<GrowingTextarea className={staff?css.underlined:''} aria-label={label} disabled={disabled} placeholder={volunteer&&col===1&&rowIdentity(row[0])==='교회청소'?volunteerHint:column} inputMode={offering&&col===1?'numeric':undefined} maxLength={offering&&col===1?12:500} value={row[col]??''} onChange={e=>{if(offering&&col===1&&!/^\d{0,12}$/.test(e.target.value))return;update(index,col,e.target.value);}}/>}</div>;
+     return <div key={column} className={col===0?css.name:css.cell}>{fixed?<EditableText value={row[0]??''} label={`${item.title} ${index+1}행 이름 수정`} disabled={disabled} onChange={value=>update(index,0,value)}/>:<GrowingTextarea className={staff?css.underlined:''} aria-label={label} disabled={disabled} placeholder={volunteer&&col===1?(volunteerHints?.[rowIdentity(row[0])]??'이름'):column} inputMode={offering&&col===1?'numeric':undefined} maxLength={offering&&col===1?12:500} value={row[col]??''} onChange={e=>{if(offering&&col===1&&!/^\d{0,12}$/.test(e.target.value))return;update(index,col,e.target.value);}}/>}</div>;
     })}</div>}
     <div className={css.rowTools}>{prior.rows?.length?<button type="button" aria-label={`${item.title} ${index+1}행 지난 주 가져오기`} title="지난 주 가져오기" onClick={e=>{if(from>=0)importRow(index,from);else{returnTo.current=e.currentTarget;setPicking(index);picker.current?.showModal();}}}><AdminIcon name="undo"/></button>:null}<button type="button" aria-label={`${item.title} ${index+1}행 ${disabled?'활성화':'비활성화'}`} title={disabled?'활성화':'비활성화'} onClick={()=>change({...content,disabledRows:disabled?content.disabledRows?.filter(i=>i!==index):[...(content.disabledRows??[]),index]})}><AdminIcon name={disabled?'on':'off'}/></button>{defaultRow(kind,row)?null:<button type="button" aria-label={`${item.title} ${index+1}행 삭제`} title="행 삭제" onClick={()=>change(removeContentRow(content,index))}><AdminIcon name="remove"/></button>}</div>
    </div>;
