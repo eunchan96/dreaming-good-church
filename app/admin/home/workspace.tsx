@@ -8,6 +8,7 @@ import SaveButton from '../save-button';
 import AdminShell from '../admin-shell';
 import ReauthPanel from '../reauth-panel';
 import ImagePicker from './image-picker';
+import {uploadImage} from '@/lib/image-upload';
 import styles from '../bulletins/workspace.module.css';
 import ui from './workspace.module.css';
 type Draft=HomeContent&{revision:number};
@@ -56,7 +57,7 @@ export default function HomeWorkspace(){
  }
  async function upload(next:File|null=file){if(!client||!allowed||!next||busy)return;setFile(next);if(next.size>4*1024*1024){setMessage('4MB 이하의 정지된 JPEG·PNG·WebP 파일을 선택해 주세요.');return;}
   const imageAlt='교회 홈페이지 대표 이미지';
-  setBusy(true);setMessage('');try{const token=(await client.auth.getSession()).data.session?.access_token;if(!token)throw new Error('login');const r=await fetch('/api/images',{method:'POST',headers:{Authorization:`Bearer ${token}`,'x-image-title':encodeURIComponent('홈페이지 표지'),'x-image-alt':encodeURIComponent(imageAlt)},body:next});const data=await r.json();if(!r.ok)throw new Error(data.error);
+  setBusy(true);setMessage('');try{const data=await uploadImage(client,next,{title:'홈페이지 표지',alt:imageAlt});
    setImages(current=>[data,...current]);setDraft(current=>({...current,image_asset_id:data.id,image_alt:imageAlt,image_mode:current.image_mode==='art'?'photo':current.image_mode}));setFile(null);if(fileInput.current)fileInput.current.value='';setMessage('이미지를 올렸습니다. 미리보기를 확인한 뒤 홈페이지에 반영해 주세요.');
   }catch(e){setMessage(e instanceof Error?e.message:'이미지를 올리지 못했습니다. 기존 선택은 유지됩니다.');}finally{setBusy(false);}
  }

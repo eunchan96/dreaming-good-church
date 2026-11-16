@@ -19,8 +19,9 @@ export async function POST(request: Request) {
   try {
     if (!await requireEditor(request)) return reply("관리자 로그인이 필요합니다.", 401);
     const title = decodeURIComponent(request.headers.get("x-image-title") ?? "").trim();
-    const alt = decodeURIComponent(request.headers.get("x-image-alt") ?? "").trim();
-    if (!title || title.length > 200 || !alt || alt.length > 500) return reply("제목과 이미지 설명을 입력해 주세요.", 400);
+    // The description is optional at upload time; it falls back to the title and can be refined where the image is used.
+    const alt = decodeURIComponent(request.headers.get("x-image-alt") ?? "").trim() || title;
+    if (!title || title.length > 200 || alt.length > 500) return reply("이미지 제목을 확인해 주세요.", 400);
     if (Number(request.headers.get("content-length")) > MAX_IMAGE_BYTES) return reply("8MB 이하의 이미지를 선택해 주세요.", 413);
     const reader = request.body?.getReader();
     if (!reader) return reply("이미지를 선택해 주세요.", 400);

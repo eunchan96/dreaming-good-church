@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { makeBrowserClient, errorMessage } from "@/lib/bulletin-store";
 import { churchLabels, type ChurchField, type BulletinImage } from "@/lib/church";
 import ImageLibrary from "./image-library";
+import { checkImageFile, uploadImage } from "@/lib/image-upload";
 import styles from "../bulletins/workspace.module.css";
 import AdminShell from '../admin-shell';
 import ReauthPanel from '../reauth-panel';
@@ -91,16 +92,18 @@ export default function ChurchWorkspace() {
   async function imageRequest(method: "POST" | "DELETE", id?: string) {
     if (!client || !allowed || busy) return;
     if (method === "DELETE" && !window.confirm("사용하지 않는 이미지를 삭제할까요? 주보에서 사용 중인 이미지는 삭제되지 않습니다.")) return;
-    if (method === "POST" && (!file || !title.trim() || !alt.trim())) { setMessage("이미지 파일, 제목, 이미지 설명을 입력해 주세요."); return; }
-    if (file && file.size > 8 * 1024 * 1024) { setMessage("8MB 이하의 이미지를 선택해 주세요."); return; }
+    if (method === "POST" && !file) { setMessage("올릴 이미지를 선택해 주세요."); return; }
+    const problem = method === "POST" && file ? checkImageFile(file) : ""; if (problem) { setMessage(problem); return; }
     setBusy(true); setMessage("");
     try {
-      const token = (await client!.auth.getSession()).data.session?.access_token;
-      if (!token) { setAllowed(false); throw new Error("관리자 로그인이 필요합니다."); }
-      const response = await fetch(`/api/images${id ? `?id=${id}` : ""}`, { method, headers: { Authorization: `Bearer ${token}`, ...(method === "POST" ? { "x-image-title": encodeURIComponent(title), "x-image-alt": encodeURIComponent(alt) } : {}) }, ...(method === "POST" ? { body: file } : {}) });
-      const data = await response.json(); if (!response.ok) { if (response.status === 401) setAllowed(false); throw new Error(data.error); }
-      if (method === "POST") { setFile(null); setTitle(""); setAlt(""); if (fileInput.current) fileInput.current.value = ""; }
-      await refreshImages(); setMessage(method === "POST" ? "이미지를 올렸습니다. 주보 편집 화면에서 선택해 넣을 수 있습니다." : "이미지를 삭제했습니다.");
+      if (method === "POST" && file) { await uploadImage(client!, file, { title, alt }); setFile(null); setTitle(""); setAlt(""); if (fileInput.current) fileInput.current.value = ""; }
+      else {
+        const token = (await client!.auth.getSession()).data.session?.access_token;
+        if (!token) { setAllowed(false); throw new Error("관리자 로그인이 필요합니다."); }
+        const response = await fetch(`/api/images?id=${id}`, { method, headers: { Authorization: `Bearer ${token}` } });
+        const data = await response.json(); if (!response.ok) { if (response.status === 401) setAllowed(false); throw new Error(data.error); }
+      }
+      await refreshImages(); setMessage(method === "POST" ? "이미지를 올렸습니다." : "이미지를 삭제했습니다.");
     } catch (error) { setMessage(error instanceof Error ? error.message : "처리하지 못했습니다."); } finally { setBusy(false); }
   }
   const order=['name','introduction','address','directions','phone','worship'];

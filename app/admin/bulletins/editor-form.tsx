@@ -11,8 +11,8 @@ import polish from './editor.module.css';
 import styles from './workspace.module.css';
 import {bulletinSections,sectionFor} from '@/lib/bulletin-editor';
 
-type Props={previous?:{serviceDate:string;items:BulletinItem[]};onRemove:(ids:string[])=>void;onImport:(ids:string[],source:BulletinItem[])=>void;items:BulletinItem[];groups:Record<string,BulletinSection>;showVisibility:boolean;coverPicker:ReactNode;newsConnections:ReactNode;onText:(id:string,changes:Partial<Pick<BulletinItem,'title'|'body'|'webVisible'>>)=>void;onContent:(id:string,content:BlockContent,body?:string)=>void;onOrderNews:(ids:string[])=>void;onAddNews:()=>void;onRemoveImage:(id:string)=>void};
-export default function BulletinForm({items,previous,onRemove,onImport,groups,showVisibility,coverPicker,newsConnections,onText,onContent,onRemoveImage,onOrderNews,onAddNews}:Props){
+type Props={previous?:{serviceDate:string;items:BulletinItem[]};onRemove:(ids:string[])=>void;onImport:(ids:string[],source:BulletinItem[])=>void;items:BulletinItem[];groups:Record<string,BulletinSection>;showVisibility:boolean;coverImages:(images:BulletinItem[])=>ReactNode;newsConnections:ReactNode;onText:(id:string,changes:Partial<Pick<BulletinItem,'title'|'body'|'webVisible'>>)=>void;onContent:(id:string,content:BlockContent,body?:string)=>void;onOrderNews:(ids:string[])=>void;onAddNews:()=>void;};
+export default function BulletinForm({items,previous,onRemove,onImport,groups,showVisibility,coverImages,newsConnections,onText,onContent,onOrderNews,onAddNews}:Props){
  return bulletinSections.map((section,index)=>{
   const entries=items.filter(item=>(groups[item.id]??sectionFor(item))===section&&!managedSchedule(item));
   function entry(item:BulletinItem){
@@ -28,13 +28,12 @@ export default function BulletinForm({items,previous,onRemove,onImport,groups,sh
       <BlockFields onImported={()=>{if(prev&&!prev.webVisible)onText(item.id,{webVisible:false});}} previous={prev} volunteerHint={hint} item={item} onChange={(content,body)=>onContent(item.id,content,body)}/>
      </>}
     </>}
-    {item.kind==='image'?<button className={polish.detach} aria-label={`${item.title} 첨부 해제`} onClick={()=>onRemoveImage(item.id)}>첨부 해제</button>:null}
     {showVisibility?<label className={`${styles.check} ${polish.visibility}`}><input type="checkbox" checked={item.webVisible} onChange={e=>onText(item.id,{webVisible:e.target.checked})}/>웹에 공개</label>:null}
    </article>;
   }
   return <section id={`bulletin-section-${index}`} key={section} tabIndex={-1} className={polish.group}>
    <div className={ui.heading}><h2>{section}</h2>{section==='헌금 내역'&&entries.length?<button type="button" className={polish.useToggle} aria-pressed={!entries.every(item=>item.content?.disabled)} onClick={()=>{const disabled=!entries.every(item=>item.content?.disabled);entries.forEach(item=>onContent(item.id,{...item.content,disabled}));}}>{entries.every(item=>item.content?.disabled)?"활성화":"비활성화"}</button>:null}</div>
-   {section==='헌금 내역'&&entries.every(item=>item.content?.disabled)?null:section==='좋은 소식'?<><NewsEditor onRemove={onRemove} onImport={onImport} previous={previous?.items.filter(item=>sectionFor(item)==='좋은 소식')} items={entries} onContent={onContent} onText={onText} onToggle={item=>onContent(item.id,{...item.content,disabled:!item.content?.disabled})} onOrder={onOrderNews} onAdd={onAddNews} showVisibility={showVisibility}/></>:<>{entries.filter(item=>item.kind!=='image').map(entry)}{section==='표지'?coverPicker:null}{entries.filter(item=>item.kind==='image').map(entry)}</>}
+   {section==='헌금 내역'&&entries.every(item=>item.content?.disabled)?null:section==='좋은 소식'?<><NewsEditor onRemove={onRemove} onImport={onImport} previous={previous?.items.filter(item=>sectionFor(item)==='좋은 소식')} items={entries} onContent={onContent} onText={onText} onToggle={item=>onContent(item.id,{...item.content,disabled:!item.content?.disabled})} onOrder={onOrderNews} onAdd={onAddNews} showVisibility={showVisibility}/></>:<>{entries.filter(item=>item.kind!=='image').map(entry)}{section==='표지'?coverImages(entries.filter(item=>item.kind==='image')):null}</>}
    {section==='좋은 소식'?newsConnections:null}
   </section>;
  });

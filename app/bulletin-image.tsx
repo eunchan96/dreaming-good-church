@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { makeBrowserClient } from "@/lib/bulletin-store";
-export function BulletinImageView({ id, alt, editor = false }: { id: string; alt: string; editor?: boolean }) {
+export function BulletinImageView({ id, alt, editor = false, fallback }: { id: string; alt: string; editor?: boolean; fallback?: ReactNode }) {
   const [src, setSrc] = useState("");
   useEffect(() => {
     const controller = new AbortController(); let objectUrl = "";
@@ -19,5 +19,5 @@ export function BulletinImageView({ id, alt, editor = false }: { id: string; alt
   }, [id, editor]);
   // A blob URL keeps authenticated images out of Next's shared image optimization cache.
   // eslint-disable-next-line @next/next/no-img-element
-  return src ? <img src={src} alt={alt} style={{ maxWidth: "100%", height: "auto" }} /> : <p>이미지를 불러올 수 없거나 불러오는 중입니다.</p>;
+  return src ? <img src={src} alt={alt} style={{ maxWidth: "100%", height: "auto" }} /> : fallback !== undefined ? fallback : <span aria-hidden="true" style={{ display: "block", minHeight: 24 }} />;
 }

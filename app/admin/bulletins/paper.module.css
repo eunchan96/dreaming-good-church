@@ -308,7 +308,6 @@ small.churchLine { font-size: .88em; }
   .flow .orderRow[data-emph] .orderWhat { font-size: 1.1em; }
   .flow .spread > :first-child { position: static; opacity: 1; white-space: normal; }
   .flow .spreadText { display: none; }
-  .flow .orderFoot { text-align: left; }
   .flow .news > li { grid-template-columns: auto minmax(0, 1fr); }
   .flow .news > li > .tag { grid-column: 2; }
   .flow .news > li > div { grid-column: 1 / -1; padding-left: 1.4em; }
@@ -350,7 +349,9 @@ small.churchLine { font-size: .88em; }
   .flow .verse { padding: .35em .5em; }
 }
 @container (max-width: 560px) {
-  .flow .torahRow { grid-template-columns: max-content minmax(0, 1fr); }
+  /* Rows share one grid so both columns line up (widest 본문 sets the width) */
+  .flow .torah { grid-template-columns: max-content minmax(0, 1fr); }
+  .flow .torahRow { grid-column: 1 / -1; grid-template-columns: subgrid; }
   .flow .torahHead { padding: .35em .6em .35em .2em; }
   .flow .torahHead > * { white-space: nowrap; }
 }
