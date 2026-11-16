@@ -7,6 +7,8 @@ import {bulletinSections,sectionFor,displayTitle,isPrayerGuide,newsGroups,accoun
 import {rowIdentity} from '@/lib/bulletin-defaults.mjs';
 import {BulletinImageView} from '@/app/bulletin-image';
 import {PrintContext,PrintText} from './print-editor';
+import {useChurchContent} from '@/app/church-content';
+import {formatWorshipTime,timeLabels} from '@/lib/church-page-settings';
 import css from './paper.module.css';
 
 /* Word-style bulletin renderer shared by the print preview (A4 panels) and the admin detail view.
@@ -188,7 +190,16 @@ export function PaperBlocks({items,meta,memo,footer,sectionIdPrefix}:{items:Bull
  </div></Fragment>)}{memo&&memoAt<0?memo:null}{footer}</>;
 }
 
-/** Read-only Word-style rendering for the admin detail / web preview. */
-export function PaperView({items,meta,sectionIdPrefix}:{items:BulletinItem[];meta:PaperMeta;sectionIdPrefix?:string}){
- return <div className={css.flow}><PaperBlocks items={items} meta={meta} sectionIdPrefix={sectionIdPrefix}/></div>;
+/** 각종 예배 안내 always shows the church's current worship times (same source as print). */
+export function useScheduledItems(items:BulletinItem[],addIfMissing:boolean){
+ const {settings}=useChurchContent();
+ const rows=settings.worship_times.map(row=>[timeLabels[row.key],formatWorshipTime(row),'']);
+ const mapped=items.map(item=>managedSchedule(item)?{...item,content:{...item.content,rows}}:item);
+ if(addIfMissing&&!mapped.some(managedSchedule))mapped.push({id:'church-managed-schedule',title:'각종 예배 안내',body:'',kind:'worship',content:{rows},printPage:2,webVisible:false,reviewOnCopy:false,needsReview:false});
+ return mapped;
+}
+/** Read-only Word-style rendering for the admin detail / web preview — same blocks as print. */
+export function PaperView({items,meta,sectionIdPrefix,addSchedule=false}:{items:BulletinItem[];meta:PaperMeta;sectionIdPrefix?:string;addSchedule?:boolean}){
+ const scheduled=useScheduledItems(items,addSchedule);
+ return <div className={css.flow}><PaperBlocks items={scheduled} meta={meta} sectionIdPrefix={sectionIdPrefix}/></div>;
 }

@@ -262,3 +262,25 @@ small.churchLine { font-size: .88em; }
 .orderRow[data-emph] { min-height: calc(var(--order-row, 2.2em) + .5em); }
 
 .schedule > .scheduleColumn { column-gap: .9em; row-gap: .2em; }
+
+/* Comfortable inner spacing for tinted boxes (print and web) */
+.tinted { padding: .6em 1em .7em; }
+.dashList { line-height: 1.85; }
+.supportGrid [data-role=staff] .tinted { padding: .35em 0; }
+.supportGrid [data-role=staff] .table td { padding-block: .3em; }
+.supportGrid [data-role=staff] .table td:first-child { padding-left: 1em; padding-right: .8em; width: 7.4em; }
+.supportGrid [data-role=staff] .table td:last-child { padding-left: 1em; padding-right: 1em; }
+.volunteers > div { padding: .15em .8em; }
+
+.volunteers > div { padding: .15em 1em; }
+.volunteerWho { gap: .6em; }
+
+/* Never overflow: columns may shrink, and narrow reading columns stack them */
+.schedule { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.25fr) minmax(0, 1.05fr); }
+.schedule > .scheduleColumn { grid-template-columns: minmax(0, max-content) max-content; min-width: 0; }
+.flow { container-type: inline-size; }
+@container (max-width: 560px) {
+  .schedule { grid-template-columns: minmax(0, 1fr); }
+  .schedule > div { border-right: 0 !important; border-bottom: 1px solid #b9c08f; padding: .4em .6em; }
+  .schedule > div:last-child { border-bottom: 0; }
+}

@@ -11,6 +11,7 @@ import { confirmItem, createBulletin, copyBulletin, createItem, editItem, public
 import { errorMessage, loadBulletins, makeBrowserClient, saveDraft, type SavedBulletin } from "@/lib/bulletin-store";
 import {PaperView} from "./paper";
 import {PrintEditorProvider} from "./print-editor";
+import ChurchContentProvider from '@/app/church-content';
 import CommunityLinks from "./community-links";
 import { ImagePicker } from "./image-picker";
 import styles from "./workspace.module.css";
@@ -245,7 +246,7 @@ export default function BulletinWorkspace() {
   const locked=busy||saving;
   function openSettings(){if(view==='settings')return;setVisibilityDraft(showVisibility);setConnectionsDraft(showConnections);setView('settings');}
   const pages=[{id:'library',label:'주보 목록',active:view==='library',onSelect:library,sections:[{id:'bulletin-library',label:'주보 목록'}]},
-    ...(view==='detail'?[{id:'detail',label:'주보 상세',active:true,onSelect:()=>{},sections:bulletinSections.flatMap((label,index)=>renderedItems(webItems).some(item=>sectionFor(item)===label)?[{id:`detail-section-${index}`,label}]:[])}]:[]),
+    ...(view==='detail'?[{id:'detail',label:'주보 상세',active:true,onSelect:()=>{},sections:bulletinSections.flatMap((label,index)=>label==='예배 안내'||renderedItems(webItems).some(item=>sectionFor(item)===label)?[{id:`detail-section-${index}`,label}]:[])}]:[]),
     ...(editing||view==='settings'&&draft?.status==='draft'?[{id:'register',label:'주보 등록',active:editing,onSelect:()=>{if(editing)return;if(view==='settings'&&draft&&draft.status==='draft'){setView(draft.revision===0?'register':'edit');return;}createNew();},sections:[...bulletinSections.map((label,index)=>({id:`bulletin-section-${index}`,label})), {id:"bulletin-publish",label:"저장·게시하기"}]}]:[]),
     {id:'settings',label:'주보 설정',active:view==='settings',onSelect:openSettings,sections:[{id:'bulletin-options',label:'입력 화면 설정'}]},
   ];
@@ -255,7 +256,7 @@ export default function BulletinWorkspace() {
   const reader=draft?<>
     <section className={`${polish.reader} ${view_.reader}`} aria-label="주보 상세 내용">
       {webItems.some(item=>sectionFor(item)==='표지')?null:<header className={view_.readerHead}><span>꿈꾸는좋은교회 · 주일 주보</span><h3>{draft.issueNumber}호 주보</h3><p>{longDate(draft.serviceDate)}</p></header>}
-      {webItems.length?<PrintEditorProvider bulletinId={draft.id} editable={false} plain onReplace={()=>{}}><PaperView items={webItems} meta={draft} sectionIdPrefix="detail-section"/></PrintEditorProvider>:<p className={view_.empty}>웹에 공개할 내용이 아직 없습니다.</p>}
+      {webItems.length?<ChurchContentProvider><PrintEditorProvider bulletinId={draft.id} editable={false} plain onReplace={()=>{}}><PaperView items={webItems} meta={draft} sectionIdPrefix="detail-section" addSchedule/></PrintEditorProvider></ChurchContentProvider>:<p className={view_.empty}>웹에 공개할 내용이 아직 없습니다.</p>}
     </section></>:null;
 
   return <AdminShell active="bulletins" intro={session==='editor'||session==='denied'?<ManagementHeading id="bulletin-heading" eyebrow="WEEKLY BULLETIN" title="주보 관리"/>:undefined} authenticated={session === 'editor'} canLeave={mayLeave} onLogout={session === 'editor' || session === 'denied' ? logout : undefined} busy={locked} pages={pages}><main id="admin-content" tabIndex={-1} aria-labelledby={session==='editor'||session==='denied'?'bulletin-heading':undefined} className={`${styles.page} ${session==='editor'||session==='denied'?`${ui.surface} ${polish.surface} ${view_.view}`:''}`}>

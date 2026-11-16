@@ -5,10 +5,9 @@ import {CHURCH_ADDRESS,CHURCH_PHONE} from '@/lib/site-content';
 import ChurchContentProvider,{useChurchContent} from '@/app/church-content';
 import type { SavedBulletin } from "@/lib/bulletin-store";
 import {PrintEditorProvider,PrintFormatToolbar} from "./print-editor";
-import {PaperBlocks,Memo,ChurchInfo} from "./paper";
+import {PaperBlocks,Memo,ChurchInfo,useScheduledItems} from "./paper";
 import type {BulletinItem} from "@/lib/bulletins";
-import {managedSchedule,presentationItems,sectionFor,isPrayerGuide,displayTitle,isNewsItem} from "@/lib/bulletin-editor";
-import {formatWorshipTime,timeLabels} from "@/lib/church-page-settings";
+import {presentationItems,sectionFor,isPrayerGuide,displayTitle,isNewsItem} from "@/lib/bulletin-editor";
 import styles from "./print-preview.module.css";
 import AdminIcon from "../admin-icons";
 
@@ -24,9 +23,7 @@ function defaultPage(item: SavedBulletin["items"][number]) {
 const pageTitles = ["표지", "예배", "묵상과 기도", "교회 소식"];
 function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onReplace }: { draft: SavedBulletin; dirty: boolean; onClose: () => void; pages: Record<string, number>; onPagesChange: (pages: Record<string, number>) => void;onReplace:(item:BulletinItem)=>void }) {
   const {fields,settings,settingsStatus,retry}=useChurchContent();
-  const schedule=()=>settings.worship_times.map(row=>[timeLabels[row.key],formatWorshipTime(row),'']);
-  const items=presentationItems(draft.items).map(item=>managedSchedule(item)?{...item,content:{...item.content,rows:schedule()}}:item);
-  if(!items.some(managedSchedule))items.push({id:'church-managed-schedule',title:'각종 예배 안내',body:'',kind:'worship',content:{rows:schedule()},printPage:2,webVisible:false,reviewOnCopy:false,needsReview:false});
+  const items=useScheduledItems(presentationItems(draft.items),true);
   const root = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState("");
   const [overflowPages, setOverflowPages] = useState<number[]>([]);
