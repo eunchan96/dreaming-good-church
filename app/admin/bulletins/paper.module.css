@@ -451,3 +451,7 @@ small.churchLine { font-size: .88em; }
 .supportGrid > :not([data-role=staff]) > .tinted:has(> .volunteers) { padding-inline: 0; }
 .schedule > .scheduleColumn { justify-items: stretch !important; }
 .schedule > .scheduleColumn > :is(.scheduleLabel, .scheduleTime) { justify-self: stretch !important; width: auto; min-width: 0; text-align: center; }
+/* 1면 표지 두 줄(하나님 앞에서 / 더 나은 예배): 들여쓰기 없이 서로 가운데 정렬 */
+.coverLines { display: grid; justify-items: center; width: fit-content; text-align: center; }
+.coverLines article { display: grid; justify-items: center; }
+.coverLines .coverLine:nth-child(2), .coverLines article + article .coverLine { padding-left: 0; }

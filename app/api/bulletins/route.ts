@@ -40,7 +40,9 @@ export async function GET(request: Request) {
     if (error) throw error;
     if (!data) return Response.json({ error: "주보를 찾을 수 없습니다." }, { status: 404, headers });
     data.items.sort((a, b) => a.position - b.position);
-    return Response.json({...data,items:renderedItems(data.items)}, { headers });
+    // Print formats are optional (before the DB update the table may not exist): failures mean "no formats".
+    const formats = await client.from("bulletin_print_formats").select("formats").eq("bulletin_id", data.id).maybeSingle();
+    return Response.json({...data,items:renderedItems(data.items),formats:formats.error?{}:formats.data?.formats??{}}, { headers });
   } catch {
     return Response.json({ error: "주보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요." }, { status: 503, headers });
   }

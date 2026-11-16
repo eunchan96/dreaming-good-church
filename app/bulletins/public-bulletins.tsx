@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import {PaperView} from "../admin/bulletins/paper";
-import {PrintEditorProvider} from "../admin/bulletins/print-editor";
+import {PrintEditorProvider,type PrintFormats} from "../admin/bulletins/print-editor";
 import {printOnlyItem,presentationItems,bulletinSections,sectionFor,renderedItems} from '@/lib/bulletin-editor';
 import type { BulletinItem } from "@/lib/bulletins";
 import { longDate, monthDay, yearMonth } from "@/lib/korean-date";
@@ -18,7 +18,7 @@ export default function PublicBulletins({ initialDate }: { initialDate?: string 
   const [rows, setRows] = useState<Summary[]>([]), [nextCursor, setNextCursor] = useState<string | null>(null);
   const [historyFailed, setHistoryFailed] = useState(false), [historyRetry, setHistoryRetry] = useState(0), [loadingMore, setLoadingMore] = useState(false);
   const [id, setId] = useState<string | null>(null);
-  const [bulletin, setBulletin] = useState<(Summary & { items: PublicItem[] }) | null>(null);
+  const [bulletin, setBulletin] = useState<(Summary & { items: PublicItem[]; formats?: PrintFormats }) | null>(null);
   const [message, setMessage] = useState("주보를 불러오고 있습니다…"), [failed, setFailed] = useState(false), [retry, setRetry] = useState(0);
   const [open, setOpen] = useState(false);
   const panel = useRef<HTMLDivElement>(null), toggle = useRef<HTMLButtonElement>(null);
@@ -123,7 +123,7 @@ export default function PublicBulletins({ initialDate }: { initialDate?: string 
       <nav aria-label="주보 구역 바로가기" className={styles.contents}><h2>목차</h2><ul>{bulletinSections.flatMap((section, index) => (section === '예배 안내' || renderedItems(bulletin.items).some(item => sectionFor(item) === section)) ? [<li key={section}><a href={`#bulletin-section-${index}`}>{section}</a></li>] : [])}</ul></nav>
       <section className={styles.paper} aria-label={`${longDate(bulletin.service_date)} ${bulletin.issue_number}호 주보`}>
         {!bulletin.items.length ? <p>웹에 공개된 주보 항목이 없습니다.</p> : null}
-        {bulletin.items.length ? <PrintEditorProvider bulletinId={bulletin.id} editable={false} plain onReplace={() => {}}><PaperView items={bulletin.items.map(item => ({ webVisible: true, reviewOnCopy: false, needsReview: false, printPage: null, ...item }) as BulletinItem)} meta={{ serviceDate: bulletin.service_date, issueNumber: bulletin.issue_number }} sectionIdPrefix="bulletin-section" addSchedule/></PrintEditorProvider> : null}
+        {bulletin.items.length ? <PrintEditorProvider key={`${bulletin.id}:${JSON.stringify(bulletin.formats ?? {})}`} bulletinId={bulletin.id} editable={false} plain webFormats initialFormats={bulletin.formats ?? {}} onReplace={() => {}}><PaperView items={bulletin.items.map(item => ({ webVisible: true, reviewOnCopy: false, needsReview: false, printPage: null, ...item }) as BulletinItem)} meta={{ serviceDate: bulletin.service_date, issueNumber: bulletin.issue_number }} sectionIdPrefix="bulletin-section" addSchedule/></PrintEditorProvider> : null}
         <footer className={styles.paperFoot}><PublicPdfDownload key={bulletin.id} date={bulletin.service_date} /><a href="#public-content">맨 위로 ↑</a></footer>
       </section>
     </div> : null}

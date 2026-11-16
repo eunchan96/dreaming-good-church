@@ -109,6 +109,37 @@ export type Database = {
                     }
                 ];
             };
+            "bulletin_print_formats": {
+                Row: {
+                    "bulletin_id": string;
+                    "formats": NonNullable<Json>;
+                    "updated_at": string;
+                };
+                ComputedFields: never;
+                Insert: {
+                    "bulletin_id": string;
+                    "formats"?: NonNullable<Json>;
+                    "updated_at"?: string;
+                };
+                Update: {
+                    "bulletin_id"?: string;
+                    "formats"?: NonNullable<Json>;
+                    "updated_at"?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "bulletin_print_formats_bulletin_id_fkey";
+                        columns: [
+                            "bulletin_id"
+                        ];
+                        isOneToOne: true;
+                        referencedRelation: "bulletins";
+                        referencedColumns: [
+                            "id"
+                        ];
+                    }
+                ];
+            };
             "bulletins": {
                 Row: {
                     "id": string;

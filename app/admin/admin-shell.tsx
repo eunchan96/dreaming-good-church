@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
-import { useRef, useState, type MouseEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
+import { rememberSignedIn, useRememberedSignIn } from './admin-session';
 import { ChurchBrand } from '../public-shell';
 import SiteIcon from '../site-icon';
 import styles from './admin-shell.module.css';
@@ -38,6 +39,9 @@ function TocLinks({ toc, onPick }: { toc: ContentsSection[]; onPick: (id: string
 
 export default function AdminShell({ children, intro, active, authenticated = false, canLeave = () => true, onLogout, busy = false, sections = [], pages = [] }: { children: ReactNode; intro?: ReactNode; active: 'bulletins' | 'community' | 'church' | 'account' | 'worship' | 'home'; authenticated?: boolean; canLeave?: () => boolean; onLogout?: () => void | Promise<void>; busy?: boolean; sections?: ContentsSection[]; pages?: WorkspacePage[] }) {
   const [menu, setMenu] = useState(false);
+  // While a page re-checks the session, keep the menu if this tab was already signed in (display only).
+  const remembered = useRememberedSignIn(), signedIn = authenticated || remembered;
+  useEffect(() => { if (authenticated) rememberSignedIn(); }, [authenticated]);
   const menuButton = useRef<HTMLButtonElement>(null);
   const activePage = pages.find(page => page.active);
   const toc = activePage ? activePage.sections : sections;
@@ -47,17 +51,17 @@ export default function AdminShell({ children, intro, active, authenticated = fa
     <a className={styles.skip} href="#admin-content">본문으로 바로가기</a>
     <header className={styles.header}><div className={styles.headerInner}>
       <a href="/" target="_blank" rel="noreferrer" className={styles.brand} title="홈페이지 새 탭에서 열기"><ChurchBrand /><span className={styles.badge}>관리</span></a>
-      {authenticated ? <nav id="admin-navigation" className={styles.managementNav} data-open={menu} aria-label="관리 메뉴">
+      {signedIn ? <nav id="admin-navigation" className={styles.managementNav} data-open={menu} aria-label="관리 메뉴">
         {links.map(link => <Link key={link.key} href={link.href} aria-current={active === link.key || (link.key === 'home' && active === 'church') ? 'page' : undefined} onClick={e => { if (busy || !canLeave()) { e.preventDefault(); return; } setMenu(false); }}>{link.label}</Link>)}
       </nav> : null}
       <div className={styles.headerActions}>
         <a href={publicPaths[active] ?? '/'} target="_blank" rel="noreferrer" aria-label="공개 화면 확인"><span>공개 화면 확인</span><SiteIcon name="diagonal" size={14} /></a>
         {onLogout ? <button type="button" onClick={() => void onLogout()} disabled={busy}>로그아웃</button> : null}
-        {authenticated ? <button type="button" ref={menuButton} className={styles.menuToggle} aria-label={menu ? '관리 메뉴 닫기' : '관리 메뉴 열기'} aria-controls="admin-navigation" aria-expanded={menu} onClick={() => setMenu(!menu)}><SiteIcon name={menu ? 'close' : 'menu'} size={24} /></button> : null}
+        {signedIn ? <button type="button" ref={menuButton} className={styles.menuToggle} aria-label={menu ? '관리 메뉴 닫기' : '관리 메뉴 열기'} aria-controls="admin-navigation" aria-expanded={menu} onClick={() => setMenu(!menu)}><SiteIcon name={menu ? 'close' : 'menu'} size={24} /></button> : null}
       </div>
     </div></header>
     {intro ? <section aria-label="페이지 제목" className={styles.titleBar}>{intro}</section> : null}
-    {authenticated && (pages.length || toc.length > 1) ? <nav className={styles.tabs} aria-label="페이지 메뉴">
+    {signedIn && (pages.length || toc.length > 1) ? <nav className={styles.tabs} aria-label="페이지 메뉴">
       {(pages.length ? pages : [{ id: 'contents', label: '목차', active: true, onSelect: () => {}, sections }]).map(page => {
         const menu = page.active && toc.length > 1;
         return <div key={page.id} className={styles.tabItem} data-menu={menu} data-virtual={!pages.length} data-open={menu && tocOpen} onMouseLeave={() => setTocOpen(false)}>

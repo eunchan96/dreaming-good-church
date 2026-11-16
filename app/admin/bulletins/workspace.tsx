@@ -15,6 +15,7 @@ import ChurchContentProvider from '@/app/church-content';
 import CommunityLinks from "./community-links";
 import { CoverImages } from "./image-picker";
 import { useEditHistory } from "./use-edit-history";
+import AdminLoading from "../admin-loading";
 import styles from "./workspace.module.css";
 import AdminShell from '../admin-shell';
 import PasswordField from '../password-field';
@@ -263,7 +264,7 @@ export default function BulletinWorkspace() {
     </section></>:null;
 
   return <AdminShell active="bulletins" intro={session==='editor'||session==='denied'?<ManagementHeading id="bulletin-heading" eyebrow="WEEKLY BULLETIN" title="주보 관리"/>:undefined} authenticated={session === 'editor'} canLeave={mayLeave} onLogout={session === 'editor' || session === 'denied' ? logout : undefined} busy={locked} pages={pages}><main id="admin-content" tabIndex={-1} aria-labelledby={session==='editor'||session==='denied'?'bulletin-heading':undefined} className={`${styles.page} ${session==='editor'||session==='denied'?`${ui.surface} ${polish.surface} ${view_.view}`:''}`}>
-    {!client ? <section className={styles.card}>서비스 연결 설정이 필요합니다. 관리자에게 문의해 주세요.</section> : session === "loading" ? <p>로그인 상태를 확인하고 있습니다…</p> : session === "login" ?
+    {!client ? <section className={styles.card}>서비스 연결 설정이 필요합니다. 관리자에게 문의해 주세요.</section> : session === "loading" ? <AdminLoading/> : session === "login" ?
       <div className={styles.authLayout}><section className={styles.authStory}><span className={styles.eyebrow}>WELCOME TO CHURCH WORKSPACE</span><h1>함께 준비하는 예배,<br /><em>함께 나누는 소식.</em></h1><p>교회의 한 주를 차분히 준비하는 공간입니다.<br />주보와 소식, 교회 안내를 이곳에서 관리하세요.</p><div className={styles.authDecoration} aria-hidden="true"><span>+</span>FAITH · HOPE · LOVE</div></section><form action={login} className={`${styles.card} ${styles.login}`}><h2>관리자 로그인</h2><p>등록된 편집 계정으로 로그인해 주세요.</p><label>이메일<input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} required disabled={locked} /></label><PasswordField label="비밀번호" name="password" autoComplete="current-password" required disabled={locked} /><p role="status" aria-live="polite" className={styles.message}>{message}</p><button className={styles.primary} disabled={locked}>{busy ? "확인 중…" : "로그인"}</button><p className={styles.loginHint}>초대받은 운영자만 사용할 수 있습니다.<br />비밀번호를 잊으셨다면 계정 관리 담당자에게 재설정 링크를 요청해 주세요.</p></form></div>
     : session === "denied" ? <><p role="status" aria-live="polite" className={view_.message}>{message}</p><section className={styles.card}><h2>편집 권한이 필요합니다</h2><p>로그인한 계정이 교회 편집자로 등록되지 않았습니다. 관리자에게 등록을 요청해 주세요.</p></section></>
     : <>

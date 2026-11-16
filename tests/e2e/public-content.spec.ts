@@ -12,7 +12,9 @@ test("public information pages recover from failure and fit desktop and mobile",
   await expect(page.getByText("함께 예배하는 공동체", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "연락처", exact: true })).toHaveCount(0);
   await page.getByRole("navigation", { name: "교회 소개 메뉴" }).getByRole("link", { name: "예배시간 안내" }).click();
-  await expect(page.getByText("주일 예배 오전 10:45", { exact: true })).toBeVisible();
+  // 추가 안내 글은 관리자에서 없앴으므로 공개 예배시간 안내에는 표만 나온다.
+  await expect(page.getByText("주일 예배 오전 10:45", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "주일예배", exact: true })).toBeVisible();
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
