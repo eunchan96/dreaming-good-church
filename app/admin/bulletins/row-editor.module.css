@@ -218,3 +218,10 @@
   .editor.editor.editor.editor.editor .cells textarea { padding-left: 10px; padding-right: 10px; }
   .footer, .editor[data-order=true] > .footer { margin-top: 14px; }
 }
+/* Mobile: tapping anywhere in a row (even a disabled one like 특송) selects it and shows its tools */
+@media (max-width: 700px) {
+  .row { cursor: pointer; }
+  .row[data-active] { background: #fbf6ea; border-radius: 8px; padding-left: 6px; padding-right: 6px; }
+  .row[data-active] .rowTools { display: flex; }
+  .row:not([data-active]):focus-within .rowTools { display: none; }
+}

@@ -8,6 +8,8 @@ for (const width of [390, 1280]) {
       await page.goto(path);
       await expect(page.locator("#public-content h1")).toBeVisible();
       await expect(page.getByText(/불러오고 있습니다/)).toHaveCount(0);
+      // Wait for entrance animations (e.g. the home artwork fade-in) so contrast is measured at rest.
+      await page.evaluate(() => Promise.all(document.getAnimations().filter(animation => animation.effect?.getTiming().iterations !== Infinity).map(animation => animation.finished)));
       // Audit our UI; YouTube's cross-origin player markup is provider-controlled.
       // Our iframe's accessible title and destination are covered in home-redesign.spec.ts.
       const results = await new AxeBuilder({ page }).exclude('iframe[src^="https://www.youtube-nocookie.com/"]').withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();

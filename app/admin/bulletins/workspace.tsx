@@ -259,7 +259,7 @@ export default function BulletinWorkspace() {
   const reader=draft?<>
     <section className={`${polish.reader} ${view_.reader}`} aria-label="주보 상세 내용">
       {webItems.some(item=>sectionFor(item)==='표지')?null:<header className={view_.readerHead}><span>꿈꾸는좋은교회 · 주일 주보</span><h3>{draft.issueNumber}호 주보</h3><p>{longDate(draft.serviceDate)}</p></header>}
-      {webItems.length?<ChurchContentProvider><PrintEditorProvider bulletinId={draft.id} editable={false} plain onReplace={()=>{}}><PaperView items={webItems} meta={draft} sectionIdPrefix="detail-section" addSchedule/></PrintEditorProvider></ChurchContentProvider>:<p className={view_.empty}>웹에 공개할 내용이 아직 없습니다.</p>}
+      {webItems.length?<ChurchContentProvider><PrintEditorProvider bulletinId={draft.id} editable={false} plain webFormats onReplace={()=>{}}><PaperView items={webItems} meta={draft} sectionIdPrefix="detail-section" addSchedule/></PrintEditorProvider></ChurchContentProvider>:<p className={view_.empty}>웹에 공개할 내용이 아직 없습니다.</p>}
     </section></>:null;
 
   return <AdminShell active="bulletins" intro={session==='editor'||session==='denied'?<ManagementHeading id="bulletin-heading" eyebrow="WEEKLY BULLETIN" title="주보 관리"/>:undefined} authenticated={session === 'editor'} canLeave={mayLeave} onLogout={session === 'editor' || session === 'denied' ? logout : undefined} busy={locked} pages={pages}><main id="admin-content" tabIndex={-1} aria-labelledby={session==='editor'||session==='denied'?'bulletin-heading':undefined} className={`${styles.page} ${session==='editor'||session==='denied'?`${ui.surface} ${polish.surface} ${view_.view}`:''}`}>

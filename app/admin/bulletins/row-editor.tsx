@@ -35,7 +35,7 @@ function LeaderCell({value,label,fixed,required,disabled,onChange}:{value:string
 export default function RowEditor({item,previous,volunteerHints,onChange,onImported}:Props){
  const order=item.kind==='worship'&&sectionFor(item)==='예배 순서',staff=/섬기는 이들/.test(item.title),volunteer=/봉사위원/.test(item.title),offering=item.kind==='offering';
  const content=order?worshipRows(item):offering?offeringRows(item.content??{}):item.content??{},rows=content.rows??[],prior=previous?(order?worshipRows(previous):offering?offeringRows(previous.content??{}):previous.content??{}):{};
- const root=useRef<HTMLDivElement>(null),source=useRef<number|null>(null),target=useRef<number|null>(null),[over,setOver]=useState<number|null>(null),[status,setStatus]=useState('');
+ const root=useRef<HTMLDivElement>(null),source=useRef<number|null>(null),target=useRef<number|null>(null),[over,setOver]=useState<number|null>(null),[status,setStatus]=useState(''),[active,setActive]=useState<number|null>(null);
  function change(next:BlockContent){onChange(next,order?'':undefined);}
  function update(index:number,column:number,value:string){change({...content,rows:rows.map((r,i)=>i===index?Array.from({length:offering?2:3},(_,j)=>j===column?(column===0&&/^\s*↑/.test(r[0]??'')?'↑ '+value:value):r[j]??''):r)});}
  function move(from:number,to:number){if(from===to||to<0||to>=rows.length)return;change(moveRow(content,from,to));setStatus(`${from+1}행을 ${to+1}행으로 이동했습니다.`);requestAnimationFrame(()=>root.current?.querySelector<HTMLButtonElement>(`[data-row="${to}"] [data-handle]`)?.focus());}
@@ -50,7 +50,7 @@ export default function RowEditor({item,previous,volunteerHints,onChange,onImpor
  return <div ref={root} className={css.editor} data-order={order}>
   {offering?<div className={css.month}><MonthPicker label="헌금 집계 월" value={content.month??''} onChange={month=>change({...content,month})}/></div>:null}
   {rows.map((row,index)=>{const disabled=content.disabledRows?.includes(index)??false,full=content.fullRows?.includes(index)??false,from=full?(prior.fullRows?.[0]??(prior.rows?.length?0:-1)):(prior.rows?.findIndex(r=>rowIdentity(r[0])===rowIdentity(row[0]))??-1);
-   return <div key={index} data-row={index} data-order={order} data-full={full} data-disabled={disabled} data-over={over===index} data-columns={columns.length} className={css.row}>
+   return <div key={index} data-row={index} data-order={order} data-full={full} data-disabled={disabled} data-over={over===index} data-active={active===index||undefined} data-columns={columns.length} className={css.row} onClick={()=>setActive(index)}>
     <button type="button" data-handle className={css.handle} aria-label={`${item.title} ${index+1}행 이동`} title="드래그하거나 위아래 방향키로 이동" onKeyDown={e=>{if(['ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();move(index,index+(e.key==='ArrowUp'?-1:1));}}} onPointerDown={e=>start(index,e)} onPointerMove={drag} onPointerUp={end} onPointerCancel={()=>{source.current=null;target.current=null;setOver(null);}}><AdminIcon name="grip" size={16}/></button>
     {order?<button type="button" className={css.standing} aria-pressed={/^\s*↑/.test(row[0]??'')} disabled={disabled} aria-label={`${item.title} ${index+1}행 일어서서`} title="일어서서 표시" onClick={()=>change({...content,rows:rows.map((r,i)=>i===index?[`${/^\s*↑/.test(row[0])?'':'↑ '}${strip(row[0])}`,...r.slice(1)]:r)})}>↑</button>:null}
     {full?<div className={css.full}><EditableText value={strip(row[0]??'')} label={`${item.title} ${index+1}행 내용 수정`} disabled={disabled} onChange={value=>update(index,0,value)}/></div>

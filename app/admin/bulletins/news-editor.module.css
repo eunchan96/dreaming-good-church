@@ -42,3 +42,12 @@
   .row { grid-template-columns: minmax(0, 1fr); }
   .editor .tools .mobileMove { display: grid; place-items: center; }
 }
+@media (max-width: 700px) {
+  .tools { position: static; grid-column: 1 / -1; display: none; justify-content: flex-end; gap: 4px; opacity: 1; }
+  .row[data-active] { background: #fbf6ea; border-radius: 8px; padding: 6px; }
+  .row[data-active] .tools { display: flex; }
+  .editor .tools button { width: 34px; height: 34px; border: 1px solid #e6dccb; background: #fffdf8; }
+}
+
+/* 비활성화한 소식 이름: 줄 긋기는 유지하고 글자 대비는 기준(4.5:1) 이상 */
+.row[data-disabled=true] .name { color: #6b5d48; }
