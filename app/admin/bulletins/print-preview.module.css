@@ -135,3 +135,16 @@
   .badLayout .stage { display: none; }
   .badLayout .blockedPrint { display: block; padding: 20mm; }
 }
+
+/* Icon-only close; on phones the bar wraps into title row + scrollable actions */
+.closeButton.closeButton { width: 40px; padding: 0; justify-content: center; }
+@media (max-width: 760px) {
+  .topbar { height: auto; flex-wrap: wrap; padding: 8px 10px; row-gap: 6px; }
+  .topTitle { display: block; flex: 1; min-width: 0; padding-left: 8px; border-left: 0; }
+  .topActions { width: 100%; margin-left: 0; overflow-x: auto; padding-bottom: 2px; }
+  .topActions > * { flex: none; }
+  .formatBar { flex-wrap: nowrap; overflow-x: auto; }
+  .formatBar > * { flex: none; }
+  .selection { width: auto; max-width: 160px; }
+  .side { top: 0; }
+}

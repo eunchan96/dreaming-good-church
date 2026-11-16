@@ -88,10 +88,26 @@ function Volunteers({item}:{item:BulletinItem}){
  const {rows,cell}=useEdit(item);
  return <div className={css.volunteers}>{rows.map(({row,i})=><div key={i}><PrintText className={css.volunteerRole} id={`${item.id}:row:${i}:0`} label={`${item.title} ${i+1}행 1열`} value={row[0]} maxLength={500} onChange={v=>cell(i,0,v)}/><div className={css.volunteerWho}><PrintText id={`${item.id}:row:${i}:1`} label={`${item.title} ${i+1}행 2열`} value={row[1]??''} maxLength={500} onChange={v=>cell(i,1,v)}/><PrintText id={`${item.id}:row:${i}:2`} label={`${item.title} ${i+1}행 3열`} value={row[2]??''} maxLength={500} onChange={v=>cell(i,2,v)}/></div></div>)}</div>;
 }
+/** 섬기는 이들 like the Word file: short entries two per line (담임 목사 | 토브 지휘자),
+ *  lists of several names on their own line. Saves height on 2면. */
+function StaffTable({item}:{item:BulletinItem}){
+ const {rows,cell}=useEdit(item);
+ const long=(row:string[])=>/[·･,]/.test(row[1]??'')||(row[1]??'').length>8;
+ const lead=(row:string[])=>/담임|협동/.test(row[0]);
+ const shorts=rows.filter(({row})=>!long(row)),leads=shorts.filter(({row})=>lead(row)),others=shorts.filter(({row})=>!lead(row));
+ const pairs:{row:string[];i:number}[][]=[];
+ leads.forEach((entry,index)=>pairs.push(others[index]?[entry,others[index]]:[entry]));
+ const rest=others.slice(leads.length);for(let k=0;k<rest.length;k+=2)pairs.push(rest.slice(k,k+2));
+ const cells=(entry:{row:string[];i:number})=>[0,1].map(col=><td key={col}><PrintText id={`${item.id}:row:${entry.i}:${col}`} label={`${item.title} ${entry.i+1}행 ${col+1}열`} value={entry.row[col]??''} maxLength={500} onChange={next=>cell(entry.i,col,next)}/></td>);
+ return <table className={`${css.table} ${css.staffTable}`}><tbody>
+  {pairs.map((pair,index)=><tr key={'p'+index} data-lead={pair.some(({row})=>lead(row))||undefined}>{cells(pair[0])}{pair[1]?cells(pair[1]):<><td/><td/></>}</tr>)}
+  {rows.filter(({row})=>long(row)).map(entry=><tr key={entry.i}><td><PrintText id={`${item.id}:row:${entry.i}:0`} label={`${item.title} ${entry.i+1}행 1열`} value={entry.row[0]} maxLength={500} onChange={next=>cell(entry.i,0,next)}/></td><td colSpan={3}><PrintText id={`${item.id}:row:${entry.i}:1`} label={`${item.title} ${entry.i+1}행 2열`} value={entry.row[1]??''} maxLength={500} onChange={next=>cell(entry.i,1,next)}/></td></tr>)}
+ </tbody></table>;
+}
 function Support({item}:{item:BulletinItem}){
  const {text}=useEdit(item),title=displayTitle(item.title),staff=/섬기는 이들/.test(item.title),volunteer=/봉사위원/.test(item.title);
  return <Scope item={item} role={staff?'staff':undefined}><Band title={title} tone={/공지/.test(title)?'lime':'green'}/><div className={css.tinted}>
-  {item.kind==='worship'?volunteer?<Volunteers item={item}/>:<Table item={item} columns={staff?2:3}/>:null}
+  {item.kind==='worship'?volunteer?<Volunteers item={item}/>:staff?<StaffTable item={item}/>:<Table item={item} columns={3}/>:null}
   {bodyField(item)&&item.body?<PrintText className={css.dashList} id={`${item.id}:body`} label={`${item.title} 내용`} value={item.body} onChange={v=>text('body',v)}/>:null}
  </div></Scope>;
 }

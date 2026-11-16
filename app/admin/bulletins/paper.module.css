@@ -225,3 +225,29 @@ small.churchLine { font-size: .88em; }
 }
 
 .scheduleRow > .scheduleLabel { white-space: pre-line; }
+
+/* 섬기는 이들 two-per-line table */
+.supportGrid [data-role=staff] .staffTable { table-layout: auto; }
+.supportGrid [data-role=staff] .staffTable td:first-child { width: auto; }
+.staffTable td { white-space: nowrap; }
+.staffTable td:nth-child(odd) { color: #4a4036; border-right: 1px solid #b9c08f; padding-right: .7em !important; }
+.staffTable td:nth-child(even) { padding-left: .8em !important; padding-right: 1em !important; }
+.staffTable td[colspan] { border-right: 0; }
+.staffTable tr > td:last-child { border-right: 0; }
+
+/* 예배 안내: centred label with its time close by */
+.schedule > div { justify-items: center; }
+.scheduleRow { justify-content: center; gap: .9em; text-align: center; }
+.scheduleRow > .scheduleLabel { text-align: center; }
+
+/* Web views: if only one of the two columns has items, use the full width */
+.supportGrid:not(:has(> [data-role=staff])) { grid-template-columns: minmax(0, 1fr); }
+.supportGrid:not(:has(> :not([data-role=staff]))) { grid-template-columns: minmax(0, 1fr); }
+.supportGrid:not(:has(> :not([data-role=staff]))) > [data-role=staff] { grid-column: 1; grid-row: auto; }
+
+/* Slightly tighter order rows to keep 2면 within A4 with real data */
+.orderRow { min-height: 2.15em; }
+.orderRow[data-emph] { min-height: 2.65em; }
+
+.staffTable td:nth-child(2):not([colspan]) { border-right: 1px solid #b9c08f; }
+.staffTable tr > td:last-child { border-right: 0 !important; }

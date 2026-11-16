@@ -8,6 +8,7 @@ const paths = {
   on: <><circle cx="12" cy="12" r="8" /><path d="M8 12h8M12 8v8" /></>,
   remove: <><path d="M6 6l12 12M18 6L6 18" /></>,
   plus: <><path d="M12 5v14M5 12h14" /></>,
+  back: <><path d="M15 5l-7 7 7 7" /></>,
   grip: <><circle cx="9" cy="6" r="1.2" /><circle cx="15" cy="6" r="1.2" /><circle cx="9" cy="12" r="1.2" /><circle cx="15" cy="12" r="1.2" /><circle cx="9" cy="18" r="1.2" /><circle cx="15" cy="18" r="1.2" /></>,
 } as const;
 

@@ -10,7 +10,7 @@ import type {BulletinItem} from "@/lib/bulletins";
 import {managedSchedule,presentationItems,sectionFor,isPrayerGuide,displayTitle,isNewsItem} from "@/lib/bulletin-editor";
 import {formatWorshipTime,timeLabels} from "@/lib/church-page-settings";
 import styles from "./print-preview.module.css";
-import SiteIcon from "@/app/site-icon";
+import AdminIcon from "../admin-icons";
 
 /** 헌금 내역 always prints on 4면, like the Word bulletin. */
 function defaultPage(item: SavedBulletin["items"][number]) {
@@ -103,7 +103,7 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
   const editable = draft.status === "draft";
   return createPortal(<PrintEditorProvider bulletinId={draft.id} editable={editable} onReplace={item=>{if(draft.status==="draft"&&draft.items.some(original=>original.id===item.id))onReplace(item);}}><div ref={root} tabIndex={-1} className={`${styles.overlay} ${overflowPages.length ? styles.badLayout : ""}`} role="dialog" aria-modal="true" aria-label="관리자 인쇄 미리보기">
     <header className={styles.topbar}>
-      <button type="button" className={styles.closeButton} aria-label="미리보기 닫기" onClick={onClose}><SiteIcon name="chevron" size={14} style={{transform:"rotate(180deg)"}}/>닫기</button>
+      <button type="button" className={styles.closeButton} aria-label="미리보기 닫기" title="닫기" onClick={onClose}><AdminIcon name="back" size={20}/></button>
       <div className={styles.topTitle}><h2 id="print-title">인쇄 미리보기</h2><p>{draft.issueNumber}호 · {draft.serviceDate.replaceAll("-", ". ")} · A4 가로 반접지</p></div>
       <div className={styles.topActions}>
         {overflowPages.length ? <span className={styles.warn}>{overflowPages.join("·")}면 넘침</span> : null}

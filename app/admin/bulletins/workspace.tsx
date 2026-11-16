@@ -18,7 +18,7 @@ import AdminShell from '../admin-shell';
 import PasswordField from '../password-field';
 import ui from '../management.module.css';
 import view_ from './view.module.css';
-import SiteIcon from '../../site-icon';
+import AdminIcon from '../admin-icons';
 import ManagementHeading from '../management-heading';
 
 
@@ -271,13 +271,13 @@ export default function BulletinWorkspace() {
           :<div className={`${view_.list} ${view_.empty}`}>{rows.length?'검색 결과가 없습니다.':'등록된 주보가 없습니다. 새 주보를 작성해 보세요.'}</div>}
       </section>:null}
 
-      {view==='settings'?<section id="bulletin-options" aria-labelledby="bulletin-options-title"><div className={view_.cardHead}><h2 id="bulletin-options-title">주보 설정</h2><div className={view_.headActions}><button type="button" className={`${view_.btn} ${view_.ghost}`} aria-label="주보 목록 돌아가기" onClick={library}><SiteIcon name="chevron" size={14} style={{transform:"rotate(180deg)"}}/>주보 목록</button><SaveButton className={`${view_.btn} ${view_.primary}`} disabled={visibilityDraft===showVisibility&&connectionsDraft===showConnections} disabledHint="현재 최신 상태입니다." onClick={()=>{setVisibilityOption(visibilityDraft);setConnectionsOption(connectionsDraft);setMessage("주보 설정을 저장했습니다.");}}>저장</SaveButton></div></div><div className={view_.settings}><label className={styles.check}><input type="checkbox" checked={visibilityDraft} onChange={e=>setVisibilityDraft(e.target.checked)}/>웹 공개 설정 표시</label><label className={styles.check}><input type="checkbox" checked={connectionsDraft} onChange={e=>setConnectionsDraft(e.target.checked)}/>공지·일정 연결 표시</label></div></section>:null}
+      {view==='settings'?<section id="bulletin-options" aria-labelledby="bulletin-options-title"><div className={view_.cardHead}><h2 id="bulletin-options-title">주보 설정</h2><div className={view_.headActions}><button type="button" className={`${view_.btn} ${view_.ghost}`} aria-label="주보 목록 돌아가기" onClick={library}><AdminIcon name="back" size={16}/>주보 목록</button><SaveButton className={`${view_.btn} ${view_.primary}`} disabled={visibilityDraft===showVisibility&&connectionsDraft===showConnections} disabledHint="현재 최신 상태입니다." onClick={()=>{setVisibilityOption(visibilityDraft);setConnectionsOption(connectionsDraft);setMessage("주보 설정을 저장했습니다.");}}>저장</SaveButton></div></div><div className={view_.settings}><label className={styles.check}><input type="checkbox" checked={visibilityDraft} onChange={e=>setVisibilityDraft(e.target.checked)}/>웹 공개 설정 표시</label><label className={styles.check}><input type="checkbox" checked={connectionsDraft} onChange={e=>setConnectionsDraft(e.target.checked)}/>공지·일정 연결 표시</label></div></section>:null}
 
       {view!=='library'&&view!=='settings'?(draft?<>
         {printPreview ? <PrintPreview onReplace={item=>{if(draft.status!=="draft"||busy)return;printEdited.current=true;setDraft(current=>current&&({...current,items:current.items.map(original=>original.id===item.id?item:original)}));markDirty();}} draft={draft} dirty={dirty} onClose={closePrint} pages={Object.fromEntries(draft.items.filter(item => item.printPage != null).map(item => [item.id, item.printPage!]))} onPagesChange={pages => { if (draft.status !== "draft") return; printEdited.current = true; setDraft(current => current && ({ ...current, items: current.items.map(item => ({ ...item, printPage: pages[item.id] ?? null })) })); markDirty(); }} /> : null}
 
         <div id="editor-tools" tabIndex={-1} className={view_.bar}>
-          <button type="button" className={`${view_.btn} ${view_.ghost} ${view_.back}`} aria-label="주보 목록 돌아가기" disabled={locked} onClick={library}><SiteIcon name="chevron" size={14} style={{transform:"rotate(180deg)"}}/>주보 목록</button>
+          <button type="button" className={`${view_.btn} ${view_.ghost} ${view_.back}`} aria-label="주보 목록 돌아가기" disabled={locked} onClick={library}><AdminIcon name="back" size={16}/>주보 목록</button>
           <div className={view_.titleRow}>
             <div><div className={view_.titleLine}><h2>{draft.issueNumber}호 주보</h2>{editing&&draft.status==='draft'?<span className={view_.pill} data-status="draft">{draft.revision===0?'새 주보':'편집 중'}</span>:statusPill(draft.status)}</div><p>{longDate(draft.serviceDate)}</p></div>
             <div className={view_.actions}>
