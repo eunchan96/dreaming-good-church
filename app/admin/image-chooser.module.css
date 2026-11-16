@@ -20,8 +20,8 @@
 .library { display: grid; gap: 12px; }
 .libraryHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .libraryHead h3 { margin: 0; font-size: 15px; font-weight: 600; }
-.libraryHead h3 > span { margin-left: 4px; font-size: 12px; font-weight: 500; color: #8a7a62; }
-.search.search { display: flex !important; align-items: center; margin: 0 !important; gap: 6px; height: 36px; padding: 0 10px; border: 1px solid #ddd2bf; border-radius: 8px; background: #fff; color: #8a7a62; }
+.libraryHead h3 > span { margin-left: 4px; font-size: 12px; font-weight: 500; color: #6f604a; }
+.search.search { display: flex !important; align-items: center; margin: 0 !important; gap: 6px; height: 36px; padding: 0 10px; border: 1px solid #ddd2bf; border-radius: 8px; background: #fff; color: #6f604a; }
 .search.search input { width: 160px; min-width: 0; min-height: 0 !important; height: 100% !important; margin: 0 !important; box-shadow: none !important; padding: 0 !important; border: 0 !important; background: transparent !important; font-size: 13px; outline: none; }
 .search.search:focus-within { border-color: #8d6d2f; }
 
@@ -35,7 +35,7 @@
 .grid button:disabled .thumb img { opacity: .45; }
 .thumb em { position: absolute; left: 6px; top: 6px; padding: 2px 7px; border-radius: 999px; background: #342b25; color: #fff; font-size: 11px; font-style: normal; }
 .name { overflow: hidden; font-size: 12.5px; color: #4a3f33; white-space: nowrap; text-overflow: ellipsis; }
-.empty { margin: 4px 0; padding: 24px 0; font-size: 13px; color: #8a7a62; text-align: center; }
+.empty { margin: 4px 0; padding: 24px 0; font-size: 13px; color: #6f604a; text-align: center; }
 
 @media (max-width: 560px) {
   .inner { padding: 18px 16px 20px; gap: 14px; }

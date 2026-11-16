@@ -1,4 +1,5 @@
 "use client";
+import { longDate } from "@/lib/korean-date";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -28,13 +29,13 @@ function FeedCard({ feed, title, href }: { feed: Feed; title: string; href: stri
         if (feed === "church") {
           next = data.fields.filter((field: { key: string; body: string }) => field.key === "introduction" && field.body.trim()).map((field: { key: string; body: string }) => ({ id: field.key, title: "우리 교회 이야기", body: field.body }));
         } else if (feed === "bulletins") {
-          next = data.bulletins.slice(0, 1).map((row: { id: string; service_date: string; issue_number: number }) => ({ ...row, title: `${row.service_date} · ${row.issue_number}호` }));
+          next = data.bulletins.slice(0, 1).map((row: { id: string; service_date: string; issue_number: number }) => ({ ...row, title: `${longDate(row.service_date)} · ${row.issue_number}호` }));
         } else {
           next = data.entries;
           if (feed === "event") next = next.filter(row => row.starts_at && Date.parse(row.ends_at ?? row.starts_at) >= Date.now());
         }
         setItems(next.slice(0, 3));
-        setStatus(next.length ? "" : feed === "church" ? "교회 소개를 준비하고 있습니다." : "현재 공개된 소식이 없습니다.");
+        setStatus(next.length ? "" : feed === "church" ? "교회 소개를 준비하고 있습니다." : feed === "event" ? "다가오는 일정이 없습니다." : feed === "bulletins" ? "게시된 주보가 없습니다." : "현재 공개된 소식이 없습니다.");
         setFailed(false);
       } catch {
         if (controller.signal.aborted || current !== sequence) return;

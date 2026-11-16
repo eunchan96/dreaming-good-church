@@ -3,6 +3,8 @@ import { useEffect,useState } from "react";
 import { koreanInput, type CommunityEntry } from "@/lib/community";
 import styles from "./public-content.module.css";
 import EventCalendar from "./event-calendar";
+import SiteIcon from "./site-icon";
+import { eventWhen } from "@/lib/korean-date";
 import NewsNavigation from './news-navigation';
 import site from './public-site.module.css';
 type PublicEntry=Pick<CommunityEntry,"id"|"title"|"body"|"starts_at"|"ends_at"|"location">;
@@ -22,6 +24,6 @@ export default function CommunityReader({kind}:{kind:"notice"|"event"}){
     {kind === "event" ? <EventCalendar events={rows} onMonthChange={month => { if (month !== calendarMonth) { setRows([]); setMessage("불러오고 있습니다…"); setCalendarMonth(month); } }}>{ids => renderRows(ids ? rows.filter(row => ids.has(row.id)) : rows)}</EventCalendar> : renderRows(rows)}
   </main>;
   function renderRows(entries: PublicEntry[]) { return <div className={styles.list}>{entries.map(row => <article className={styles.card} key={row.id}><h2>{row.title}</h2>
-      {kind === "event" ? <dl className={styles.meta}><dt>일시</dt><dd>{row.starts_at ? <>{koreanInput(row.starts_at).replace("T", " ")}{row.ends_at ? ` ~ ${koreanInput(row.ends_at).replace("T", " ")}` : ""} (한국 시간)</> : "시간 안내를 준비 중입니다."}</dd><dt>장소</dt><dd>{row.location?.trim() || "장소 안내를 준비 중입니다."}</dd></dl> : null}
+      {kind === "event" ? <dl className={styles.meta}><div><dt><SiteIcon name="clock" size={16}/><span>일시</span></dt><dd>{row.starts_at ? eventWhen(koreanInput(row.starts_at), row.ends_at ? koreanInput(row.ends_at) : null) : "시간 안내를 준비 중입니다."}</dd></div><div><dt><SiteIcon name="pin" size={16}/><span>장소</span></dt><dd>{row.location?.trim() || "장소 안내를 준비 중입니다."}</dd></div></dl> : null}
       <p className={styles.body}>{row.body}</p></article>)}</div>; }
 }

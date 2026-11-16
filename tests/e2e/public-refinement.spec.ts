@@ -16,11 +16,11 @@ test('wide hero margins, compact footer and new install route remain aligned', a
 });
 test('public weekly sections recover, render long content and follow news navigation', async ({ page }) => {
   let failed = true;
-  await page.route('**/api/bulletin-sections?section=torah-tov', r => r.fulfill(failed ? { status:503,json:{} } : { json:{ serviceDate:'2026-11-08', items:[{id:'t',kind:'text',title:'토라&토브',body:'이번 주 암송\n'+ '말씀을 묵상합니다. '.repeat(100)}] } }));
+  await page.route('**/api/bulletin-sections?section=torah-tov', r => r.fulfill(failed ? { status:503,json:{} } : { json:{ dates:[{serviceDate:'2026-11-08',issueNumber:2,reference:'시편 23:1'}], serviceDate:'2026-11-08', issueNumber:2, items:[{id:'t',kind:'sermon',title:'토라&토브',body:'이번 주 암송\n'+ '말씀을 묵상합니다. '.repeat(100),content:{reference:'시편 23:1'}}] } }));
   await page.goto('/torah-tov');
   await expect(page.getByRole('status')).toContainText('불러오지 못했습니다');
   failed = false;await page.getByRole('button',{name:'다시 불러오기'}).click();
-  await expect(page.getByText('2026-11-08 주보에 실린 내용입니다.')).toBeVisible();
+  await expect(page.getByRole('heading',{name:'2026년 11월 8일 주일'})).toBeVisible();
   await expect(page.getByRole('link',{name:'이 주보 전체 보기'})).toHaveAttribute('href','/bulletins/2026-11-08');
   for(const width of [1440,390,320]){await page.setViewportSize({width,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
   await expect(page.getByRole('navigation',{name:'소식 메뉴'}).getByRole('link',{name:'토라&토브'})).toHaveAttribute('aria-current','page');

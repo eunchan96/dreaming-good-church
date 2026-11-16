@@ -24,6 +24,9 @@ export const siteNavigation = [
   { name: '소식', href: '/notices', links: [ { label: '교회 소식', href: '/notices' }, { label: '주보', href: '/bulletins' }, { label: '교회 일정', href: '/events' }, { label: '토라&토브', href: '/torah-tov' } ] },
 ];
 export const offeringAccounts = [
-  { name: '일반 헌금', bank: '농협', number: '301-0223-0182-71', holder: '좋은교회' },
+  { name: '온라인 헌금', bank: '농협', number: '301-0223-0182-71', holder: '좋은교회' },
   { name: '건축 헌금', bank: '농협', number: '301-0220-0484-81', holder: '좋은교회' },
 ] as const;
+
+/** 인사말 담임목사 사진. 준비되면 public/brand/에 넣고 src·alt·caption을 채웁니다 (null이면 자리만 표시). */
+export const PASTOR_PHOTO: { src: string; alt: string; caption?: string } | null = null;

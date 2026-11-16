@@ -19,7 +19,7 @@ test("public information pages recover from failure and fit desktop and mobile",
   }
   await page.route("**/api/community?kind=event", route => route.fulfill({ json: { entries: [{ id: "event", title: "함께하는 예배", starts_at: "2026-11-15T04:40:00Z", ends_at: null, location: "", body: "긴 안내문\n" + "함께해요".repeat(100) }] } }));
   await page.goto("/events", { waitUntil: "domcontentloaded" });
-  await expect(page.getByText("2026-11-15 13:40 (한국 시간)")).toBeVisible();
+  await expect(page.getByText("11월 15일(일) 오후 1:40", { exact: true })).toBeVisible();
   await expect(page.getByText("장소 안내를 준비 중입니다.")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.route("**/api/community?kind=notice", route => route.fulfill({ json: { entries: [] } }));

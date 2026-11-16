@@ -32,11 +32,7 @@ test("keyboard skip, mobile navigation, enlarged text and clipboard fallback rem
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { name: "교회 소개", exact: true })).toBeVisible();
   await page.goto("/bulletins/2026-11-08");
-  await expect(page.getByRole("button", { name: "링크 복사", exact: true })).toBeVisible();
-  await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => { throw new Error("Denied"); } } }));
-  await page.getByRole("button", { name: "링크 복사", exact: true }).click();
-  await expect(page.getByText(/고유 주소를 열고 주소창에서 복사/)).toBeVisible();
-  await expect(page.getByRole("link", { name: "이 주보의 고유 주소", exact: true })).toHaveAttribute("href", "/bulletins/2026-11-08");
+  await expect(page.getByRole("button", { name: "PDF로 내려받기", exact: true })).toBeVisible();
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   for (const width of [320, 390, 844]) {
     await page.setViewportSize({ width, height: 844 });

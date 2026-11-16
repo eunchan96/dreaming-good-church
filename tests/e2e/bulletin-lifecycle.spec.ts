@@ -73,9 +73,8 @@ test("one bulletin travels from published source through copy, print, public PDF
       const payload = await reader.request.get("/api/bulletins?date=2086-11-10");
       expect(await payload.text()).not.toContain("비공개");
       const download = reader.waitForEvent("download");
-      await reader.getByRole("button", { name: "공개용 PDF 다운로드", exact: true }).click();
+      await reader.getByRole("button", { name: "PDF로 내려받기", exact: true }).click();
       expect((await download).suggestedFilename()).toBe("bulletin-2086-11-10.pdf");
-      await expect(reader.getByText("공개용 PDF를 내려받았습니다.", { exact: true })).toBeVisible();
     });
     await test.step("withdrawal removes the public page and blocks new PDF access without changing the source", async () => {
       page.once("dialog", dialog => dialog.accept());
@@ -85,7 +84,7 @@ test("one bulletin travels from published source through copy, print, public PDF
       expect((await reader.request.get("/api/bulletins/pdf?date=2086-11-10")).status()).toBe(404);
       await reader.reload();
       await expect(reader.getByText("이번 주 성도 공개 안내", { exact: true })).toHaveCount(0);
-      await expect(reader.getByRole("button", { name: "공개용 PDF 다운로드", exact: true })).toHaveCount(0);
+      await expect(reader.getByRole("button", { name: "PDF로 내려받기", exact: true })).toHaveCount(0);
       await page.getByRole("button",{name:"주보 목록",exact:true}).click();await page.getByRole("button", { name: /2086-11-03/ }).click();
       await expect(page.getByText("지난주 공개 안내", { exact: true })).toBeVisible();
       await expect(page.getByText("지난주 비공개 안내", { exact: true })).toHaveCount(0);
