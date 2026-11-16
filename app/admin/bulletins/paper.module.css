@@ -34,7 +34,7 @@
 .coverMark strong { font-family: var(--font-public-serif), serif; font-size: 2.2em; font-weight: 500; color: #3d342b; }
 
 /* Worship order (2면) */
-.orderTitle { display: flex; align-items: center; justify-content: center; gap: .6em; margin: 0 0 .7em !important; font-size: 1.9em !important; font-weight: 700 !important; letter-spacing: .38em; color: #6f7d2a; line-height: 1.4 !important; }
+.orderTitle { display: flex; align-items: center; justify-content: center; gap: .6em; margin: 0 0 .7em !important; font-size: 1.9em !important; font-weight: 700 !important; letter-spacing: .38em; color: #647024; line-height: 1.4 !important; }
 .orderTitle > span { color: #f2b632; font-size: .8em; letter-spacing: 0; }
 .order { display: grid; gap: .1em; }
 .orderIntro { text-align: center; color: #3d7424; margin-bottom: .35em; line-height: 1.6; }
@@ -107,7 +107,7 @@
 .offering { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1em; align-items: start; }
 .offering[data-split=false] { grid-template-columns: minmax(0, 1fr); }
 .offering table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-.offering caption { text-align: left; color: #6f7d2a; font-weight: 600; padding: .1em 0 .2em; }
+.offering caption { text-align: left; color: #647024; font-weight: 600; padding: .1em 0 .2em; }
 .offering td { padding: .12em .3em; border-bottom: 1px dotted #c9c1b1; }
 .offering td:last-child { text-align: right; width: 45%; font-variant-numeric: tabular-nums; }
 .total { text-align: right; font-weight: 700; margin: .4em 0 0; }
@@ -180,11 +180,11 @@ small.churchLine { font-size: .88em; }
 
 /* 헌금 내역: shared names in one table (현장 | 온라인), the rest on the right */
 .offering:has(.offerPairs) { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
-.offerPairs th, .offerRest th { font-weight: 600; color: #6f7d2a; text-align: right; padding: .05em .3em .15em; border-bottom: 1px solid #b9c08f; }
+.offerPairs th, .offerRest th { font-weight: 600; color: #647024; text-align: right; padding: .05em .3em .15em; border-bottom: 1px solid #b9c08f; }
 .offerPairs td:not(:first-child) { text-align: right; width: 30%; font-variant-numeric: tabular-nums; }
 .offerPairs td:first-child, .offerRest td:first-child { text-align: left; }
 .offering .offerPairs td:last-child { width: 30%; }
-.offerRest small { color: #6f7d2a; font-size: .85em; }
+.offerRest small { color: #647024; font-size: .85em; }
 
 /* 섬기는 이들: column rule only, 담임·협동 rows tinted like the Word template */
 .supportGrid [data-role=staff] .table td { border-bottom: 0; padding-block: .28em; }
@@ -200,7 +200,7 @@ small.churchLine { font-size: .88em; }
 
 /* Word-style title wings */
 .orderTitle > .wing { width: 2.6em; height: auto; flex: none; }
-.orderTitle > span { color: #6f7d2a; font-size: 1em; letter-spacing: .38em; margin-right: -.38em; }
+.orderTitle > span { color: #647024; font-size: 1em; letter-spacing: .38em; margin-right: -.38em; }
 
 /* 예배 안내: two-line label, time on the right */
 .scheduleLabel { white-space: pre-line; line-height: 1.35; }
@@ -283,4 +283,45 @@ small.churchLine { font-size: .88em; }
   .schedule { grid-template-columns: minmax(0, 1fr); }
   .schedule > div { border-right: 0 !important; border-bottom: 1px solid #b9c08f; padding: .4em .6em; }
   .schedule > div:last-child { border-bottom: 0; }
+}
+
+/* Web reading layout for narrow columns (phones, public page sidebars).
+   Print sheets never match: they are not inside .flow. */
+@container (max-width: 560px) {
+  .flow .orderTitle { gap: .35em; font-size: 1.3em !important; letter-spacing: .12em; }
+  .flow .orderTitle > span { letter-spacing: .12em; margin-right: -.12em; white-space: nowrap; }
+  .flow .orderTitle > .wing { width: 1.6em; }
+  .flow .orderIntro { font-size: .95em; text-align: left; margin-bottom: .6em; }
+  .flow .order { gap: 0; }
+  .flow .orderRow, .flow .orderRow[data-emph] {
+    grid-template-columns: 1em minmax(0, 1fr) auto;
+    grid-template-areas: "stand name who" ". what what";
+    min-height: 0; padding: .45em 0; row-gap: .1em; column-gap: .45em;
+    border-bottom: 1px solid #eee8dc; align-items: baseline;
+  }
+  .flow .stand { grid-area: stand; }
+  .flow .orderName { grid-area: name; font-weight: 500; }
+  .flow .orderWho { grid-area: who; margin-left: 0; color: #6b5f50; font-size: .92em; }
+  .flow .leader { grid-area: what; display: block; }
+  .flow .leader > i { display: none; }
+  .flow .orderWhat { text-align: left; white-space: normal; color: #4a4036; }
+  .flow .orderRow[data-emph] .orderWhat { font-size: 1.1em; }
+  .flow .spread > :first-child { position: static; opacity: 1; white-space: normal; }
+  .flow .spreadText { display: none; }
+  .flow .orderFoot { text-align: left; }
+  .flow .news > li { grid-template-columns: auto minmax(0, 1fr); }
+  .flow .news > li > .tag { grid-column: 2; }
+  .flow .news > li > div { grid-column: 1 / -1; padding-left: 1.4em; }
+  .flow .news > li[data-prayer] > div { overflow-x: auto; }
+  .flow .prayer td, .flow .prayer th, .flow .prayer td > * { white-space: nowrap; }
+  .flow .supportGrid, .flow .offering, .flow .offering:has(.offerPairs) { grid-template-columns: minmax(0, 1fr); }
+  .flow .supportGrid > * { grid-column: auto !important; grid-row: auto !important; }
+  .flow .supportGrid [data-role=staff] .table td:last-child, .flow .supportGrid [data-role=staff] .table td:last-child > * { white-space: normal; }
+  .flow .supportGrid [data-role=staff] .table td:first-child, .flow .supportGrid [data-role=staff] .table td:first-child > * { white-space: nowrap; }
+  .flow .supportGrid [data-role=staff] .table { table-layout: auto; }
+  .flow .supportGrid [data-role=staff] .table td:first-child { width: 5.6em; padding-left: .8em; padding-right: .7em; }
+  .flow .torahRow { grid-template-columns: minmax(0, 1fr); }
+  .flow .torahHead { border-right: 0; border-bottom: 1px dashed #cfc6b8; }
+  .flow .church { grid-template-columns: minmax(0, 1fr); }
+  .flow .band { letter-spacing: .25em; }
 }
