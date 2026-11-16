@@ -28,9 +28,8 @@
   - `전체 · 폴더별 · 폴더 없음` 칩과 `+ 새 폴더`가 있다.
   - 카드마다 폴더 선택으로 옮긴다. 열린 폴더에 바로 올라간다.
   - 주보의 이미지 추가 창에도 폴더 칩이 있다.
-- 폴더 DB: `supabase/migrations/20261116120000_image_folders.sql`이 `bulletin_images.folder`(text, 기본 '', 40자)를 추가한다. 로컬에만 적용했다.
-  - 운영 적용 전에는 업로드·목록이 그대로 동작한다. 폴더 이동만 `DB 업데이트 후 사용`으로 안내된다.
-  - 서버 API에 `PATCH /api/images`(폴더 이동·제목 변경, 편집자만)를 추가했다.
+- 폴더 DB: `supabase/migrations/20261116120000_image_folders.sql`이 `bulletin_images.folder`(text, 기본 '', 40자)를 추가한다. 2026-11-16 사용자 승인 후 운영(zefnxczgwpsmfcixonpb)에도 `supabase db push`로 적용했다. 적용 전 이력 대조(기존 12개 일치)와 dry-run(이 1개만 대상)을 확인했다. 적용 후 읽기 전용 조회로 다음을 확인했다: 컬럼 text 기본 '' not null, 검사 제약(40자·앞뒤 공백 없음), 권한(anon·authenticated는 읽기만), 정책 2개 유지, 기존 이미지 1개 유지(폴더 없음).
+    - 서버 API에 `PATCH /api/images`(폴더 이동·제목 변경, 편집자만)를 추가했다.
 
 버튼 통일: `app/admin/buttons.module.css`를 모든 관리 화면에 쓴다.
 - 종류: 주요(진한 갈색), 보조(흰 테두리), 조용한(배경 없음), 아이콘, 목록 안 `+ 추가`(점선 알약), 필터 칩(묶음 토글)
