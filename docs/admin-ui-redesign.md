@@ -4,7 +4,7 @@
 
 예배 영상: 저장(공개)하면 목록으로 돌아간다(임시 저장은 편집 유지). 목록 하단 구분선을 없애고 공개/대표/새벽 구분 칩을 따로 표시한다. 새벽예배는 `월삭새벽예배`·`특별새벽기도`를 여러 개 고를 수 있다. 영상 목록 옆 `캘린더` 탭에서 월별 달력으로 보고, 항목을 누르면 수정 화면이 열린다.
 
-DB: `supabase/migrations/20261116090000_worship_dawn_kinds.sql`이 `worship_videos.dawn_kinds text[]`(monthly/special, 새벽예배만)를 추가한다. 로컬에만 적용했다. 운영 DB에 적용하기 전에는 새벽 구분 저장만 안내 문구와 함께 건너뛰고 나머지 저장은 그대로 된다.
+DB: `supabase/migrations/20261116090000_worship_dawn_kinds.sql`이 `worship_videos.dawn_kinds text[]`(monthly/special, 새벽예배만)를 추가한다. 2026-11-16 사용자 승인 후 운영(zefnxczgwpsmfcixonpb)에도 `supabase db push`로 적용했다. 적용 전 이력 대조(기존 11개 일치)·dry-run(이 1개만 대상)을 확인했고, 적용 후 컬럼(text[] 기본 '{}', not null)·검사 제약·권한(anon 읽기만, authenticated 읽기/수정)·기존 영상 33개 유지를 읽기 전용 조회로 확인했다.
 
 ## 2026-11-16 좁은 화면 웹 읽기 배치
 
