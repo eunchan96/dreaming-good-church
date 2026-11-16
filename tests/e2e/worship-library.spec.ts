@@ -46,6 +46,7 @@ test('admin video form saves drafts, publishes, protects unsaved inputs and scro
   await page.getByRole('button',{name:'임시 저장',exact:true}).click();await expect(page.getByRole('status')).toContainText('임시 저장');
   expect((await (await request.get('/api/worship/videos?type=friday')).json()).videos.some((v:{title:string})=>v.title===title)).toBe(false);
   await page.getByRole('checkbox',{name:'이 예배의 대표 영상으로 지정'}).check();page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'저장',exact:true}).click();await expect(page.getByRole('status')).toContainText('저장했습니다');
+  await expect(page.locator('#video-library')).toBeVisible();await page.locator('#video-library').getByRole('button',{name:new RegExp(title)}).click();
   const body=await (await request.get('/api/worship/videos?type=friday')).json();expect(body.featured.title).toBe(title);
   await page.screenshot({path:'.local/worship-admin-desktop.png',fullPage:true});
   const reader=await page.context().newPage();await reader.goto('/worship/friday');await expect(reader.getByRole('heading',{name:title,exact:true})).toBeVisible();await reader.screenshot({path:'.local/worship-public-desktop.png',fullPage:true});await reader.close();

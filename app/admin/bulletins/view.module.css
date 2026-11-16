@@ -139,7 +139,7 @@
   .row.row > small { display: none; }
   .actions { width: 100%; }
   .actions > *, .headActions > button { flex: 1 1 auto; }
-  .reader { border-radius: 0; border-inline: 0; margin-inline: calc(-1 * clamp(16px, 3vw, 48px)); padding-top: 32px; }
+  .reader { border: 0; border-radius: 0; background: transparent; box-shadow: none; margin: 0 auto; padding: 8px 4px 24px; }
 }
 
 @media print {

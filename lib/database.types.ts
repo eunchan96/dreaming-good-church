@@ -320,6 +320,7 @@ export type Database = {
             };
             "worship_videos": {
                 Row: {
+                    "dawn_kinds": (string)[];
                     "featured": boolean;
                     "id": string;
                     "revision": number;
@@ -332,6 +333,7 @@ export type Database = {
                 };
                 ComputedFields: never;
                 Insert: {
+                    "dawn_kinds"?: (string)[];
                     "featured"?: boolean;
                     "id"?: string;
                     "revision"?: number;
@@ -343,6 +345,7 @@ export type Database = {
                     "video_id": string;
                 };
                 Update: {
+                    "dawn_kinds"?: (string)[];
                     "featured"?: boolean;
                     "id"?: string;
                     "revision"?: number;
@@ -563,6 +566,7 @@ export type Database = {
                     "p_video": string;
                 };
                 Returns: {
+                    "dawn_kinds": (string)[];
                     "featured": boolean;
                     "id": string;
                     "revision": number;
