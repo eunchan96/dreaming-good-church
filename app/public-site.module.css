@@ -11,7 +11,7 @@
 .skip:focus{top:12px}
 
 .header{position:sticky;top:0;z-index:60;background:#fbfaf7f5;backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
-.headerInner{max-width:1440px;height:96px;padding:0 64px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:32px}
+.headerInner{max-width:1240px;height:96px;padding:0 40px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:32px}
 .brand{display:inline-flex;align-items:center;gap:9px;flex-shrink:0}
 .brandText{display:flex;flex-direction:column;line-height:1.2}
 .brandText>span{font-size:12px;letter-spacing:.18em;margin-bottom:3px}
@@ -32,7 +32,7 @@
 .mobileMenuButton,.mobileMenu{display:none}
 
 .hero{position:relative;background:#f2efe6;overflow:hidden}
-.heroInner{max-width:1440px;min-height:660px;margin:auto;display:grid;grid-template-columns:1.12fr 1fr;align-items:center;padding:65px 64px 50px;gap:25px}
+.heroInner{max-width:1240px;min-height:660px;margin:auto;display:grid;grid-template-columns:1.12fr 1fr;align-items:center;padding:65px 40px 50px;gap:25px}
 .heroCopy{position:relative;z-index:2;animation:fadeIn .35s both}
 .eyebrow{font-size:11px;letter-spacing:.16em;font-weight:600;color:#80642f;margin:0 0 25px;display:flex;align-items:center;gap:12px}
 .eyebrow>span{width:7px;height:7px;border-radius:50%;background:#b38b2e}
@@ -48,14 +48,12 @@
 .archway::before{content:'';position:absolute;inset:14px;border:1px solid #eadfcd99;border-radius:150px 150px 0 0}
 .archCross{position:absolute;width:8px;height:123px;background:#f2e8d7;left:calc(50% - 4px);top:79px;box-shadow:2px 2px 3px #48372722}
 .archCross::after{content:'';width:70px;height:8px;background:#f2e8d7;position:absolute;top:35px;left:-31px}
+.heroArtworkCaption{position:absolute;bottom:0;right:0;display:flex;align-items:center;gap:25px;font-size:9px;letter-spacing:.16em;color:#72624c;writing-mode:vertical-rl;line-height:1.8}
 .archLight{position:absolute;width:130px;height:300px;bottom:-75px;right:-40px;transform:rotate(37deg);background:#f5e5b955;box-shadow:-35px 0 0 #f2ddb621}
-.heroFootnote{max-width:1312px;margin:0 max(64px,calc((100% - 1312px)/2));display:flex;align-items:center;justify-content:space-between;gap:24px;font-size:11px;color:#746654;padding:22px 0 28px;border-top:1px solid #d9d0c2;position:relative;z-index:1}
-.heroFootnote>a{display:grid;place-items:center;width:44px;height:44px;margin:-8px -10px -8px 0;color:#8b7b68}
+.heroFootnote{max-width:1160px;margin:0 max(40px,calc((100% - 1160px)/2));display:flex;align-items:center;justify-content:space-between;gap:24px;font-size:11px;color:#746654;padding:22px 0 28px;border-top:1px solid #d9d0c2;position:relative;z-index:1}
+.heroFootnote>a{display:flex;align-items:center;gap:22px;font-size:9px;letter-spacing:.15em}
 
 .homeSection{max-width:1240px;margin:auto;padding:110px 40px}
-#home-worship{padding-bottom:80px}
-.newsSection{padding:0 40px 110px}
-.newsInner{max-width:1160px;margin:auto;padding-top:80px;border-top:1px solid var(--line)}
 .sectionHeading{display:flex;align-items:flex-end;justify-content:space-between;gap:35px;margin-bottom:45px}
 .sectionHeading h2,.welcomeSection h2{font-family:var(--font-display);font-size:clamp(32px,3.4vw,44px);font-weight:500;letter-spacing:-.07em;line-height:1.55;margin:0}
 .sectionHeading h2>span{color:#8b7b68}
@@ -74,6 +72,7 @@
 .videoCaption{display:flex;justify-content:space-between;gap:25px;padding:24px 0;border-bottom:1px solid var(--line);align-items:center}
 .videoCaption p{font-size:11px;color:#7d6336;margin:0 0 7px;letter-spacing:.04em}
 .videoCaption h3{font-size:clamp(17px,2vw,23px);font-weight:500;margin:0;letter-spacing:-.04em}
+.videoCaption[data-compact]{border-bottom:0;padding-bottom:0}
 .videoCaption>a{display:flex;gap:12px;align-items:center;white-space:nowrap;font-size:12px;color:var(--muted);min-height:44px}
 
 .welcomeSection{background:#eeeae0;padding:95px 40px}
@@ -97,13 +96,14 @@
 .feed li{border-bottom:1px solid var(--line);padding:8px 0 16px}
 .feed li>a{display:block;min-height:44px;padding:10px 0;font-weight:500;font-size:16px}
 .feed li p,.feed>p{color:var(--muted);font-size:13px}
+.feed>p[role=status]{margin:0;padding:10px 0 16px;min-height:44px;border-bottom:1px solid var(--line)}
 .feed>button{background:transparent;border:1px solid var(--line);padding:6px 18px;font-size:13px}
 .feed li>a+.introduction{margin-top:-6px}
 .introduction{white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .primary{display:inline-flex;align-items:center;justify-content:center;gap:35px;background:#493d2e;color:#fffaf0;min-height:50px;padding:11px 25px;font-size:13px}
 .primary:hover{background:#655033}
 
-.footer{background:#302a24;color:#e6dfd2;padding:38px max(32px,calc((100vw - 1160px)/2)) 14px}
+.footer{background:#302a24;color:#e6dfd2;padding:38px max(40px,calc((100% - 1160px)/2)) 14px}
 .footer a:hover{color:#edcd72}
 .footerTop{display:grid;grid-template-columns:1fr .9fr 1.25fr;gap:40px;padding-bottom:22px}
 .footerStatement{font-family:var(--font-display);font-size:20px;line-height:1.8;color:#d7cbb8;margin:28px 0}
@@ -187,7 +187,7 @@ to{opacity:1}
 .archway{height:420px;width:350px}
 }
 
-@media(max-width:1100px){.headerInner{padding:0 35px}
+@media(max-width:1100px){.headerInner{padding:0 40px}
 .desktopNav{margin:0;gap:30px}
 .heroInner{padding:55px 40px;min-height:590px}
 .heroArtwork{height:440px}
@@ -199,7 +199,9 @@ to{opacity:1}
 .footerNavigation{gap:18px}
 }
 
-@media(max-width:899px){.headerInner{height:78px;padding:0 24px;gap:15px}
+@media(max-width:899px){.headerInner{height:78px;padding:0 30px;gap:15px}
+.footer{padding-left:30px;padding-right:30px}
+.subpage{padding-left:30px;padding-right:30px}
 .brand img{width:39px;height:39px}
 .brandText strong{font-size:21px}
 .brandText>span{font-size:10px}
@@ -212,18 +214,16 @@ to{opacity:1}
 .mobileGroupTitle{display:flex;align-items:center;justify-content:space-between;min-height:48px;font-size:17px;font-weight:600}
 .mobileSublinks{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;padding:5px 0}
 .mobileSublinks a{min-height:44px;display:flex;align-items:center;color:#7c6b53;font-size:14px}
-.heroInner{padding:50px 32px;min-height:530px;grid-template-columns:1.15fr 1fr}
+.heroInner{padding:50px 30px;min-height:530px;grid-template-columns:1.15fr 1fr}
 .hero h1{font-size:43px}
 .heroArtwork{height:370px}
 .archway{width:220px;height:290px;border-width:18px;right:0}
 .archCross{top:65px}
+.heroArtworkCaption{display:none}
 .sunDisc{width:190px;height:190px;top:35px;right:-15px;box-shadow:0 0 0 18px #eee4c9}
 .heroLink{gap:25px;margin-top:20px}
-.heroFootnote{margin:0 32px}
+.heroFootnote{margin:0 30px}
 .homeSection{padding:75px 30px}
-#home-worship{padding-bottom:60px}
-.newsSection{padding:0 30px 75px}
-.newsInner{padding-top:65px}
 .feeds{grid-template-columns:1fr 1fr}
 .welcomeInner{gap:50px}
 .welcomeSection{padding:70px 30px}
@@ -238,11 +238,11 @@ to{opacity:1}
 .timeGrid>div:nth-child(2n + 1){padding-left:0}
 }
 
-@media(max-width:599px){.headerInner{height:72px;padding:0 20px}
+@media(max-width:599px){.headerInner{height:72px;padding:0 22px}
 .brandText strong{font-size:20px}
 .headerActions{gap:10px}
 .mobileMenu:not([hidden]){max-height:calc(100dvh - 72px)}
-.heroInner{display:block;padding:45px 24px 20px;min-height:0}
+.heroInner{display:block;padding:45px 22px 20px;min-height:0}
 .heroCopy{z-index:2}
 .eyebrow{font-size:9px;margin-bottom:22px}
 .hero h1{font-size:clamp(35px,8.7vw,48px);line-height:1.55;margin-bottom:18px}
@@ -254,12 +254,11 @@ to{opacity:1}
 .archCross{top:43px;height:70px;width:5px;left:calc(50% - 2px)}
 .archCross::after{height:5px;width:40px;left:-18px;top:21px}
 .sunDisc{width:135px;height:135px;top:0;right:30px;box-shadow:0 0 0 15px #eee4c9}
-.heroFootnote{padding:15px 0 20px;margin:0 24px}
+.heroFootnote{padding:15px 0 20px;margin:0 22px}
 .heroFootnote>span{font-size:9px;max-width:175px}
+.heroFootnote>a{gap:8px}
+.heroFootnote>a>span{display:none}
 .homeSection{padding:60px 22px}
-#home-worship{padding-bottom:45px}
-.newsSection{padding:0 22px 60px}
-.newsInner{padding-top:50px}
 .sectionHeading{align-items:flex-start;flex-direction:column;gap:18px;margin-bottom:28px}
 .sectionHeading h2,.welcomeSection h2{font-size:32px}
 .sectionHeading .eyebrow{margin-bottom:15px}
