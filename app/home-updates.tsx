@@ -28,7 +28,7 @@ function FeedCard({ feed, title, href, icon }: { feed: Feed; title: string; href
         if (controller.signal.aborted || current !== sequence) return;
         let next: Item[];
         if (feed === "bulletins") {
-          next = data.bulletins.slice(0, 1).map((row: { id: string; service_date: string; issue_number: number }) => ({ ...row, title: `${longDate(row.service_date)} · ${row.issue_number}호` }));
+          next = data.bulletins.slice(0, 1).map((row: { id: string; service_date: string; issue_number: number }) => ({ ...row, title: longDate(row.service_date), body: `제 ${row.issue_number}호` }));
         } else {
           next = data.entries;
           if (feed === "event") next = next.filter(row => row.starts_at && Date.parse(row.ends_at ?? row.starts_at) >= Date.now());
@@ -47,13 +47,11 @@ function FeedCard({ feed, title, href, icon }: { feed: Feed; title: string; href
     return () => { controller.abort(); window.clearInterval(timer); window.removeEventListener("focus", refresh); };
   }, [feed, retry]);
   const first = items[0];
-  const more = items.length > 1 ? ` 외 ${items.length - 1}건` : "";
-  const detail = first ? `${first.title}${more}` : status;
-  const date = first?.starts_at ? eventDate.format(new Date(first.starts_at)) : null;
+  const sub = !first ? null : feed === "bulletins" ? first.body : feed === "event" && first.starts_at ? eventDate.format(new Date(first.starts_at)) : items.length > 1 ? `외 ${items.length - 1}건의 소식` : null;
   const target = feed === "bulletins" && first?.service_date ? `/bulletins/${first.service_date}` : href;
-  const body = <><SiteIcon name={icon} size={25} /><div><h3>{title}</h3><p role={first ? undefined : "status"}>{detail}</p>{date ? <p>{date}</p> : null}</div></>;
-  // Each feed is one welcome-style row: the whole row opens the latest item or the list page.
-  return <section className={styles.updateRow} aria-label={title}>
+  // Each feed is a tinted card: label on top, the latest item large, and the whole card as the link.
+  const body = <><span><SiteIcon name={icon} size={22} /><h3>{title}</h3></span><strong role={first ? undefined : "status"} data-empty={!first}>{first ? first.title : status}</strong><p aria-hidden={sub ? undefined : true}>{sub}</p></>;
+  return <section aria-label={title}>
     {failed ? <div>{body}<button onClick={() => setRetry(value => value + 1)}>다시 불러오기</button></div> : <Link href={target}>{body}<SiteIcon /></Link>}
   </section>;
 }

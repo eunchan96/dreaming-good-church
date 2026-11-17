@@ -77,17 +77,18 @@
 .welcomeSection{background:#eeeae0;padding:95px 40px}
 .welcomeInner{max-width:1160px;margin:auto;display:grid;grid-template-columns:1fr 1fr;gap:100px;align-items:center}
 .welcomeSection p:not(.eyebrow){font-size:14px;color:#6c604f;margin-top:22px}
-.newsSection{padding:95px 40px}
-.newsSection>div>div:first-child>p:not(.eyebrow){font-size:14px;color:var(--muted);margin-top:22px}
-.updates>section>:is(a,div){display:flex;align-items:center;gap:23px;border-bottom:1px solid #ddd5c8;padding:25px 0;transition:padding .2s}
-.updates>section:first-child>:is(a,div){border-top:1px solid #ddd5c8}
-.updates>section>a:hover{padding-left:8px}
-.updates svg:first-child{color:#977c4b;flex-shrink:0}
-.updates>section>a>svg:last-child{margin-left:auto;flex-shrink:0}
-.updates>section>:is(a,div)>div{min-width:0}
-.updates h3{font-weight:500;font-size:19px;margin:0}
-.updates p{font-size:12px;color:var(--muted);margin:3px 0 0;overflow-wrap:anywhere}
-.updates button{margin-left:auto;background:transparent;border:1px solid var(--line);padding:6px 16px;font-size:13px;white-space:nowrap}
+.newsSection{max-width:1240px;margin:auto;padding:110px 40px}
+.updates{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.updates>section>:is(a,div){position:relative;display:flex;flex-direction:column;align-items:flex-start;height:100%;min-height:220px;background:#f5f1ea;padding:30px 30px 28px;transition:background .2s}
+.updates>section>a:hover{background:#ece6da}
+.updates>section>:is(a,div)>span{display:flex;align-items:center;gap:10px;color:#977c4b}
+.updates h3{font-size:14px;font-weight:600;letter-spacing:-.02em;margin:0;color:#6c604f}
+.updates strong{font-family:var(--font-display);font-size:21px;font-weight:500;letter-spacing:-.05em;line-height:1.5;margin-top:auto;padding-top:34px;overflow-wrap:anywhere;padding-right:30px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.updates strong[data-empty=true]{font-family:inherit;font-size:15px;color:var(--muted);letter-spacing:0}
+.updates p{font-size:12px;color:var(--muted);margin:6px 0 0;padding-right:30px;min-height:1.7em}
+.updates>section>a>svg:last-child{position:absolute;right:28px;bottom:30px;color:#977c4b;transition:transform .2s}
+.updates>section>a:hover>svg:last-child{transform:translateX(5px)}
+.updates button{margin-top:16px;background:transparent;border:1px solid var(--line);padding:6px 16px;font-size:13px;white-space:nowrap}
 .welcomeLinks>a{display:flex;align-items:center;gap:23px;border-bottom:1px solid #cfc5b5;padding:25px 0;transition:padding .2s}
 .welcomeLinks>a:first-child{border-top:1px solid #cfc5b5}
 .welcomeLinks>a:hover{padding-left:8px}
@@ -199,7 +200,10 @@ to{opacity:1}
 .heroFootnote{margin:0 30px}
 .homeSection{padding:75px 30px}
 .welcomeInner{gap:50px}
-.welcomeSection,.newsSection{padding:70px 30px}
+.welcomeSection{padding:70px 30px}
+.newsSection{padding:75px 30px}
+.updates{gap:14px}
+.updates>section>:is(a,div){padding:24px 22px;min-height:200px}
 .timeGrid{grid-template-columns:1fr 1fr}
 .timeGrid>div:nth-child(2n){border-right:0}
 .timeGrid>div:nth-child(2n + 1){padding-left:0}
@@ -236,12 +240,15 @@ to{opacity:1}
 .videoCaption h3{font-size:17px}
 .videoCaption>a{font-size:11px;gap:5px}
 .videoCaption p{font-size:10px}
-.welcomeSection,.newsSection{padding:55px 22px}
+.welcomeSection{padding:55px 22px}
+.newsSection{padding:60px 22px}
 .welcomeInner{grid-template-columns:1fr;gap:30px}
-.welcomeSection p:not(.eyebrow),.newsSection>div>div:first-child>p:not(.eyebrow){font-size:13px}
-.updates>section>:is(a,div){padding:20px 0;gap:18px}
-.updates h3{font-size:17px}
-.updates p{font-size:11px}
+.welcomeSection p:not(.eyebrow){font-size:13px}
+.updates{grid-template-columns:1fr;gap:10px}
+.updates>section>:is(a,div){min-height:0;padding:22px 22px 20px}
+.updates strong{font-size:18px;padding-top:16px}
+.updates>section>a>svg:last-child{right:20px;bottom:22px}
+.updates p:empty{display:none}
 .welcomeLinks>a{padding:20px 0;gap:18px}
 .welcomeLinks h3{font-size:17px}
 .welcomeLinks p{font-size:11px!important}

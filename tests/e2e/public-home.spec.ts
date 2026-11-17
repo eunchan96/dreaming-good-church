@@ -7,7 +7,9 @@ test("public home adapts navigation without horizontal overflow", async ({ page 
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
-    await expect(page.getByText("2026년 11월 8일 주일 · 45호")).toBeVisible();
+    const bulletin = page.getByRole("region", { name: "이번 주 주보", exact: true });
+    await expect(bulletin.getByText("2026년 11월 8일 주일", { exact: true })).toBeVisible();
+    await expect(bulletin.getByText("제 45호", { exact: true })).toBeVisible();
     if (width < 900) await page.getByRole('button', { name: '전체 메뉴 열기' }).click();
     await expect(page.getByRole("navigation", { name: width < 900 ? "모바일 주 메뉴" : "주 메뉴", exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
