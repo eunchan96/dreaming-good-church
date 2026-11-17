@@ -19,7 +19,6 @@ function ShellContent({children}:{children:ReactNode}){
   const {fields,fieldsFailed}=useChurchContent();
   const address=fieldsFailed?null:publicChurchField(fields,'address',CHURCH_ADDRESS)?.replace('선인빌딩','선아빌딩');
   const phone=fieldsFailed?null:publicChurchField(fields,'phone',CHURCH_PHONE);
-  const name=publicChurchField(fields,'name','꿈꾸는좋은교회');
   const pathname = usePathname();
   const [open, setOpen] = useState<string | null>(null), [mobile, setMobile] = useState(false);
   const header = useRef<HTMLElement>(null);
@@ -39,8 +38,12 @@ function ShellContent({children}:{children:ReactNode}){
     </div><nav id="mobile-site-menu" className={styles.mobileMenu} aria-label="모바일 주 메뉴" hidden={!mobile}>{siteNavigation.map(group => <div key={group.name}><Link className={styles.mobileGroupTitle} href={group.href} onClick={close}>{group.name}</Link><div className={styles.mobileSublinks}>{group.links.map(link => <Link key={link.href} href={link.href} onClick={close} aria-current={pathname === link.href ? 'page' : undefined}>{link.label}</Link>)}</div></div>)}</nav></header>
     {children}
     <TopButton/>
-    <footer className={styles.footer}><div className={styles.footerTop}><div className={styles.footerIdentity}><Link href="/" className={styles.brand}><ChurchBrand /></Link><a className={styles.footerYoutube} href={YOUTUBE_CHANNEL} target="_blank" rel="noreferrer"><SiteIcon name="youtube" />YouTube<SiteIcon name="diagonal" size={16} /></a></div><nav className={styles.footerNavigation} aria-label="하단 메뉴">{[{ label: '교회 소개', href: '/church' }, { label: '온라인 헌금', href: '/church/offering' }, { label: '예배', href: '/worship' }, { label: '소식', href: '/notices' }, { label: '앱 추가', href: '/install' }].map(link => <Link key={link.href} href={link.href}>{link.label}</Link>)}</nav><div className={styles.footerContact}>{name?<span>{name}</span>:null}{address?<address>{address}</address>:null}{phone?<a href={`tel:${phone.replace(/[^+\d]/g, '')}`}>T. {phone}</a>:null}</div></div>
-      <div className={styles.footerBottom}><small>© 2026 꿈꾸는좋은교회. All rights reserved.</small><div className={styles.footerUtilities}><Link href="/legal/privacy">개인정보처리방침</Link><Link href="/legal/photo">사진 게시정책</Link><Link href="/admin/bulletins">로그인</Link></div></div>
+    <footer className={styles.footer}>
+      <div className={styles.footerTop}>
+        <div className={styles.footerIdentity}><Link href="/" className={styles.brand}><ChurchBrand /></Link>{address||phone?<div className={styles.footerContact}>{address?<address>{address}</address>:null}{phone?<a href={`tel:${phone.replace(/[^+\d]/g, '')}`}>T. {phone}</a>:null}</div>:null}</div>
+        <nav className={styles.footerNavigation} aria-label="하단 메뉴">{[{ label: '교회 소개', href: '/church' }, { label: '온라인 헌금', href: '/church/offering' }, { label: '예배', href: '/worship' }, { label: '소식', href: '/notices' }, { label: '앱 추가', href: '/install' }].map(link => <Link key={link.href} href={link.href}>{link.label}</Link>)}</nav>
+      </div>
+      <div className={styles.footerBottom} data-footer-bottom><small>© 2026 꿈꾸는좋은교회. All rights reserved.</small><div className={styles.footerUtilities}><Link href="/legal/privacy">개인정보처리방침</Link><Link href="/legal/photo">사진 게시정책</Link><Link href="/admin/bulletins">로그인</Link><a className={styles.footerYoutube} href={YOUTUBE_CHANNEL} target="_blank" rel="noreferrer"><SiteIcon name="youtube" size={18} />YouTube</a></div></div>
     </footer>
   </div>;
 }

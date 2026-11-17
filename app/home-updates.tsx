@@ -48,9 +48,11 @@ function FeedCard({ feed, title, href }: { feed: Feed; title: string; href: stri
   }, [feed, retry]);
   return <section className={styles.feed} aria-label={title}>
     <div className={styles.feedHeading}><h2>{title}</h2><Link href={href} aria-label={`${title} 전체 보기`}>전체 보기 <SiteIcon size={17} /></Link></div>
+    <div className={styles.feedBody}>
     {status ? <p role="status">{status}</p> : null}
     {failed ? <button onClick={() => setRetry(value => value + 1)}>다시 불러오기</button> : null}
     <ul>{items.map(item => <li key={item.id}><Link href={feed === "bulletins" && item.service_date ? `/bulletins/${item.service_date}` : href}>{item.title}</Link>{item.starts_at ? <p>{eventDate.format(new Date(item.starts_at))}</p> : null}{item.body && feed === "notice" ? <p className={styles.introduction}>{item.body}</p> : null}</li>)}</ul>
+    </div>
   </section>;
 }
 
