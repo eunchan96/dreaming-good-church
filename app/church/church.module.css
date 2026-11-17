@@ -49,12 +49,6 @@
 .sketch button > span { position: absolute; right: 14px; bottom: 14px; display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: rgba(52, 43, 37, .8); color: #fff; font-size: 12px; }
 .sketchColumn { display: grid; gap: 14px; }
 .visitInfo h2 { margin: 0 0 18px; font-family: var(--font-display); font-size: 26px; font-weight: 500; letter-spacing: -.03em; }
-.visitInfo dl { display: grid; margin: 0; border-top: 1px solid #e3ded5; }
-.visitInfo dl > div { padding: 18px 0; border-bottom: 1px solid #e3ded5; }
-.visitInfo dl > div:last-child { border-bottom: 0; padding-bottom: 0; }
-.transitCards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; margin: 8px 0 0; padding: 0; list-style: none; }
-.transitCards li { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #f3efe6; font-size: 14px; line-height: 1.45; color: #342b25; }
-.transitCards svg { flex-shrink: 0; color: #b99132; }
 .visitInfo dt { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #342b25; }
 .visitInfo dt svg { color: #b99132; }
 .visitInfo dd { margin: 0; }
@@ -64,11 +58,20 @@
 .phone svg { color: #b99132; transition: translate .2s; }
 .phone:hover { color: #8b713f; }
 .phone:hover svg { translate: 4px 0; }
+.visitInfo dl { display: grid; gap: 26px; margin: 0; }
+.transitCards { display: grid; grid-template-columns: repeat(var(--cards), minmax(0, 1fr)); gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; }
+.transitCards[data-fit=true] { grid-template-columns: repeat(var(--cards), auto); }
+.transitCards[data-measure] { display: flex; width: max-content; }
+.transitCards li { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px; background: #f3efe6; font-size: 14px; line-height: 1.45; color: #342b25; }
+.transitCards[data-fit=true] li { justify-content: center; }
+.transitCards[data-measure] li { white-space: nowrap; }
+.transitCards svg { flex-shrink: 0; color: #b99132; }
 .mapActions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.mapActions a, .mapActions button { display: inline-flex; justify-content: center; align-items: center; gap: 8px; white-space: nowrap; min-height: 42px; padding: 0 16px; border: 1px solid #e3ded5; border-radius: 999px; background: #fff; color: #342b25; font: inherit; font-size: 14px; cursor: pointer; transition: background .2s, border-color .2s, color .2s; }
-.mapActions svg { color: #8b713f; transition: translate .2s; }
-.mapActions a:hover, .mapActions button:hover { background: #f3efe6; border-color: #cdbf9f; color: #8b713f; }
-.mapActions a:hover svg { translate: 2px -2px; }
+.mapActions a, .mapActions button { display: inline-flex; justify-content: center; align-items: center; gap: 7px; min-height: 46px; padding: 0 12px; border: 0; border-radius: 12px; background: #f3efe6; color: #342b25; font: inherit; font-size: 14px; font-weight: 500; white-space: nowrap; cursor: pointer; transition: background .2s, color .2s, transform .2s; }
+.mapActions svg { flex-shrink: 0; color: #a7822f; }
+.mapActions a:hover, .mapActions button:hover { background: #e9e1d1; color: #6f5622; transform: translateY(-2px); }
+.mapActions button[data-copied=true] { background: #342b25; color: #fff; }
+.mapActions button[data-copied=true] svg { color: #ebc547; }
 .liveMap { display: block; width: 100%; height: 280px; border: 0; border-radius: 14px; background: #eee9dc; }
 .sketchDialog { width: min(1100px, calc(100vw - 24px)); max-width: none; max-height: calc(100vh - 24px); margin: auto; padding: 20px; border: 0; border-radius: 14px; background: #fff; }
 .sketchDialog::backdrop { background: rgba(30, 24, 20, .7); }
@@ -81,10 +84,14 @@
   .visit { grid-template-columns: minmax(0, 1fr); gap: 28px; }
   .sketch button { padding: 14px; }
   .sketch button > span { right: 8px; bottom: 8px; padding: 3px 8px; font-size: 11px; }
-  .mapActions { gap: 6px; }
-  .mapActions a, .mapActions button { gap: 5px; padding: 0 6px; font-size: 13px; }
   .liveMap { height: 240px; }
+  .mapActions { gap: 6px; }
+  .mapActions a, .mapActions button { gap: 5px; min-height: 44px; padding: 0 6px; font-size: 13px; }
   .sketchDialog { padding: 12px; }
   .sketchDialog img { width: 760px; max-width: none; }
 }
-@media (prefers-reduced-motion: reduce) { .phone svg, .mapActions svg { transition: none; translate: none !important; } }
+@media (max-width: 600px) {
+  .transitCards, .transitCards[data-fit=true] { grid-template-columns: minmax(0, 1fr); }
+  .transitCards[data-fit=true] li { justify-content: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) { .phone svg { transition: none; translate: none !important; } .mapActions a:hover, .mapActions button:hover { transform: none; } }
