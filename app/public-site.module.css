@@ -338,6 +338,3 @@ to{opacity:1}
 .footerUtilities{gap:0 20px}
 .footerUtilities a{font-size:11px}
 }
-#home-worship{scroll-margin-top:80px}
-@media(max-width:899px){#home-worship{scroll-margin-top:66px}}
-@media(max-width:599px){#home-worship{scroll-margin-top:62px}}
