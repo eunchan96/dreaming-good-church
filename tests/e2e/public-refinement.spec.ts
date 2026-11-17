@@ -65,6 +65,7 @@ test('compact footer policy destinations and TOP work on mobile',async({page})=>
   await expect(page.getByText('정책 확인 중',{exact:true})).toBeVisible();
   await page.locator('footer').getByRole('link',{name:'개인정보처리방침',exact:true}).click();
   await expect(page.getByRole('heading',{name:'개인정보처리방침',exact:true})).toBeVisible();
+  await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
   await page.getByRole('button',{name:'맨 위로 이동',exact:true}).click();
   await expect.poll(()=>page.evaluate(()=>scrollY)).toBeLessThan(5);
   await expect(page.locator('footer').getByRole('button',{name:'맨 위로 이동',exact:true})).toHaveCount(0);
