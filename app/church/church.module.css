@@ -1,21 +1,18 @@
 /* 인사말 */
-.greeting { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 320px); gap: clamp(32px, 6vw, 80px); align-items: start; max-width: 1040px; margin: 56px auto; }
+.greeting { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 320px); grid-template-rows: auto 1fr; grid-template-areas: "label photo" "text photo"; column-gap: clamp(32px, 6vw, 80px); align-items: start; max-width: 1040px; margin: 56px auto; }
+.greeting > .eyebrow { grid-area: label; padding-top: 8px; }
+.greetingText { grid-area: text; }
+.portrait { grid-area: photo; }
 .portrait { margin: 0; }
 .portrait img, .portraitEmpty { display: block; width: 100%; aspect-ratio: 3 / 4; border-radius: 14px; object-fit: cover; }
 .portraitEmpty { display: grid; place-items: center; background: linear-gradient(160deg, #f1ebe0, #e6dccb); color: #b9a98c; }
 .portrait figcaption { margin-top: 12px; font-size: 14px; color: #6e6254; text-align: center; }
-.greetingText { padding-top: 8px; line-height: 2.05; font-size: 16px; }
+.greetingText { line-height: 2.05; font-size: 16px; }
 .eyebrow { margin: 0 0 22px; font-size: 11px; font-weight: 600; letter-spacing: .16em; color: #80642f; }
 .greetingText h2 { white-space: pre-line; margin: 0 0 26px; font-family: var(--font-display); font-size: clamp(26px, 2.6vw, 32px); font-weight: 500; line-height: 1.6; letter-spacing: -.05em; color: #2f2720; }
 .greetingText p { margin: 18px 0; color: #6e6254; white-space: pre-wrap; }
-.greetingText .signature { margin: 30px 0 22px; color: #6e6254; font-size: 15px; }
+.greetingText .signature { margin: 30px 0 0; color: #6e6254; font-size: 15px; }
 .greetingText .signature strong { margin-left: 6px; font-family: var(--font-display); font-size: 21px; font-weight: 500; letter-spacing: -.03em; color: #2f2720; }
-.greetingText a { display: inline-flex; align-items: center; gap: 12px; margin-top: 10px; padding: 8px 0; border-bottom: 1px solid #b7a47f; color: #4a3f33; font-size: 14px; text-decoration: none; transition: color .2s, border-color .2s; }
-.greetingText a svg { transition: translate .2s, scale .2s; }
-.greetingText a:hover { color: #8b713f; border-color: #8b713f; }
-.greetingText a:hover svg:first-child { scale: 1.12; }
-.greetingText a:hover svg:last-child { translate: 3px -3px; }
-@media (prefers-reduced-motion: reduce) { .greetingText a svg { transition: none; translate: none !important; scale: none !important; } }
 
 /* 온라인 헌금 */
 .offering { max-width: 880px; margin: 8px auto 0; }
@@ -31,8 +28,9 @@
 .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 
 @media (max-width: 760px) {
-  .greeting { grid-template-columns: minmax(0, 1fr); gap: 28px; margin: 32px 0; }
-  .portrait { width: min(240px, 70%); margin: 0 auto; order: -1; }
+  .greeting { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "label" "photo" "text"; row-gap: 0; margin: 32px 0; }
+  .greeting > .eyebrow { padding-top: 0; }
+  .portrait { width: min(240px, 70%); margin: 0 auto 30px; }
   .greetingText { font-size: 15px; }
   .account { padding: 22px 20px 20px; }
 }
