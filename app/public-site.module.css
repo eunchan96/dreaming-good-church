@@ -335,3 +335,12 @@ to{opacity:1}
 .footerUtilities{gap:0 20px}
 .footerUtilities a{font-size:11px}
 }
+/* Small text links and buttons answer the pointer with a color shift and a short arrow nudge. */
+.heroFootnote>a,.textLink,.videoCaption>a,.youtubeLink,.footerYoutube{transition:color .2s,border-color .2s}
+.heroFootnote>a svg,.textLink svg,.videoCaption>a svg,.youtubeLink svg,.footerYoutube svg{transition:translate .2s,scale .2s}
+.heroFootnote>a:hover,.textLink:hover,.videoCaption>a:hover,.youtubeLink:hover{color:#8b713f}
+.textLink:hover{border-color:#8b713f}
+.heroFootnote>a:hover svg{translate:0 4px}
+.textLink:hover svg{translate:5px 0}
+.videoCaption>a:hover svg,.youtubeLink:hover svg,.footerYoutube:hover svg{scale:1.12}
+@media (prefers-reduced-motion:reduce){.heroFootnote>a svg,.textLink svg,.videoCaption>a svg,.youtubeLink svg,.footerYoutube svg{transition:none;translate:none!important;scale:none!important}}
