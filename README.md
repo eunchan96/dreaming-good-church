@@ -1,5 +1,7 @@
 # 꿈꾸는좋은교회
 
+[운영 홈페이지](https://dreaming-good-church.vercel.app) · [운영 안내: 주보·게시 취소·백업·장애 대응](docs/operations-handbook.md)
+
 주보·공지/일정·교회 안내와 관리자 편집 기능을 개발 중입니다.
 [현재 구현 범위와 로컬 실행·검증 방법](docs/bulletin-drafts.md)을 참고하세요.
 

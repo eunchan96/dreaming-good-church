@@ -1,5 +1,9 @@
 # 배포 관리자 계정과 설정 링크
 
+## 현재 운영 주소 · 2026-11-13
+
+정식 Origin은 `https://dreaming-good-church.vercel.app`이며 사용자 대시보드 저장 후 원격 Site URL 일치를 확인했다. Redirect URLs는 운영 `/admin/account`, 아래 고정 검수 `/admin/account`, 기존 `http://localhost:3000/auth/callback` 3개를 유지한다. 운영 주소의 실제 관리자 로그인·목록·새로고침·로그아웃도 사용자 확인을 완료했다. 아래 초기 Preview 검수 기록과 구분한다.
+
 ## 확인한 운영 계정·URL
 
 2026-11-13 사용자가 고정 검수 주소의 `/admin/bulletins`에서 기존 운영 계정으로 로그인 → 목록 확인 → 새로고침 → 로그아웃을 정상 확인했다. 원격 DB에서도 운영자1명·이메일 확인1명·비밀번호 설정1명임을 값 노출 없이 확인했다. 비밀번호를 전달받거나 변경하지 않았다.
@@ -23,16 +27,16 @@ https://dreaming-good-church-git-codex-bulle-a36b08-eunchan96s-projects.vercel.a
 초대가 필요한 새 운영자만 `invite`를 사용한다. 기존 운영자의 필요 없는 재초대나 비밀번호 초기화를 자동으로 실행하지 않는다. 아래 명령은 운영자가 실행하는 관리 도구이며 메일을 발송하지 않는다.
 
 ```powershell
-node --env-file=.env.local scripts/invite-editor.mjs 담당이메일 --origin https://dreaming-good-church-git-codex-bulle-a36b08-eunchan96s-projects.vercel.app --type invite
+node --env-file=.env.local scripts/invite-editor.mjs 담당이메일 --origin https://dreaming-good-church.vercel.app --type invite
 ```
 
 기존 운영자의 비밀번호 재설정이 실제로 필요한 경우에만 다음 모드를 쓴다.
 
 ```powershell
-node --env-file=.env.local scripts/invite-editor.mjs 담당이메일 --origin https://dreaming-good-church-git-codex-bulle-a36b08-eunchan96s-projects.vercel.app --type recovery
+node --env-file=.env.local scripts/invite-editor.mjs 담당이메일 --origin https://dreaming-good-church.vercel.app --type recovery
 ```
 
-`--origin`은 필수다. localhost로 자동 폴백하지 않으며 고정 검수 Origin과 명시된 로컬 개발 Origin만 허용한다. `invite`는 초대된 사용자의 운영자 멤버십을 등록하고 `recovery`는 기존 멤버십을 확인할 뿐 새 권한을 부여하지 않는다.
+`--origin`은 필수다. localhost로 자동 폴백하지 않으며 정식 운영·고정 검수 Origin과 명시된 로컬 개발 Origin만 허용한다. `invite`는 초대된 사용자의 운영자 멤버십을 등록하고 `recovery`는 기존 멤버십을 확인할 뿐 새 권한을 부여하지 않는다.
 
 SDK generateLink에 `/admin/account` 복귀 주소를 명시하고, 반환된 해시로 직접 계정 페이지의 `#token_hash=...&type=invite|recovery` 링크를 만든다. 토큰을 서버 쿼리·콘솔·문서에 출력하지 않는다. 링크 HTML은 Git 제외 `.local/admin-invite-UUID.html` 또는 `.local/admin-recovery-UUID.html`에만 저장한다. 파일 이름만 터미널에 출력한다.
 
