@@ -455,8 +455,9 @@ small.churchLine { font-size: .88em; }
 .coverLines { display: grid; justify-items: center; width: fit-content; text-align: center; }
 .coverLines article { display: grid; justify-items: center; }
 .coverLines .coverLine:nth-child(2), .coverLines article + article .coverLine { padding-left: 0; }
-/* 섬기는 이들: 이름 열은 줄바꿈해서 상자 안에 머물고 오른쪽 여백을 두며,
+/* 섬기는 이들: 이름은 한 줄 유지. 섬기는 이들 열을 넓히고(왼쪽 공지·봉사위원 상자는 조금 좁게), 여백·자간을 조금 줄여 상자 안에 맞춤.
    세로선은 아래처럼 위쪽도 상자 끝에서 조금 떨어져 시작 (첫 행만 선을 배경으로 그려 위를 비움) */
-.supportGrid [data-role=staff] .table td:last-child, .supportGrid [data-role=staff] .table td:last-child > * { white-space: normal !important; word-break: keep-all; overflow-wrap: anywhere; }
-.supportGrid [data-role=staff] .table td:last-child { padding-right: .9em; }
+.supportGrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.28fr); }
+.supportGrid [data-role=staff] .table td:first-child { width: 6.6em; padding-left: .75em; padding-right: .7em; }
+.supportGrid [data-role=staff] .table td:last-child { padding-left: .7em; padding-right: .7em; letter-spacing: -.02em; }
 .supportGrid [data-role=staff] .table tr:first-child td:first-child { border-right-color: transparent !important; background-image: linear-gradient(#b9c08f, #b9c08f); background-size: 1px calc(100% - .45em); background-position: right bottom; background-repeat: no-repeat; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
