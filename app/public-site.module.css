@@ -142,7 +142,6 @@
 .prose h2{font-family:var(--font-display);font-size:32px;line-height:1.7;font-weight:500;letter-spacing:-.05em;margin-bottom:28px}
 .prose p{white-space:pre-wrap;color:#6e6254;margin:20px 0}
 .prose a{display:inline-flex;gap:15px;align-items:center;border-bottom:1px solid #b7a47f;padding:8px 0;font-size:14px}
-.mapFrame{border:0;width:100%;height:420px;background:#eee9dc;margin-top:15px}
 .contactRow{display:flex;justify-content:space-between;align-items:center;gap:25px;padding:30px 0;border-bottom:1px solid var(--line)}
 .contactRow h2{font-size:18px;font-weight:500;margin:0 0 8px}
 .contactRow p{color:var(--muted);font-size:14px}
@@ -272,7 +271,6 @@ to{opacity:1}
 .timeGrid span{font-size:8px}
 .prose{margin:35px 0;font-size:14px}
 .prose h2{font-size:27px}
-.mapFrame{height:300px}
 .contactRow{align-items:flex-start;flex-direction:column;padding:24px 0;gap:15px}
 .contactRow p{font-size:13px}
 .unconfirmed{padding:25px;font-size:14px}
@@ -290,21 +288,6 @@ to{opacity:1}
 .hero .heroLink{max-width:100%;overflow-wrap:anywhere;word-break:normal}.heroLink>span{flex-shrink:0}
 
 /* 오시는 길: sketch map + address/transit, live map below */
-.visitGrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:40px;align-items:center;margin:20px 0 32px}
-.sketchMap{margin:0;padding:24px;background:#fff;border:1px solid var(--line);border-radius:14px}
-.sketchMap img{display:block;width:100%;height:auto}
-.sketchMap figcaption{margin-top:12px;font-size:12px;color:var(--muted);text-align:center}
-.visitInfo h2{font-family:var(--font-public-serif),serif;font-size:26px;font-weight:500;letter-spacing:-.03em;margin:0 0 18px}
-.visitInfo dl{margin:0;display:grid;gap:18px}
-.visitInfo dl>div{padding-bottom:18px;border-bottom:1px solid var(--line)}
-.visitInfo dt{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:6px}
-.visitInfo dt svg{color:#b99132}
-.visitInfo dd{margin:0}
-.visitInfo dd p{margin:2px 0;font-size:15px;line-height:1.7;color:var(--muted)}
-.visitInfo dd p:first-child{color:var(--ink)}
-.visitInfo>a{display:inline-flex;align-items:center;gap:10px;min-height:44px;margin-top:14px;padding:0 18px;border:1px solid var(--line);border-radius:999px;font-size:14px}
-.visitInfo>a:hover{background:#f3efe6}
-@media(max-width:900px){.visitGrid{grid-template-columns:1fr;gap:24px}.sketchMap{padding:16px}}
 
 /* Footer: identity | menu | contact, utilities on the bottom row */
 .footer{background:#302a24;color:#e6dfd2;padding:24px max(40px,calc((100% - 1160px)/2)) 8px}

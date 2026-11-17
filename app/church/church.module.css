@@ -39,3 +39,48 @@
 .worshipNote { margin: 40px 0 8px; padding: 22px 26px; border-radius: 12px; background: #f3eee4; }
 .worshipNote h2 { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: #8d6d2f; }
 .worshipNote p { margin: 0; font-size: 15px; line-height: 1.9; color: #4a3f33; white-space: pre-wrap; }
+
+/* 오시는 길 */
+.visit { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 48px; align-items: start; margin: 20px 0 40px; }
+.sketch { margin: 0; }
+.sketch button { position: relative; display: block; width: 100%; padding: 24px; background: #fff; border: 1px solid #e3ded5; border-radius: 14px; cursor: zoom-in; transition: border-color .2s, box-shadow .2s; }
+.sketch button:hover { border-color: #cdbf9f; box-shadow: 0 10px 24px rgba(80, 62, 30, .08); }
+.sketch img { display: block; width: 100%; height: auto; }
+.sketch button > span { position: absolute; right: 14px; bottom: 14px; display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: rgba(52, 43, 37, .8); color: #fff; font-size: 12px; }
+.sketch figcaption { margin-top: 12px; font-size: 12px; color: #766b61; text-align: center; }
+.visitInfo h2 { margin: 0 0 18px; font-family: var(--font-display); font-size: 26px; font-weight: 500; letter-spacing: -.03em; }
+.visitInfo dl { display: grid; margin: 0; border-top: 1px solid #e3ded5; }
+.visitInfo dl > div { padding: 18px 0; border-bottom: 1px solid #e3ded5; }
+.visitInfo dt { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #342b25; }
+.visitInfo dt svg { color: #b99132; }
+.visitInfo dd { margin: 0; }
+.visitInfo dd p { margin: 2px 0; font-size: 15px; line-height: 1.7; color: #342b25; white-space: pre-wrap; }
+.visitInfo dd p.muted { color: #766b61; }
+.phone { display: inline-flex; align-items: center; gap: 10px; min-height: 36px; font-size: 17px; font-weight: 600; letter-spacing: .01em; color: #342b25; transition: color .2s; }
+.phone svg { color: #b99132; transition: translate .2s; }
+.phone:hover { color: #8b713f; }
+.phone:hover svg { translate: 4px 0; }
+.mapActions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.mapActions a, .mapActions button { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 16px; border: 1px solid #e3ded5; border-radius: 999px; background: #fff; color: #342b25; font: inherit; font-size: 14px; cursor: pointer; transition: background .2s, border-color .2s, color .2s; }
+.mapActions svg { color: #8b713f; transition: translate .2s; }
+.mapActions a:hover, .mapActions button:hover { background: #f3efe6; border-color: #cdbf9f; color: #8b713f; }
+.mapActions a:hover svg { translate: 2px -2px; }
+.liveMap { display: block; width: 100%; height: 280px; border: 0; border-radius: 14px; background: #eee9dc; }
+.sketchDialog { width: min(1100px, calc(100vw - 24px)); max-width: none; max-height: calc(100vh - 24px); margin: auto; padding: 20px; border: 0; border-radius: 14px; background: #fff; }
+.sketchDialog::backdrop { background: rgba(30, 24, 20, .7); }
+.sketchDialog > div { overflow-x: auto; }
+.sketchDialog img { display: block; width: 100%; height: auto; }
+.sketchDialog form { position: absolute; top: 8px; right: 8px; }
+.sketchDialog form button { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .92); color: #342b25; cursor: pointer; }
+.sketchDialog form button:hover { background: #f3efe6; }
+@media (max-width: 900px) {
+  .visit { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .sketch button { padding: 14px; }
+  .sketch button > span { right: 8px; bottom: 8px; padding: 3px 8px; font-size: 11px; }
+  .mapActions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .mapActions a, .mapActions button { justify-content: center; gap: 5px; padding: 0 6px; font-size: 13px; white-space: nowrap; }
+  .liveMap { height: 240px; }
+  .sketchDialog { padding: 12px; }
+  .sketchDialog img { width: 760px; max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) { .phone svg, .mapActions svg { transition: none; translate: none !important; } }
