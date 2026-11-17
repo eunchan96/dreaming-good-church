@@ -50,7 +50,7 @@ test("edit church info, upload normalized private image, attach/publish and prot
     await manager.getByLabel("이미지 파일", { exact: true }).setInputFiles({ name: "cover.png", mimeType: "image/png", buffer: pixels });
     await manager.getByRole("button", { name: "올리기", exact: true }).click(); await expect(manager.locator('[data-page-message]')).toContainText("이미지를 올렸습니다");
     const asset = await admin.from("bulletin_images").select("*").eq("title", "검증용 주보 표지").single(); if (asset.error) throw asset.error; imageId = asset.data.id;
-    expect(asset.data.width).toBe(2400); expect(asset.data.height).toBe(1200);
+    expect(asset.data.width).toBe(1800); expect(asset.data.height).toBe(900);
     expect((await page.request.get(`/api/images?id=${imageId}`)).status()).toBe(404);
     expect((await page.request.delete(`/api/images?id=${imageId}`)).status()).toBe(401);
     expect((await page.request.post("/api/images", { data: pixels })).status()).toBe(401);
