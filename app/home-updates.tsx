@@ -51,7 +51,7 @@ function FeedCard({ feed, title, href }: { feed: Feed; title: string; href: stri
     <div className={styles.feedBody}>
     {status ? <p role="status">{status}</p> : null}
     {failed ? <button onClick={() => setRetry(value => value + 1)}>다시 불러오기</button> : null}
-    <ul>{items.map(item => <li key={item.id}><Link className={styles.feedItem} href={feed === "bulletins" && item.service_date ? `/bulletins/${item.service_date}` : href}><div><strong>{item.title}</strong>{item.starts_at ? <p>{eventDate.format(new Date(item.starts_at))}</p> : null}{item.body && feed === "notice" ? <p className={styles.introduction}>{item.body}</p> : null}</div><SiteIcon size={18} /></Link></li>)}</ul>
+    <ul>{items.map(item => <li key={item.id}><Link className={styles.feedItem} href={feed === "bulletins" && item.service_date ? `/bulletins/${item.service_date}` : href}><div><strong>{item.title}</strong>{item.starts_at ? <p>{eventDate.format(new Date(item.starts_at))}</p> : null}{item.body && feed === "notice" ? <p className={styles.introduction}>{item.body}</p> : null}</div></Link></li>)}</ul>
     </div>
   </section>;
 }
