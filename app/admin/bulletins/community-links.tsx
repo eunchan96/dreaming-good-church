@@ -1,4 +1,5 @@
 "use client";
+import Select from "../select";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { loadBulletins, makeBrowserClient, type SavedBulletin } from "@/lib/bulletin-store";
@@ -34,9 +35,9 @@ export default function CommunityLinks({ draft, locked, onBusy, onImported }: { 
   }
   return <section className={`${styles.flatSection} ${ui.formRows}`}><p><Link href="/admin/community" target="_blank" rel="noreferrer">공지·일정 관리 열기</Link></p>
     <p aria-live="polite">{message}</p>
-    <label>별도 공지로 가져올 항목<select value={selectedItem??""} disabled={locked} onChange={event=>setItemId(event.target.value)}>{items.map(item=><option key={item.id} value={item.id}>{item.title}{item.webVisible?"":" (웹 비공개)"}</option>)}</select></label>
+    <label>별도 공지로 가져올 항목<Select value={selectedItem??""} disabled={locked} onChange={setItemId} options={items.map(item=>({value:item.id,label:item.title,hint:item.webVisible?undefined:"웹 비공개"}))}/></label>
     <button disabled={locked||!selectedItem||draft.revision===0} onClick={()=>perform(false)}>별도 공지로 가져오기</button>
-    <label>주보에 넣을 공지·일정<select value={selectedEntry??""} disabled={locked} onChange={event=>setEntryId(event.target.value)}>{entries.map(entry=><option key={entry.id} value={entry.id}>{entry.title} · {entry.kind==="event"?"일정":"공지"}{entry.is_public?"":" (비공개)"}</option>)}</select></label>
+    <label>주보에 넣을 공지·일정<Select value={selectedEntry??""} disabled={locked} onChange={setEntryId} options={entries.map(entry=>({value:entry.id,label:entry.title,hint:`${entry.kind==="event"?"일정":"공지"}${entry.is_public?"":" · 비공개"}`}))}/></label>
     <button disabled={locked} onClick={()=>setRefresh(value=>value+1)}>공지·일정 목록 새로고침</button>
     <button disabled={locked||!selectedEntry||draft.revision===0||draft.status!=="draft"} onClick={()=>perform(true)}>선택한 내용을 주보에 복사</button>
     {locked||draft.revision===0?<p>주보 저장이 끝난 뒤 사용할 수 있습니다.</p>:null}

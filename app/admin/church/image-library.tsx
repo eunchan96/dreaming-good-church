@@ -1,4 +1,5 @@
 'use client';
+import Select from '../select';
 import {useEffect,useRef,useState,type RefObject} from 'react';
 import {BulletinImageView} from '@/app/bulletin-image';
 import SiteIcon from '@/app/site-icon';
@@ -56,7 +57,7 @@ export default function ImageLibrary({images,busy,file,title,alt,fileInput,onTit
     <fieldset className={styles.detailFields} disabled={busy}>
      <label>이름<input aria-label="이미지 이름" maxLength={200} value={draft.title} onChange={e=>setDraft(current=>({...current,title:e.target.value}))}/></label>
      <label>설명<input aria-label="이미지 설명" maxLength={500} placeholder="비워 두면 이름을 씁니다" value={draft.alt} onChange={e=>setDraft(current=>({...current,alt:e.target.value}))}/></label>
-     <label>폴더<select aria-label="이미지 폴더" value={draft.folder} onChange={e=>{if(e.target.value===NEW){const name=window.prompt('새 폴더 이름 (40자 이하)')?.trim().slice(0,40);if(name){setCreated(current=>current.includes(name)?current:[...current,name]);setDraft(current=>({...current,folder:name}));}return;}setDraft(current=>({...current,folder:e.target.value}));}}><option value="">폴더 없음</option>{folderNames(images,[...created,draft.folder]).map(name=><option key={name} value={name}>{name}</option>)}<option value={NEW}>+ 새 폴더…</option></select></label>
+     <label>폴더<Select aria-label="이미지 폴더" value={draft.folder} onChange={value=>{if(value===NEW){const name=window.prompt('새 폴더 이름 (40자 이하)')?.trim().slice(0,40);if(name){setCreated(current=>current.includes(name)?current:[...current,name]);setDraft(current=>({...current,folder:name}));}return;}setDraft(current=>({...current,folder:value}));}} options={[{value:'',label:'폴더 없음'},...folderNames(images,[...created,draft.folder]).map(name=>({value:name,label:name})),{value:NEW,label:'+ 새 폴더…'}]}/></label>
      <div className={styles.detailActions}><button type="button" className={`${btn.btn} ${btn.ghost} ${styles.danger}`} onClick={()=>{const id=selected.id;close();onDelete(id);}}>이미지 삭제</button><button type="button" className={`${btn.btn} ${btn.primary}`} disabled={!changed||!draft.title.trim()} onClick={()=>void save()}>저장</button></div>
     </fieldset>
    </div>:null}

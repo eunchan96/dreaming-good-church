@@ -1,4 +1,5 @@
 'use client';
+import Select from '../select';
 import {createContext,useContext,useEffect,useLayoutEffect,useRef,useState,type CSSProperties,type ReactNode} from 'react';
 import type {BulletinItem} from '@/lib/bulletins';
 import {makeBrowserClient} from '@/lib/bulletin-store';
@@ -44,7 +45,7 @@ export function PrintEditorProvider({bulletinId,editable,onReplace,children,plai
  const toolbar=<div className={css.formatBar} role="group" aria-label="인쇄 서식 도구">
   <span className={css.selection} data-empty={!selected||undefined}>{selected?.label??'서식을 바꿀 문단이나 칸을 누르세요'}</span>
   <span className={css.tools}>
-   <span className={css.selectWrap}><select aria-label="인쇄 글자 크기" disabled={!selected} value={current.size??''} onChange={e=>format({size:e.target.value?Number(e.target.value):undefined})}><option value="">기본 크기</option>{sizes.map(size=><option value={size} key={size}>{size}pt</option>)}</select><Icon d={chevron} size={14}/></span>
+   <Select size="small" aria-label="인쇄 글자 크기" disabled={!selected} value={String(current.size??'')} onChange={value=>format({size:value?Number(value):undefined})} options={[{value:'',label:'기본 크기'},...sizes.map(size=>({value:String(size),label:`${size}pt`}))]}/>
    <button type="button" className={css.iconTool} aria-label="굵게" title="굵게" aria-pressed={current.bold??false} disabled={!selected} onClick={()=>format({bold:!current.bold})}><Icon d="M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z"/></button>
    <ColorPicker disabled={!selected} value={current.color??'#342b25'} onChange={color=>format({color})}/>
    <span className={css.segment} role="group" aria-label="인쇄 문단 정렬">{(['left','center','right'] as const).map(align=><button key={align} type="button" className={css.iconTool} aria-label={align==='left'?'왼쪽 정렬':align==='center'?'가운데 정렬':'오른쪽 정렬'} title={align==='left'?'왼쪽':align==='center'?'가운데':'오른쪽'} aria-pressed={(current.align??'left')===align} disabled={!selected} onClick={()=>format({align})}><Icon d={alignIcons[align]}/></button>)}</span>

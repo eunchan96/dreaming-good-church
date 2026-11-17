@@ -1,4 +1,5 @@
 "use client";
+import Select from "../select";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {CHURCH_ADDRESS,CHURCH_PHONE} from '@/lib/site-content';
@@ -147,7 +148,7 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
         <div className={styles.sideHead}><h3>면 배치</h3><button type="button" className={styles.iconButton} aria-label="면 배치 닫기" onClick={() => setPanel(false)}>×</button></div>
         {pageTitles.map((title, index) => { const number = index + 1; const entries = layoutRows.filter(row => pageOf(row.item) === number); return <section key={title} className={styles.sideGroup}>
           <h4>{title}{overflowPages.includes(number) ? <span className={styles.warn}>넘침</span> : null}</h4>
-          {entries.length ? entries.map(row => <label className={styles.assignment} key={row.id}><span>{row.label}</span><select disabled={!editable} aria-label={`${row.label} 인쇄 면`} value={pages[row.item.id]??defaultPage(row.item)} onChange={event=>{const value=Number(event.target.value);onPagesChange({...pages,...Object.fromEntries(row.ids.map(id=>[id,value]))});setMessage("");}}>{pageTitles.map((option,i)=><option value={i+1} key={option}>{option}</option>)}</select></label>) : <p className={styles.sideEmpty}>배치된 항목 없음</p>}
+          {entries.length ? entries.map(row => <label className={styles.assignment} key={row.id}><span>{row.label}</span><Select size="small" disabled={!editable} aria-label={`${row.label} 인쇄 면`} value={String(pages[row.item.id]??defaultPage(row.item))} onChange={next=>{const value=Number(next);onPagesChange({...pages,...Object.fromEntries(row.ids.map(id=>[id,value]))});setMessage("");}} options={pageTitles.map((option,i)=>({value:String(i+1),label:option}))}/></label>) : <p className={styles.sideEmpty}>배치된 항목 없음</p>}
         </section>; })}
         <div className={styles.sideNote}>
           <p><strong>인쇄 설정</strong> A4 가로 · 배율 100% · 여백 없음 · 머리글/바닥글 끔</p>

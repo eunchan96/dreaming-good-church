@@ -54,7 +54,7 @@ test("edit church info, upload normalized private image, attach/publish and prot
     expect((await page.request.get(`/api/images?id=${imageId}`)).status()).toBe(404);
     expect((await page.request.delete(`/api/images?id=${imageId}`)).status()).toBe(401);
     expect((await page.request.post("/api/images", { data: pixels })).status()).toBe(401);
-    await expect(manager.getByRole("img", { name: "초록색 표지 이미지" })).toBeVisible();
+    await expect(manager.getByRole("button", { name: "검증용 주보 표지 자세히 보기", exact: true }).locator("img")).toBeVisible();
     const library=manager.locator('#church-images');await library.getByLabel('보관함 이미지 검색').fill('검증용 주보 표지');
     for(const width of [1440,320]){await manager.setViewportSize({width,height:900});await library.screenshot({path:`.local/detail-image-library-${width}.png`});}
     const enlarge=library.getByRole('button',{name:'검증용 주보 표지 자세히 보기',exact:true});await enlarge.click();const imageDialog=manager.getByRole('dialog',{name:'이미지 상세'});await expect(imageDialog.getByRole('img',{name:'초록색 표지 이미지'})).toBeVisible();expect((await new AxeBuilder({page:manager}).exclude('iframe').analyze()).violations.map(v=>v.id)).toEqual([]);await imageDialog.screenshot({path:'.local/detail-image-preview-320.png'});await manager.keyboard.press('Escape');await expect(enlarge).toBeFocused();

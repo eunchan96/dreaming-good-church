@@ -52,8 +52,9 @@ test("select a bulletin notice, publish separately, include event snapshot and a
     const event=await admin.from("community_entries").select("id,starts_at").eq("title",eventTitle).single();if(event.error)throw event.error;entryIds.push(event.data.id);
     expect(new Date(event.data.starts_at).toISOString()).toBe("2091-11-04T04:40:00.000Z");
     const communityPanel=page.locator("details").filter({has:page.locator("summary",{hasText:"공지·일정 연결"})});if(await communityPanel.getAttribute("open")===null)await communityPanel.locator("summary").click();await page.getByRole("button",{name:"공지·일정 목록 새로고침",exact:true}).click();
-    await expect(page.getByLabel("주보에 넣을 공지·일정").locator("option",{hasText:eventTitle})).toHaveCount(1);
-    await page.getByLabel("주보에 넣을 공지·일정").selectOption(event.data.id);
+    await page.getByLabel("주보에 넣을 공지·일정").click();
+    await expect(page.getByRole("option").filter({hasText:eventTitle})).toHaveCount(1);
+    await page.getByRole("option").filter({hasText:eventTitle}).click();
     await page.getByRole("button",{name:"선택한 내용을 주보에 복사",exact:true}).click();
     await expect(page.getByRole("textbox",{name:eventTitle+" 내용",exact:true})).toHaveValue(/2091-11-04 13:40/);
     await manager.getByLabel("제목",{exact:true}).fill("모임 시간 수정");
