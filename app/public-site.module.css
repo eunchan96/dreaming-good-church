@@ -313,6 +313,7 @@ to{opacity:1}
 .footerNavigation a{display:flex;align-items:center;font-size:14px;min-height:40px;color:#d0c5b3;width:fit-content}
 .footerContact{padding-top:6px}
 .footerContact>span{display:block;font-size:15px;color:#f3ecdf;margin-bottom:10px}
+.footerContact>span+span{font-size:13px;color:#baad96;margin:-4px 0 4px}
 .footerContact address{font-style:normal;color:#baad96;font-size:13px;line-height:1.8;margin:0 0 2px}
 .footerContact a{color:#c8bca9;font-size:13px;min-height:30px;display:inline-flex;align-items:center}
 .footerBottom{border-top:1px solid #5b4d3c;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:6px 0 0;color:#b0a18a}
@@ -329,6 +330,7 @@ to{opacity:1}
 .footerNavigation{gap:0 20px}
 .footerNavigation a{font-size:13px}
 .footerContact>span{font-size:14px;margin-bottom:6px}
+.footerContact>span+span{font-size:12px}
 .footerContact address,.footerContact a{font-size:12px}
 .footerBottom{flex-direction:column;align-items:flex-start;gap:0;padding-top:8px}
 .footerBottom small{font-size:10px}
