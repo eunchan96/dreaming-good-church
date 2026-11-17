@@ -11,7 +11,7 @@ type Feed = "bulletins" | "notice" | "event";
 const urls: Record<Feed, string> = { bulletins: "/api/bulletins", notice: "/api/community?kind=notice", event: "/api/community?kind=event" };
 const eventDate = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric", weekday: "short", hour: "numeric", minute: "2-digit" });
 
-function FeedCard({ feed, title, href }: { feed: Feed; title: string; href: string }) {
+function FeedCard({ feed, title, href, icon }: { feed: Feed; title: string; href: string; icon: "document" | "megaphone" | "calendar" }) {
   const [items, setItems] = useState<Item[]>([]);
   const [status, setStatus] = useState("불러오고 있습니다…");
   const [failed, setFailed] = useState(false);
@@ -46,16 +46,18 @@ function FeedCard({ feed, title, href }: { feed: Feed; title: string; href: stri
     window.addEventListener("focus", refresh);
     return () => { controller.abort(); window.clearInterval(timer); window.removeEventListener("focus", refresh); };
   }, [feed, retry]);
-  return <section className={styles.feed} aria-label={title}>
-    <div className={styles.feedHeading}><h2>{title}</h2><Link href={href} aria-label={`${title} 전체 보기`}>전체 보기 <SiteIcon size={17} /></Link></div>
-    <div className={styles.feedBody}>
-    {status ? <p role="status">{status}</p> : null}
-    {failed ? <button onClick={() => setRetry(value => value + 1)}>다시 불러오기</button> : null}
-    <ul>{items.map(item => <li key={item.id}><Link className={styles.feedItem} href={feed === "bulletins" && item.service_date ? `/bulletins/${item.service_date}` : href}><div><strong>{item.title}</strong>{item.starts_at ? <p>{eventDate.format(new Date(item.starts_at))}</p> : null}{item.body && feed === "notice" ? <p className={styles.introduction}>{item.body}</p> : null}</div></Link></li>)}</ul>
-    </div>
+  const first = items[0];
+  const more = items.length > 1 ? ` 외 ${items.length - 1}건` : "";
+  const detail = first ? `${first.title}${more}` : status;
+  const date = first?.starts_at ? eventDate.format(new Date(first.starts_at)) : null;
+  const target = feed === "bulletins" && first?.service_date ? `/bulletins/${first.service_date}` : href;
+  const body = <><SiteIcon name={icon} size={25} /><div><h3>{title}</h3><p role={first ? undefined : "status"}>{detail}</p>{date ? <p>{date}</p> : null}</div></>;
+  // Each feed is one welcome-style row: the whole row opens the latest item or the list page.
+  return <section className={styles.updateRow} aria-label={title}>
+    {failed ? <div>{body}<button onClick={() => setRetry(value => value + 1)}>다시 불러오기</button></div> : <Link href={target}>{body}<SiteIcon /></Link>}
   </section>;
 }
 
 export default function HomeUpdates() {
-  return <div className={styles.feeds}><FeedCard feed="bulletins" title="이번 주 주보" href="/bulletins" /><FeedCard feed="notice" title="교회 소식" href="/notices" /><FeedCard feed="event" title="다가오는 일정" href="/events" /></div>;
+  return <div className={styles.updates}><FeedCard feed="bulletins" title="이번 주 주보" href="/bulletins" icon="document" /><FeedCard feed="notice" title="교회 소식" href="/notices" icon="megaphone" /><FeedCard feed="event" title="다가오는 일정" href="/events" icon="calendar" /></div>;
 }

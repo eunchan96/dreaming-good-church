@@ -37,7 +37,7 @@
 .eyebrow{font-size:11px;letter-spacing:.16em;font-weight:600;color:#80642f;margin:0 0 25px;display:flex;align-items:center;gap:12px}
 .eyebrow>span{width:7px;height:7px;border-radius:50%;background:#b38b2e}
 .hero h1{font-family:var(--font-display);font-size:clamp(42px,5.1vw,73px);font-weight:500;line-height:1.5;letter-spacing:-.075em;margin:0 0 25px}
-.hero h1 em,.welcomeSection h2 em{font-style:normal;color:#8b713f}
+.hero h1 em,.welcomeSection h2 em,.newsSection h2 em{font-style:normal;color:#8b713f}
 .heroDescription{color:#756a5d;font-size:15px;line-height:1.9}
 .heroLink{display:inline-flex;align-items:center;gap:50px;font-size:14px;margin-top:35px;padding-bottom:10px;border-bottom:1px solid #b4a68d}
 .heroLink>span{display:grid;place-items:center;width:43px;height:43px;border:1px solid #b3a58d;border-radius:50%;transition:background .2s,transform .2s}
@@ -55,7 +55,7 @@
 
 .homeSection{max-width:1240px;margin:auto;padding:110px 40px}
 .sectionHeading{display:flex;align-items:flex-end;justify-content:space-between;gap:35px;margin-bottom:45px}
-.sectionHeading h2,.welcomeSection h2{font-family:var(--font-display);font-size:clamp(32px,3.4vw,44px);font-weight:500;letter-spacing:-.07em;line-height:1.55;margin:0}
+.sectionHeading h2,.welcomeSection h2,.newsSection h2{font-family:var(--font-display);font-size:clamp(32px,3.4vw,44px);font-weight:500;letter-spacing:-.07em;line-height:1.55;margin:0}
 .sectionHeading h2>span{color:#8b7b68}
 .sectionHeading>p,.sectionHeading>div>p:not(.eyebrow){font-size:14px;color:var(--muted);line-height:1.9}
 .textLink{display:inline-flex;align-items:center;gap:30px;padding:10px 0;border-bottom:1px solid #c6bba8;font-size:13px;margin-top:15px}
@@ -77,6 +77,17 @@
 .welcomeSection{background:#eeeae0;padding:95px 40px}
 .welcomeInner{max-width:1160px;margin:auto;display:grid;grid-template-columns:1fr 1fr;gap:100px;align-items:center}
 .welcomeSection p:not(.eyebrow){font-size:14px;color:#6c604f;margin-top:22px}
+.newsSection{padding:95px 40px}
+.newsSection>div>div:first-child>p:not(.eyebrow){font-size:14px;color:var(--muted);margin-top:22px}
+.updates>section>:is(a,div){display:flex;align-items:center;gap:23px;border-bottom:1px solid #ddd5c8;padding:25px 0;transition:padding .2s}
+.updates>section:first-child>:is(a,div){border-top:1px solid #ddd5c8}
+.updates>section>a:hover{padding-left:8px}
+.updates svg:first-child{color:#977c4b;flex-shrink:0}
+.updates>section>a>svg:last-child{margin-left:auto;flex-shrink:0}
+.updates>section>:is(a,div)>div{min-width:0}
+.updates h3{font-weight:500;font-size:19px;margin:0}
+.updates p{font-size:12px;color:var(--muted);margin:3px 0 0;overflow-wrap:anywhere}
+.updates button{margin-left:auto;background:transparent;border:1px solid var(--line);padding:6px 16px;font-size:13px;white-space:nowrap}
 .welcomeLinks>a{display:flex;align-items:center;gap:23px;border-bottom:1px solid #cfc5b5;padding:25px 0;transition:padding .2s}
 .welcomeLinks>a:first-child{border-top:1px solid #cfc5b5}
 .welcomeLinks>a:hover{padding-left:8px}
@@ -84,27 +95,6 @@
 .welcomeLinks>a>svg:last-child{margin-left:auto}
 .welcomeLinks h3{font-weight:500;font-size:19px;margin:0}
 .welcomeLinks p{font-size:12px!important;margin:3px 0 0!important}
-.feeds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:35px 40px;align-items:stretch}
-.feed{border-top:1px solid #8d7c63;padding-top:24px;min-width:0;display:flex;flex-direction:column}
-.feedBody{flex:1;border-bottom:1px solid var(--line)}
-.feedHeading{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:20px;min-height:44px}
-.feedHeading h2{margin:0}
-.feedHeading h2{font-size:20px;font-weight:500}
-.feedHeading>a{min-height:44px;display:flex;align-items:center;gap:14px;font-size:12px;color:var(--muted)}
-.feed ul{list-style:none;padding:0;margin:0}
-.feed li{padding:0}
-.feed li+li{border-top:1px solid var(--line)}
-.feedItem{display:flex;align-items:center;gap:16px;min-height:44px;padding:16px 0;transition:padding .2s}
-.feedItem>div{min-width:0;flex:1}
-.feedItem strong{display:block;font-weight:500;font-size:16px;line-height:1.6;overflow-wrap:anywhere}
-.feedItem:hover{padding-left:8px}
-.feedItem strong{transition:color .2s}
-.feedItem:hover strong{color:#8b713f}
-.feedItem p{margin:4px 0 0}
-.feed li p,.feedBody>p{color:var(--muted);font-size:13px}
-.feedBody>p[role=status]{margin:0;padding:18px 0}
-.feedBody>button{background:transparent;border:1px solid var(--line);padding:6px 18px;font-size:13px}
-.introduction{white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .primary{display:inline-flex;align-items:center;justify-content:center;gap:35px;background:#493d2e;color:#fffaf0;min-height:50px;padding:11px 25px;font-size:13px}
 .primary:hover{background:#655033}
 
@@ -208,9 +198,8 @@ to{opacity:1}
 .heroLink{gap:25px;margin-top:20px}
 .heroFootnote{margin:0 30px}
 .homeSection{padding:75px 30px}
-.feeds{grid-template-columns:1fr 1fr}
 .welcomeInner{gap:50px}
-.welcomeSection{padding:70px 30px}
+.welcomeSection,.newsSection{padding:70px 30px}
 .timeGrid{grid-template-columns:1fr 1fr}
 .timeGrid>div:nth-child(2n){border-right:0}
 .timeGrid>div:nth-child(2n + 1){padding-left:0}
@@ -238,25 +227,24 @@ to{opacity:1}
 .heroFootnote>a>span{display:none}
 .homeSection{padding:60px 22px}
 .sectionHeading{align-items:flex-start;flex-direction:column;gap:18px;margin-bottom:28px}
-.sectionHeading h2,.welcomeSection h2{font-size:32px}
+.sectionHeading h2,.welcomeSection h2,.newsSection h2{font-size:32px}
 .sectionHeading .eyebrow{margin-bottom:15px}
 .sectionHeading>div>p:not(.eyebrow),.sectionHeading>p{font-size:12px}
 .textLink{font-size:12px;margin-top:8px}
-.videoCaption{padding:16px 0 6px;gap:15px;align-items:flex-start}
+.videoCaption{padding:14px 0 8px;gap:15px;align-items:flex-start}
+.videoCaption>a{min-height:0;padding:4px 0}
 .videoCaption h3{font-size:17px}
 .videoCaption>a{font-size:11px;gap:5px}
 .videoCaption p{font-size:10px}
-.welcomeSection{padding:55px 22px}
+.welcomeSection,.newsSection{padding:55px 22px}
 .welcomeInner{grid-template-columns:1fr;gap:30px}
-.welcomeSection p:not(.eyebrow){font-size:13px}
+.welcomeSection p:not(.eyebrow),.newsSection>div>div:first-child>p:not(.eyebrow){font-size:13px}
+.updates>section>:is(a,div){padding:20px 0;gap:18px}
+.updates h3{font-size:17px}
+.updates p{font-size:11px}
 .welcomeLinks>a{padding:20px 0;gap:18px}
 .welcomeLinks h3{font-size:17px}
 .welcomeLinks p{font-size:11px!important}
-.feeds{grid-template-columns:1fr;gap:20px}
-.feedHeading h2{font-size:19px}
-.feed{padding-top:18px}
-.feedItem strong{font-size:15px}
-.feedBody,.feed li+li{border:0}
 .topButton{right:16px;bottom:16px;width:48px;height:48px}
 .installArea{font-size:10px}
 .install button{font-size:12px}

@@ -11,6 +11,6 @@ export default function Home() {
     <HomeHeroReader/>
     <section id="home-worship" className={styles.homeSection} aria-labelledby="home-worship-title"><div className={styles.sectionHeading}><div><p className={styles.eyebrow}>01 / WORSHIP</p><h2 id="home-worship-title">말씀으로 여는<br /><span>한 주의 시작.</span></h2></div><div><p>예배의 자리에 함께하지 못해도,<br />말씀의 은혜는 우리의 일상으로 이어집니다.</p><Link className={styles.textLink} href="/worship">예배 영상 더 보기<SiteIcon /></Link></div></div><WorshipVideo compact /></section>
     <HomeWelcome/>
-    <section className={styles.homeSection} aria-labelledby="home-news-title"><div className={styles.sectionHeading}><div><p className={styles.eyebrow}>03 / OUR COMMUNITY</p><h2 id="home-news-title">이번 주<br /><span>교회 소식.</span></h2></div><p>주보와 새로운 소식, 다가오는 일정을 만나보세요.</p></div><HomeUpdates /></section>
+    <section className={styles.newsSection} aria-labelledby="home-news-title"><div className={styles.welcomeInner}><div><p className={styles.eyebrow}>03 / OUR COMMUNITY</p><h2 id="home-news-title">이번 주<br /><em>교회 소식.</em></h2><p>주보와 새로운 소식, 다가오는 일정을 만나보세요.</p></div><HomeUpdates /></div></section>
   </main></PublicShell>;
 }
