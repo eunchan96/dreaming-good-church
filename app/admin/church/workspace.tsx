@@ -123,13 +123,13 @@ export default function ChurchWorkspace() {
   // 교회 소개 follows the public 교회 소개 menu: 인사말 · 오시는 길 · 예배시간 안내 · 온라인 헌금.
   const categories:{id:string;title:string;fields:string[];groups:SettingKey[]}[]=[
     {id:'greeting',title:'인사말',fields:['pastor_name','name','page_lead','greeting_title','introduction','greeting_closing'],groups:[]},
-    {id:'directions',title:'오시는 길',fields:['address','phone','directions','map_caption'],groups:['location']},
+    {id:'directions',title:'오시는 길',fields:['address','phone','directions'],groups:['location']},
     {id:'worship',title:'예배시간 안내',fields:['worship'],groups:['worship_times']},
     {id:'offering',title:'온라인 헌금',fields:['offering_title','offering_note'],groups:['offering_accounts']},
   ];
   const fieldLabel=(key:string)=>key==='introduction'?'인사말 글':key==='directions'?'찾아오는 길 설명':key==='worship'?'추가 안내':churchLabels[key];
   // Short notes under labels say where each piece of wording appears on the public site.
-  const fieldHints:Record<string,string>={pastor_name:'인사말 끝 서명과 하단 정보에 표시',name:'인사말 위 작은 글씨와 하단 정보에 표시',page_lead:'교회 소개 모든 화면의 제목 아래 문구',greeting_title:'줄바꿈 그대로 표시',worship:'예배시간 표 아래에 표시, 비우면 숨김',map_caption:'약도 아래 설명'};
+  const fieldHints:Record<string,string>={pastor_name:'인사말 끝 서명과 하단 정보에 표시',name:'인사말 위 작은 글씨와 하단 정보에 표시',page_lead:'교회 소개 모든 화면의 제목 아래 문구',greeting_title:'줄바꿈 그대로 표시',worship:'예배시간 표 아래에 표시, 비우면 숨김'};
   const fieldRows=(key:string)=>key==='introduction'?5:['directions','worship'].includes(key)?3:['greeting_title','greeting_closing','offering_title'].includes(key)?2:1;
   const groupDirty=(key:SettingKey)=>JSON.stringify(pages[key])!==JSON.stringify(savedPages[key]);
   const categoryDirty=(c:typeof categories[number])=>fields.some(f=>c.fields.includes(f.key)&&changed(f))||c.groups.some(groupDirty)||(c.id==='greeting'&&portraitDirty);
