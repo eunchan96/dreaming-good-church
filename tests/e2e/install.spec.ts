@@ -17,14 +17,15 @@ test("manifest and temporary icons supply valid install assets", async ({ reques
 
 test("installation guide handles browser prompt, dismissal and installed state", async ({ page }) => {
   await page.goto("/church");
-  await page.getByText("홈 화면에 추가 · 설치 안내", { exact: true }).click();
-  await expect(page.getByText(/Safari의 공유 메뉴/)).toBeVisible();
-  await expect(page.getByRole("button", { name: "좋은교회 앱 설치", exact: true })).toHaveCount(0);
-  await page.evaluate(() => {
-    const event = new Event("beforeinstallprompt", { cancelable: true });
-    Object.assign(event, { prompt: async () => {}, userChoice: Promise.resolve({ outcome: "dismissed" }) });
+  await expect.poll(() => page.evaluate(() => {
+    const event = new Event('beforeinstallprompt', { cancelable:true });
+    Object.assign(event, { prompt:async()=>{}, userChoice:Promise.resolve({outcome:'dismissed'}) });
     window.dispatchEvent(event);
-  });
+    return event.defaultPrevented;
+  })).toBe(true);
+  await page.locator('footer').getByRole('link',{name:'앱 추가',exact:true}).click();
+  await expect(page.getByText(/Safari의 공유 메뉴/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "좋은교회 앱 설치", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "좋은교회 앱 설치", exact: true }).click();
   await expect(page.getByText(/설치를 취소했습니다/)).toBeVisible();
   await expect(page.getByRole("button", { name: "좋은교회 앱 설치", exact: true })).toHaveCount(0);

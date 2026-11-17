@@ -1,43 +1,35 @@
 "use client";
 
+import RowEditor from "./row-editor";
+import {displayTitle,sectionFor,isPrayerGuide,offeringRows,offeringSummary} from '@/lib/bulletin-editor';
 import { offeringTotal, type BulletinItem, type BlockContent } from "@/lib/bulletins";
 import styles from "./workspace.module.css";
 import { BulletinImageView } from "@/app/bulletin-image";
 
-export function BlockFields({ item, onChange }: { item: BulletinItem; onChange: (content: BlockContent) => void }) {
+export function BlockFields({ item, onChange,previous,volunteerHints,onImported }: { onImported?:()=>void;previous?:BulletinItem;volunteerHints?:Record<string,string>;item: BulletinItem; onChange: (content: BlockContent,body?:string) => void }) {
   const content = item.content ?? {};
   if (item.kind === "image") return <div>{content.assetId ? <BulletinImageView key={content.assetId} id={content.assetId} alt={content.alt ?? ""} editor /> : null}<label>이미지 설명 (대체텍스트)<input required maxLength={500} value={content.alt ?? ""} onChange={e => onChange({ ...content, alt: e.target.value })} /></label></div>;
   if (item.kind === "sermon") return <div className={styles.actions}>
     <label>성경 구절<input maxLength={500} value={content.reference ?? ""} onChange={(e) => onChange({ ...content, reference: e.target.value })} /></label>
-    <label>설교자<input maxLength={500} value={content.preacher ?? ""} onChange={(e) => onChange({ ...content, preacher: e.target.value })} /></label>
+    {!/토라|토브/.test(item.title)?<label>설교자<input maxLength={500} value={content.preacher ?? ""} onChange={(e) => onChange({ ...content, preacher: e.target.value })} /></label>:null}
   </div>;
   if (item.kind !== "worship" && item.kind !== "offering") return null;
-  const rows = content.rows ?? [];
-  const labels = item.kind === "worship" ? ["예배 순서", "진행 내용", "담당자"] : ["헌금 구분", "금액"];
-  return <div>
-    {item.kind === "offering" ? <label>헌금 집계 월<input type="month" value={content.month ?? ""} onChange={(e) => onChange({ ...content, month: e.target.value })} /></label> : null}
-    {rows.map((row, index) => <div className={styles.actions} key={index}>
-      {labels.map((label, column) => <label key={label}>{label}<input aria-label={`${item.title} ${index + 1}행 ${label}`} maxLength={column === 1 && item.kind === "offering" ? 12 : 500} inputMode={column === 1 && item.kind === "offering" ? "numeric" : "text"} value={row[column] ?? ""} onChange={(event) => {
-        const value = event.target.value;
-        if (item.kind === "offering" && column === 1 && !/^\d{0,12}$/.test(value)) return;
-        onChange({ ...content, rows: rows.map((r, at) => at === index ? r.map((cell, col) => col === column ? value : cell) : r) });
-      }} /></label>)}
-      <button aria-label={`${item.title} ${index + 1}행 위로`} disabled={index === 0} onClick={() => { const next = [...rows]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; onChange({ ...content, rows: next }); }}>행 위로</button>
-      <button aria-label={`${item.title} ${index + 1}행 삭제`} onClick={() => onChange({ ...content, rows: rows.filter((_, at) => at !== index) })}>행 삭제</button>
-    </div>)}
-    <button disabled={rows.length >= 100} onClick={() => onChange({ ...content, rows: [...rows, labels.map(() => "")] })}>{item.title} 행 추가</button>
-    {item.kind === "offering" ? <p>합계: {offeringTotal(content).toLocaleString("ko-KR")}원</p> : null}
-  </div>;
+  return <RowEditor onImported={onImported} item={item} previous={previous} volunteerHints={volunteerHints} onChange={onChange}/>;
 }
 
-export function BlockPreview({ item, editor = false }: { item: Pick<BulletinItem, "title" | "body" | "kind" | "content">; editor?: boolean }) {
-  const content = item.content ?? {};
-  return <article className={styles.preview}><h3>{item.title}</h3>
+export function BlockPreview({ item, editor = false, compact=false, hideTitle=false }: { item: Pick<BulletinItem, "title" | "body" | "kind" | "content">; editor?: boolean;compact?:boolean;hideTitle?:boolean }) {
+  const content = item.kind==='offering'?offeringRows(item.content??{}):item.content??{};
+  const Heading=compact?"h4":"h3";
+  const prayerGuide=isPrayerGuide(item);
+  const serving=/섬기는 이들/.test(item.title)||item.title==="각종 예배 안내";
+  const headers=item.kind==="offering"?["구분","금액(원)"]:serving?(item.title==="각종 예배 안내"?["예배","시간"]:["역할","이름"]):/봉사위원/.test(item.title)?["봉사","이름","날짜"]:/기도\s*인도.*안내/.test(item.title)?["날짜","기도 인도","안내"]:["순서","내용","담당"];
+  return <article className={styles.preview}>{hideTitle||item.kind==="image"?null:<Heading style={{whiteSpace:"pre-line"}}>{displayTitle(item.title)}</Heading>}
     {item.kind === "image" && content.assetId ? <BulletinImageView key={content.assetId} id={content.assetId} alt={content.alt ?? ""} editor={editor} /> : null}
-    {item.kind === "sermon" ? <p>{content.reference} · {content.preacher}</p> : null}
-    {item.kind === "offering" ? <p>{content.month} 헌금 내역</p> : null}
-    {item.kind === "worship" || item.kind === "offering" ? <div style={{ overflowX: "auto" }}><table><thead><tr>{(item.kind === "worship" ? ["순서", "내용", "담당"] : ["구분", "금액(원)"]).map((label) => <th key={label} scope="col">{label}</th>)}</tr></thead><tbody>{content.rows?.map((row, i) => <tr key={i}>{row.map((cell, j) => <td key={j}>{item.kind === "offering" && j === 1 && cell ? Number(cell).toLocaleString("ko-KR") : cell}</td>)}</tr>)}</tbody></table></div> : null}
-    {item.kind === "offering" ? <p>합계: {offeringTotal(content).toLocaleString("ko-KR")}원</p> : null}
-    <p>{item.body}</p>
+    {item.kind === "sermon" ? <p>{[content.reference,content.preacher].filter(Boolean).join(" · ")}</p> : null}
+    {prayerGuide?<div style={{overflowX:"auto"}}><table aria-label="기도･안내"><tbody>{["날짜","기도","안내"].map((title,col)=><tr key={title}><th scope="row">{title}</th>{(content.rows??[]).map((row,i)=><td key={i}>{row[col]}</td>)}</tr>)}</tbody></table></div>:item.kind === "worship" || item.kind === "offering" ? <div style={{ overflowX: "auto" }}><table><thead><tr>{headers.map((label) => <th key={label} scope="col">{label}</th>)}</tr></thead><tbody>{content.rows?.map((row, i) => <tr key={i}>{content.fullRows?.includes(i)?<td colSpan={headers.length}>{row[0]}</td>:row.slice(0,headers.length).map((cell, j) => <td key={j}>{item.kind === "offering" && j === 1 && cell ? Number(cell).toLocaleString("ko-KR") : cell}</td>)}</tr>)}</tbody></table></div> : null}
+    {content.footer?<p>{content.footer}</p>:null}
+    {content.attribution?<p>{content.attribution}</p>:null}
+    {item.kind === "offering" ? <p>{offeringSummary(content,item.body)}: {offeringTotal(content).toLocaleString("ko-KR")}원</p> : null}
+    {item.kind!=="image"&&item.kind!=="offering"&&sectionFor(item)!=="표지"&&item.body?<p>{item.body}</p>:null}
   </article>;
 }

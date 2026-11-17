@@ -1,0 +1,53 @@
+.editor{width:100%;min-width:0}.row{position:relative;display:grid;grid-template-columns:28px 128px minmax(0,1fr);gap:10px;align-items:start;margin:16px 0 24px;padding-right:94px}.name{display:flex;gap:2px;align-items:center;min-height:44px;min-width:0;font-size:14px;color:#5d4930;flex-wrap:wrap}.content{min-width:0}.editor textarea{width:100%;min-height:44px;padding:9px 11px;margin:0;font-size:15px;line-height:1.65;background:#fbf9f3;border:1px solid #d7cebe;border-radius:4px;min-width:0}.editor .handle{font-size:24px;min-height:40px;padding:0;background:transparent;border:0;cursor:grab;touch-action:none;color:#8a7757}.tools{position:absolute;right:0;top:5px;display:flex;gap:2px;opacity:0}.row:hover .tools,.row:focus-within .tools{opacity:1}.editor .tools button{border:0;background:#f5f1e8;min-height:30px;min-width:28px;padding:2px;font-size:17px;color:#79684e}.row[data-over=true]{outline:2px solid #b39148;outline-offset:3px}.editor .add{border:1px solid #cab68d;border-radius:5px;background:#f3ead5;min-height:40px;padding:8px 16px;margin:4px 0 0 166px}.options:empty{display:none}.options label{display:flex!important;gap:8px;align-items:center;font-size:12px!important}.options button{font-size:12px!important}.textPart small{font-size:11px;color:#79684e}.textPart[data-disabled=true] textarea{opacity:.5}.textPart+.textPart{margin-top:8px}.tableWrap{min-width:0;width:100%;overflow:visible}.guide{width:100%;min-width:0;border-collapse:separate;border-spacing:4px;table-layout:fixed}.guide th{width:32px;font-size:12px;font-weight:500;text-align:left;color:#79684e}.guide td{min-width:0;vertical-align:top}.editor .guide textarea{padding:7px 3px;font-size:13px;line-height:1.5;text-align:center;overflow-wrap:anywhere;word-break:break-word}.srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}@media(max-width:700px){.row{grid-template-columns:24px minmax(0,1fr);gap:4px 8px;padding-right:0;padding-top:25px}.name{min-height:30px;font-size:14px}.content{grid-column:1/-1}.tools{top:0;opacity:1}.editor .add{margin-left:0}.editor textarea{font-size:14px}.guide{border-spacing:2px}.guide th{width:24px;font-size:11px}.editor .guide textarea{font-size:12px;padding:6px 2px;line-height:1.5}}
+
+.tools{width:94px;justify-content:flex-start}
+
+/* Tools as icons, centred add button, disabled state */
+.editor .handle{display:grid;place-items:center;color:#a8987d}
+.editor .tools button{display:grid;place-items:center;width:28px;height:28px;min-width:0;min-height:0;padding:0;border-radius:6px;background:transparent;color:#7a6c58}
+.editor .tools button:hover{background:#f5f0e5;color:#342b25}
+.tools{top:8px;justify-content:flex-end}
+.addRow{display:flex;justify-content:center;margin-top:8px}
+.editor .add{display:inline-flex;align-items:center;gap:6px;margin:0;min-height:36px;padding:6px 16px;border:1px dashed #c9b48a;border-radius:999px;background:transparent;color:#6f5420;font-size:13px;font-weight:600}
+.editor .add:hover{background:#f6eedb;border-style:solid}
+.row[data-disabled=true] .name{text-decoration:line-through;color:#9a8c76}
+.row[data-disabled=true] .content{opacity:.5}
+.editor textarea{background:#fff;border-radius:6px}
+@media(max-width:700px){.editor .add{margin:0}}
+
+/* Even rhythm with the other sections; tag column fits 〈기도･안내〉 */
+.row{margin:8px 0;grid-template-columns:24px 104px minmax(0,1fr);align-items:start}
+.name{white-space:nowrap}
+.name{min-height:40px;font-size:14px}
+.editor .guide textarea{min-height:0!important;height:auto;padding:6px 3px;line-height:1.45;display:block}
+.guide td{vertical-align:middle}
+.guide th{vertical-align:middle}
+@media(max-width:700px){.row{grid-template-columns:22px minmax(0,1fr);margin:6px 0}}
+
+@media(max-width:700px){
+ .row{padding-top:0!important;grid-template-columns:22px minmax(0,1fr)}
+ .tools{position:static!important;grid-column:1/-1;display:none;justify-content:flex-end;opacity:1;width:auto}
+ .row:focus-within .tools{display:flex}
+}
+
+/* Name column sized to the longest category so names never wrap */
+.row{grid-template-columns:24px var(--name-w,104px) minmax(0,1fr)}
+.name{font-size:14px}
+@media(max-width:700px){.row{grid-template-columns:22px minmax(0,1fr)}}
+
+/* Phones: no drag handle (same as 예배 순서); ↑↓ buttons in the tools instead. */
+.editor .tools .mobileMove { display: none; }
+@media (max-width: 700px) {
+  .editor .handle { display: none; }
+  .row { grid-template-columns: minmax(0, 1fr); }
+  .editor .tools .mobileMove { display: grid; place-items: center; }
+}
+@media (max-width: 700px) {
+  .tools { position: static; grid-column: 1 / -1; display: none; justify-content: flex-end; gap: 4px; opacity: 1; }
+  .row[data-active] { background: #fbf6ea; border-radius: 8px; padding: 6px; }
+  .row[data-active] .tools { display: flex; }
+  .editor .tools button { width: 34px; height: 34px; border: 1px solid #e6dccb; background: #fffdf8; }
+}
+
+/* 비활성화한 소식 이름: 줄 긋기는 유지하고 글자 대비는 기준(4.5:1) 이상 */
+.row[data-disabled=true] .name { color: #6b5d48; }

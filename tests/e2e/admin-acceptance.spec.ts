@@ -1,3 +1,4 @@
+import {calendarControl,selectCalendar} from './calendar-helpers';
 import { test, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
@@ -24,7 +25,7 @@ test("unregistered account is denied; editor sees duplicate date and can cancel 
     if (inserted.error) throw inserted.error;
     await login();
     await page.getByRole("button", { name: "+ 새 주보 작성", exact: true }).click();
-    await page.getByLabel("예배 날짜", { exact: true }).fill("2090-05-07");
+    await selectCalendar(page,calendarControl(page,"예배 날짜"),"2090-05-07");
     await page.getByLabel("내용", { exact: true }).first().fill("이탈 취소 후 유지할 입력");
     page.once("dialog", dialog => dialog.dismiss());
     await page.getByRole("link", { name: "공지·일정 관리", exact: true }).click();
