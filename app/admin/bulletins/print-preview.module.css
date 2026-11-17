@@ -165,8 +165,8 @@
 .formatBar .selection[data-empty] { background: transparent; color: #8a7a62; font-weight: 400; padding-left: 0; }
 .formatBar .tools { display: flex; align-items: center; gap: 6px; margin-left: auto; }
 .formatBar .selectWrap { position: relative; display: inline-flex; align-items: center; }
-.formatBar .selectWrap > svg { position: absolute; right: 9px; pointer-events: none; color: #8a7a62; }
-.formatBar .selectWrap select { appearance: none; -webkit-appearance: none; height: 32px; min-height: 0; padding: 0 28px 0 11px; border: 1px solid #e3d9c7; border-radius: 8px; background: #fff; color: #342b25; font: inherit; font-size: 12.5px; cursor: pointer; }
+.formatBar .selectWrap > svg { position: absolute; right: 11px; pointer-events: none; color: #8a7a62; }
+.formatBar .selectWrap select { appearance: none; -webkit-appearance: none; height: 32px; min-height: 0; padding: 0 32px 0 12px; border: 1px solid #e3d9c7; border-radius: 8px; background: #fff; color: #342b25; font: inherit; font-size: 12.5px; cursor: pointer; }
 .formatBar .iconTool, .formatBar .colorButton, .formatBar .resetTool { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; min-height: 0; padding: 0 9px; border: 1px solid #e3d9c7; border-radius: 8px; background: #fff; color: #4a3f33; font: inherit; font-size: 12.5px; cursor: pointer; }
 .formatBar .iconTool { width: 32px; padding: 0; }
 .formatBar .iconTool:hover:not(:disabled), .formatBar .colorButton:hover:not(:disabled), .formatBar .resetTool:hover:not(:disabled), .formatBar .selectWrap select:hover:not(:disabled) { border-color: #c8b48c; }
