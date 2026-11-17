@@ -11,15 +11,17 @@ test("public information pages recover from failure and fit desktop and mobile",
   await page.getByRole("button", { name: "다시 불러오기" }).click();
   await expect(page.getByText("함께 예배하는 공동체", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "연락처", exact: true })).toHaveCount(0);
-  await page.getByRole("navigation", { name: "교회 안내 바로가기" }).getByRole("link", { name: "예배 시간" }).click();
-  await expect(page.locator("#church-worship")).toBeFocused();
+  await page.getByRole("navigation", { name: "교회 소개 메뉴" }).getByRole("link", { name: "예배시간 안내" }).click();
+  // 추가 안내 글은 관리자에서 없앴으므로 공개 예배시간 안내에는 표만 나온다.
+  await expect(page.getByText("주일 예배 오전 10:45", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "주일예배", exact: true })).toBeVisible();
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
   await page.route("**/api/community?kind=event", route => route.fulfill({ json: { entries: [{ id: "event", title: "함께하는 예배", starts_at: "2026-11-15T04:40:00Z", ends_at: null, location: "", body: "긴 안내문\n" + "함께해요".repeat(100) }] } }));
   await page.goto("/events", { waitUntil: "domcontentloaded" });
-  await expect(page.getByText("2026-11-15 13:40 (한국 시간)")).toBeVisible();
+  await expect(page.getByText("11월 15일(일) 오후 1:40", { exact: true })).toBeVisible();
   await expect(page.getByText("장소 안내를 준비 중입니다.")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.route("**/api/community?kind=notice", route => route.fulfill({ json: { entries: [] } }));

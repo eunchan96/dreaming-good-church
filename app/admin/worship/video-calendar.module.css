@@ -1,0 +1,46 @@
+.calendar { padding: 4px 0 32px; }
+.head { display: flex; align-items: center; justify-content: space-between; gap: 12px 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.monthNav { display: flex; align-items: center; gap: 4px; }
+.monthNav h2 { min-width: 7em; margin: 0 4px !important; font-size: 20px; font-weight: 700; letter-spacing: -.02em; text-align: center; }
+.monthNav > button:last-child { margin-left: 8px; }
+
+.grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.weekday { padding: 4px 0 6px; font-size: 12px; font-weight: 600; text-align: center; color: #6f604a; }
+.weekday[data-sunday=true], .cell[data-sunday] .day { color: #b33a2c; }
+.cell { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; min-height: 92px; padding: 8px !important; border: 1px solid #ece5d8 !important; border-radius: 10px !important; background: #fffdf8 !important; color: #342b25; font: inherit; text-align: left; cursor: pointer; }
+.cell:hover { border-color: #cbbfa9 !important; }
+.cell[data-empty] { border-color: transparent !important; background: transparent !important; cursor: default; }
+.cell[aria-selected=true] { border-color: #2f2720 !important; box-shadow: 0 0 0 1px #2f2720; }
+.day { display: grid; place-items: center; min-width: 24px; height: 24px; font-size: 13px; font-weight: 600; color: #4a3f33; }
+.cell[data-today] .day { border-radius: 999px; background: #2f2720; color: #fff !important; }
+.tags { display: flex; flex-wrap: wrap; gap: 3px; }
+.tag { display: inline-grid; place-items: center; min-width: 30px; padding: 1px 7px; border-radius: 999px; background: #f1e3bf; color: #6f5420; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+.tag[data-type=afternoon] { background: #e7ecf3; color: #3d5470; }
+.tag[data-type=friday] { background: #efe4ef; color: #6a3f68; }
+.tag[data-type=dawn] { background: #e4eedc; color: #3f6b2a; }
+.tag[data-status=draft], .tag[data-status=archived] { opacity: .55; }
+.more { font-size: 11px; color: #6f604a; }
+
+.dayList { margin-top: 22px; }
+.dayHead { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.dayHead h3 { margin: 0 !important; font-size: 16px !important; font-weight: 700 !important; }
+.dayHead > span { font-size: 13px; color: #6f604a; }
+.dayHead > button { margin-left: auto; }
+.dayList ul { margin: 0; padding: 0; list-style: none; border-top: 1px solid #ece5d8; }
+.dayList li { border-bottom: 1px solid #ece5d8; }
+.dayList li > button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 0 !important; padding: 12px 6px !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; color: #342b25; font: inherit; text-align: left; cursor: pointer; }
+.dayList li > button:hover { background: #f6f1e7 !important; }
+.dayList li > button > svg { flex: none; color: #8d6d2f; }
+.rowTitle { display: grid; flex: 1; min-width: 0; }
+.rowTitle strong { overflow: hidden; font-size: 14.5px; font-weight: 500; white-space: nowrap; text-overflow: ellipsis; }
+.rowTitle small { font-size: 12px; color: #6f604a; }
+.empty { margin: 0; padding: 22px 0; font-size: 14px; color: #6f604a; text-align: center; border-top: 1px solid #ece5d8; }
+
+@media (max-width: 700px) {
+  .grid { gap: 3px; }
+  .cell { min-height: 58px; padding: 5px !important; gap: 3px; border-radius: 8px !important; }
+  .day { min-width: 22px; height: 22px; font-size: 12px; }
+  .tag { min-width: 0; width: 7px; height: 7px; padding: 0; font-size: 0; }
+  .more { display: none; }
+  .monthNav h2 { min-width: 6em; font-size: 17px; }
+}

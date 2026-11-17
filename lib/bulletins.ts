@@ -12,7 +12,7 @@ export type BulletinItem = {
 };
 
 export type BlockKind = "text" | "sermon" | "worship" | "offering" | "image";
-export type BlockContent = { reference?: string; preacher?: string; month?: string; rows?: string[][]; assetId?: string; alt?: string };
+export type BlockContent = { disabled?:boolean; disabledRows?:number[]; fullRows?:number[]; footer?:string; attribution?:string; reference?: string; preacher?: string; month?: string; rows?: string[][]; assetId?: string; alt?: string };
 export const blockNames: Record<Exclude<BlockKind, "image">, string> = { text: "일반 글·공지·묵상", sermon: "설교", worship: "예배 순서", offering: "헌금 내역" };
 export function blockContent(kind: BlockKind): BlockContent {
   if (kind === "sermon") return { reference: "", preacher: "" };
@@ -21,16 +21,16 @@ export function blockContent(kind: BlockKind): BlockContent {
   return {};
 }
 export function offeringTotal(content: BlockContent) {
-  return (content.rows ?? []).reduce((sum, row) => sum + Number(row[1] || 0), 0);
+  return (content.rows ?? []).reduce((sum, row,index) => sum + (content.disabledRows?.includes(index)?0:Number(row[1] || 0)), 0);
 }
 
 export function publicationIssues(bulletin: Bulletin): string[] {
   const issues: string[] = [];
   if (bulletin.items.some((item) => item.needsReview)) issues.push("이번 주 확인이 필요한 항목을 모두 확인해 주세요.");
-  const meaningful = bulletin.items.some((item) => item.webVisible && (item.body.trim() ||
+  const meaningful = bulletin.items.some((item) => item.webVisible && !item.content?.disabled && (item.body.trim() ||
     (item.kind === "image" && item.content?.assetId && item.content?.alt?.trim()) ||
     (item.kind === "sermon" && item.content?.reference?.trim()) ||
-    ((item.kind === "worship" || item.kind === "offering") && item.content?.rows?.some((row) => row.some((cell) => cell.trim())))));
+    ((item.kind === "worship" || item.kind === "offering") && item.content?.rows?.some((row,index) => !item.content?.disabledRows?.includes(index)&&row.some((cell) => cell.trim())))));
   if (!meaningful) issues.push("내용이 있는 공개 항목을 하나 이상 작성해 주세요.");
   return issues;
 }
@@ -145,6 +145,9 @@ export function copyBulletin(
   return copy;
 }
 
+function activeContent(content:BlockContent|undefined){
+ const copy=structuredClone(content??{});if(copy.rows){const enabled=copy.rows.map((_,i)=>i).filter(i=>!copy.disabledRows?.includes(i));copy.rows=enabled.map(i=>copy.rows![i]);if(copy.fullRows)copy.fullRows=enabled.flatMap((old,i)=>copy.fullRows!.includes(old)?[i]:[]);delete copy.disabledRows;}return copy;
+}
 /** Build a public response on the server; do not send the unfiltered source to a client. */
 export function publicBulletin(bulletin: Bulletin) {
   if (bulletin.status !== "published") return null;
@@ -153,20 +156,20 @@ export function publicBulletin(bulletin: Bulletin) {
     serviceDate: bulletin.serviceDate,
     issueNumber: bulletin.issueNumber,
     items: bulletin.items
-      .filter((item) => item.webVisible)
+      .filter((item) => item.webVisible&&!item.content?.disabled)
       .map((item) => ({ id: item.id, title: item.title, body: item.body,
-        ...(item.kind && item.kind !== "text" ? { kind: item.kind, content: structuredClone(item.content) } : {}) })),
+        ...(item.kind&&item.kind!=="text"||item.content?{kind:item.kind??"text",content:activeContent(item.content)}:{}) })),
   };
 }
 
-/** All items remain in print output. Only authorized server routes may call this. */
+/** Enabled content is printed; raw disabled values remain available in the draft. */
 export function printBulletin(bulletin: Bulletin): Bulletin {
   return {
     id: bulletin.id,
     serviceDate: bulletin.serviceDate,
     issueNumber: bulletin.issueNumber,
     status: bulletin.status,
-    items: structuredClone(bulletin.items),
+    items: bulletin.items.filter(item=>!item.content?.disabled).map(item=>({...structuredClone(item),...(item.content?{content:activeContent(item.content)}:{})})),
   };
 }
 
