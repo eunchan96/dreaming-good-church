@@ -1,0 +1,227 @@
+/* Row editor (예배 순서 · 봉사위원 · 섬기는 이들 · 헌금 내역).
+   All cells share one height (--cell) so text, inputs and editable labels line up. */
+.editor { --cell: 34px; --line: #d9cfbd; --ink: #342b25; --muted: #7a6c58; --soft: #f5f0e5; width: 100%; min-width: 0; margin: 8px 0; }
+
+.row { position: relative; display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 8px; align-items: center; min-height: var(--cell); margin: 6px 0; padding-right: 96px; }
+.row[data-order=true] { grid-template-columns: 24px 30px minmax(0, 1fr); }
+
+.editor .handle { display: grid; place-items: center; width: 24px; height: var(--cell); min-height: 0; padding: 0; border: 0; background: transparent; color: #a8987d; cursor: grab; touch-action: none; }
+.editor .handle:hover { color: var(--ink); }
+.editor .standing { display: grid; place-items: center; width: 30px; height: 30px; min-width: 0; min-height: 0; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: #b4a585; font-size: 16px; line-height: 1; }
+.editor .standing[aria-pressed=true] { background: #efe2bf; border-color: #c4a35c; color: #5e4518; }
+
+/* Generic cells (봉사위원 · 섬기는 이들 · 헌금) */
+.cells { display: grid; grid-template-columns: 120px minmax(0, 1.8fr) minmax(70px, 1fr); gap: 10px; align-items: center; min-width: 0; }
+.cells[data-columns="2"] { grid-template-columns: 140px minmax(0, 1fr); }
+.name, .cell, .person { min-width: 0; }
+.editor.editor.editor textarea { display: block; width: 100%; min-width: 0; min-height: var(--cell); height: var(--cell); margin: 0; padding: 5px 10px; font: inherit; font-size: 15px; line-height: 1.5; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+.editor.editor.editor.editor .underlined { border: 0; border-bottom: 1px solid #c8b58f; border-radius: 0; background: transparent; padding-inline: 4px; }
+
+/* Liturgy row: name ……… content ……… person (like the Word bulletin) */
+.liturgy { display: grid; grid-template-columns: 110px minmax(0, 1fr) 132px; align-items: center; gap: 0; min-width: 0; }
+.liturgy .name { padding-right: 6px; }
+.liturgy .person { padding-left: 16px; }
+.leader { position: relative; display: flex; align-items: center; min-width: 0; height: var(--cell); }
+.dots { flex: 1 1 0; min-width: 12px; height: 0; border-top: 2px dotted #bfae8c; }
+.slot { flex: 0 1 auto; min-width: 0; max-width: calc(100% - 40px); display: flex; justify-content: center; padding: 0 6px; }
+.leader[data-empty=true] .slot { position: absolute; inset: 0; max-width: none; padding: 0; }
+.leader[data-empty=true]:focus-within .slot { position: static; flex: 0 1 auto; padding: 0 6px; }
+.leader[data-empty=true][data-fixed=true] .slot { width: 0; overflow: hidden; }
+.leader[data-empty=true] .dots + .slot + .dots { margin-left: -1px; }
+.addHint { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 1px 10px; border-radius: 999px; background: #fffaf0; border: 1px solid #d8c59a; color: #7a5c26; font-size: 12px; font-weight: 600; pointer-events: none; opacity: 0; transition: opacity .15s; white-space: nowrap; }
+.leader:hover .addHint { opacity: 1; }
+/* 매주 꼭 채우는 칸: + 추가가 항상 보이고 조금 더 진하게 */
+.leader[data-required] .addHint { opacity: 1; background: #fbefd2; border-color: #c9a24a; color: #6a4a12; }
+.leader[data-required] .dots { border-top-color: #cfae68; }
+.leader:focus-within .addHint { display: none; }
+.editor .addCover { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.editor .addCover:focus-visible + * , .leader:has(.addCover:focus-visible) .addHint { opacity: 1; }
+
+/* Fit-to-content input (CSS grid mirror) */
+.fit { display: inline-grid; max-width: 100%; min-width: 0; vertical-align: middle; }
+.fit::after { content: attr(data-value) ' '; grid-area: 1 / 1; visibility: hidden; white-space: pre; overflow: hidden; height: 0; padding: 0 11px; font-size: 15px; }
+.editor .fit > input.fitInput { grid-area: 1 / 1; display: block; width: 100%; min-width: 3em; height: var(--cell); min-height: 0; margin: 0; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; font: inherit; font-size: 15px; color: var(--ink); text-align: center; }
+.editor .fit > input.fitInput:focus { border-color: #b39148; outline: none; box-shadow: 0 0 0 3px #e9dcbc; }
+.leader[data-empty=true]:not(:focus-within) .fit { width: 100%; height: 100%; }
+.leader[data-empty=true]:not(:focus-within) .fit > input.fitInput { border-color: transparent; background: transparent; cursor: pointer; color: transparent; }
+.leader[data-empty=true]:focus-within .fit > input.fitInput { min-width: 8em; }
+.person .fit > input.fitInput { text-align: left; }
+
+/* Fixed wording with a hover pencil — same height as inputs */
+.editable { display: inline-flex; align-items: center; gap: 2px; max-width: 100%; min-height: var(--cell); padding: 0 4px; border-radius: 6px; white-space: pre-wrap; vertical-align: middle; line-height: 1.4; }
+.editable > span { min-width: 0; overflow-wrap: anywhere; }
+.editable:hover, .editable:focus-within { background: var(--soft); }
+.editor .editLink, .editLink { display: inline-grid; place-items: center; width: 24px; height: 24px; min-width: 0; min-height: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 5px; background: transparent !important; color: #8d6d2f; opacity: 0; flex: none; }
+.editLink:hover { background: #ece2cd !important; }
+.editable:hover > .editLink, .editable:focus-within > .editLink { opacity: 1; }
+.leader .editable { justify-content: center; text-align: center; }
+
+.full { min-width: 0; text-align: center; }
+.full .editable { justify-content: center; font-size: 14px; color: #5d4930; }
+.footer { margin: 12px 0 4px; text-align: center; font-size: 12.5px; color: var(--muted); white-space: pre-wrap; }
+/* 예배 순서: 안내 문구와 행 추가는 가운데 점선 칸 기준으로 가운데 */
+.editor[data-order=true] > :is(.footer, .addRow) { padding-left: 180px; padding-right: 228px; }
+
+/* Row tools */
+.rowTools { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: flex; gap: 2px; width: 92px; justify-content: flex-end; opacity: 0; transition: opacity .15s; }
+.row:hover .rowTools, .row:focus-within .rowTools { opacity: 1; }
+.editor .rowTools button { display: grid; place-items: center; width: 28px; height: 28px; min-width: 0; min-height: 0; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--muted); }
+.editor .rowTools button:hover { background: var(--soft); color: var(--ink); }
+
+.row[data-disabled=true] .name { color: var(--muted); text-decoration: line-through; }
+.row[data-disabled=true] :is(.cells, .full, .liturgy) { color: #6d6152; }
+.row[data-disabled=true] :is(.dots) { border-top-color: #d6ccb9; }
+.row[data-over=true] { outline: 2px solid #b39148; outline-offset: 3px; border-radius: 6px; }
+
+.addRow { display: flex; justify-content: center; margin-top: 12px; }
+.editor .add { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 16px; border: 1px dashed #c9b48a; border-radius: 999px; background: transparent; color: #6f5420; font-size: 13px; font-weight: 600; }
+.editor .add:hover:not(:disabled) { background: #f6eedb; border-style: solid; }
+
+.month { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+.month > span { white-space: nowrap; }
+.editor .month > button { width: 200px; flex: none; }
+.month :global(dialog) button { min-width: 0; }
+.total { text-align: right; font-size: 16px; font-weight: 600; }
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+.dialog { margin: auto; width: min(420px, calc(100vw - 32px)); border: 1px solid #d9ceb9; border-radius: 12px; padding: 22px; background: #fbfaf7; color: var(--ink); box-shadow: 0 20px 80px #342b2530; white-space: normal; text-align: left; }
+.dialog::backdrop { background: #342b2550; backdrop-filter: blur(3px); }
+.dialog h3 { margin: 0 0 12px !important; font-size: 17px !important; }
+.dialog > div { display: flex; justify-content: flex-end; gap: 8px; }
+.dialog textarea { width: 100%; font-size: 15px !important; min-height: 90px !important; height: auto !important; }
+.dialog button { font-size: 13px !important; min-height: 38px !important; padding: 6px 14px !important; border-radius: 8px !important; }
+.dialog > div button:last-child { background: #342b25; color: #fff; border-color: #342b25; }
+.dialog .pickRows { display: grid; max-height: 50dvh; overflow: auto; margin-bottom: 14px; gap: 4px; }
+.dialog .pickRows button { text-align: left; white-space: normal; background: transparent; color: #5d4930; border: 1px solid #e0d6c4; }
+
+@media (max-width: 700px) {
+  .row { padding-right: 0; padding-top: 30px; grid-template-columns: 22px minmax(0, 1fr); gap: 6px; }
+  .row[data-order=true] { grid-template-columns: 22px 30px minmax(0, 1fr); }
+  .rowTools { top: 14px; opacity: 1; }
+  .cells { grid-template-columns: 90px minmax(0, 1fr); gap: 6px; }
+  .cells[data-columns="2"] { grid-template-columns: 100px minmax(0, 1fr); }
+  .cells:not([data-columns="2"]) > .cell:last-child { grid-column: 2; }
+  .liturgy { grid-template-columns: 76px minmax(0, 1fr); row-gap: 2px; }
+  .liturgy .person { grid-column: 2; text-align: right; }
+  .editLink { opacity: 1 !important; }
+  .addHint { opacity: 1; }
+  .editor textarea { font-size: 14px; }
+}
+
+/* Overrides for legacy `.page button:hover` and keep centred text truly centred. */
+.editor .leader button.addCover, .editor .leader button.addCover:hover:not(:disabled) { background: transparent; border: 0; }
+.addHint { z-index: 2; }
+.editable { position: relative; }
+:is(.liturgy, .full, .footer) .editLink { position: absolute; left: 100%; top: 50%; transform: translateY(-50%); margin-left: 2px; background: #fbfaf7 !important; }
+:is(.liturgy, .full, .footer) .editLink:hover { background: #ece2cd !important; }
+.liturgy .person .editLink { left: auto; right: 100%; margin: 0 2px 0 0; }
+@media (max-width: 700px) { :is(.liturgy, .full, .footer) .editLink { position: static; transform: none; margin: 0; } }
+
+/* Person column: box and fixed text share one left edge */
+.liturgy .person .editable { padding-left: 0; }
+.liturgy .person .editable:hover, .liturgy .person .editable:focus-within { background: transparent; }
+.liturgy .person .fit > input.fitInput { padding-left: 8px; }
+
+/* Mobile: one tidy line per row; tools appear under the row being edited */
+@media (max-width: 700px) {
+  .row, .row[data-order=true] { padding-top: 0; padding-right: 0; margin: 4px 0; }
+  .row[data-order=true] { grid-template-columns: 20px 28px minmax(0, 1fr); gap: 6px; }
+  .editor .standing { width: 28px; height: 28px; font-size: 14px; }
+  .rowTools { position: static; transform: none; grid-column: 1 / -1; width: auto; display: none; justify-content: flex-end; opacity: 1; margin-top: 2px; }
+  .row:focus-within .rowTools { display: flex; }
+  .liturgy { grid-template-columns: minmax(0, 1fr) max-content; grid-template-areas: 'name person' 'leader leader'; row-gap: 2px; }
+  .liturgy > .name { grid-area: name; }
+  .liturgy > .leader { grid-area: leader; }
+  .liturgy > .person { grid-area: person; }
+  .liturgy .name { font-size: 14px; white-space: nowrap; }
+  .liturgy .person { grid-column: auto; text-align: right; font-size: 14px; white-space: nowrap; }
+  .liturgy .name .editable, .liturgy .person .editable { white-space: nowrap; }
+  .leader { min-width: 48px; }
+  .slot { max-width: calc(100% - 16px); }
+  .editor .fit > input.fitInput { font-size: 14px; padding: 0 6px; }
+  .fit::after { padding: 0 7px; font-size: 14px; }
+  .full .editable { font-size: 13px; }
+  .editLink { width: 22px; height: 22px; }
+}
+
+@media (max-width: 700px) { .addHint { transition: none; color: #5f4718; } }
+
+@media (max-width: 700px) { .editor[data-order=true] > :is(.footer, .addRow) { padding-left: 0; padding-right: 0; } }
+
+/* 섬기는 이들·봉사위원·헌금 입력칸: 글자가 테두리에 붙지 않게 */
+.editor.editor.editor .cells textarea { padding: 6px 12px; }
+
+/* 섬기는 이들·봉사위원 입력칸: 글자가 테두리에 붙지 않게 (이전 4중 클래스 규칙보다 우선) */
+.editor.editor.editor.editor.editor .cells textarea { padding-left: 12px; padding-right: 12px; }
+/* 섬기는 이들 이름: 박스 없이 글자 + 연필 (교회 청소만 입력칸) */
+.staffName .editable { padding-left: 12px; min-height: var(--cell); }
+/* 긴 placeholder(지난주: …)가 줄바꿈되어 칸이 커지지 않게 */
+.editor.editor.editor.editor.editor textarea:placeholder-shown { height: var(--cell) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Desktop: placeholders stay hidden on the dotted (empty) cell; ↑↓ buttons are mobile-only. */
+.leader[data-empty=true]:not(:focus-within) .fit > input.fitInput::placeholder { color: transparent; }
+.editor .rowTools .mobileMove { display: none; }
+
+/* ── Mobile (≤700px): one clean line per row ───────────────────────────────
+   No drag handles or dotted leaders. Row = [↑] 이름 … 담당, then the content as a plain input.
+   Tap any label/text to edit it (the pencil covers the whole text), tap the row for its tools (↑ ↓ 지난주 · 비활성화 · 삭제). */
+@media (max-width: 700px) {
+  .editor .handle { display: none; }
+  .row, .row[data-order=true] { grid-template-columns: minmax(0, 1fr); gap: 4px 8px; margin: 0; padding: 10px 0; border-bottom: 1px solid #efe8da; }
+  .row[data-order=true] { grid-template-columns: 26px minmax(0, 1fr); align-items: start; }
+  .row[data-order=true] > .standing { margin-top: 2px; }
+  .editor .standing { width: 26px; height: 26px; font-size: 13px; }
+  .row[data-full=true] { border-bottom-color: transparent; }
+
+  .liturgy { grid-template-columns: minmax(0, 1fr) max-content; grid-template-areas: 'name person' 'leader leader'; row-gap: 6px; }
+  .liturgy .name, .liturgy .person { font-size: 14.5px; }
+  .liturgy .name { font-weight: 500; }
+  .liturgy .person { padding-left: 8px; color: #5d4930; }
+  .liturgy .person .fit > input.fitInput { height: 30px; font-size: 13.5px; min-width: 5em; }
+
+  .dots { display: none; }
+  .leader { height: auto; min-height: 0; }
+  .slot, .leader[data-empty=true] .slot, .leader[data-empty=true]:focus-within .slot { position: static; flex: 1 1 auto; max-width: 100%; width: 100%; padding: 0; justify-content: flex-start; }
+  .leader .fit, .leader[data-empty=true]:not(:focus-within) .fit { width: 100%; height: auto; }
+  .editor .leader .fit > input.fitInput, .leader[data-empty=true]:not(:focus-within) .fit > input.fitInput { width: 100%; min-width: 0; height: 38px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); text-align: left; cursor: text; }
+  .leader[data-empty=true]:not(:focus-within) .fit > input.fitInput::placeholder { color: #a8987d; }
+  .leader[data-required] .fit > input.fitInput { border-color: #d6b46a !important; background: #fffaf0 !important; }
+  .leader[data-required] .fit > input.fitInput::placeholder { color: #8d6d2f !important; }
+  .leader .addHint { display: none; }
+  /* Fixed wording (사도신경 …): plain text; empty optional fixed cells show a small "+ 내용". */
+  .leader .editable { justify-content: flex-start; text-align: left; padding: 0; color: #4a3f33; }
+  .leader[data-empty=true][data-fixed=true] { min-height: 22px; }
+  .leader[data-empty=true][data-fixed=true] .slot { position: absolute; width: 0; overflow: hidden; }
+  .leader[data-empty=true][data-fixed=true]::after { content: '+ 내용'; font-size: 12.5px; color: #a8987d; }
+  .editor .leader button.addCover { z-index: 1; }
+
+  /* Tap-to-edit: the pencil becomes an invisible cover over its text; text gets a soft underline as the cue. */
+  :is(.liturgy, .full, .footer, .cells, .staffName) .editLink, .editor .editLink { position: absolute !important; inset: 0; width: auto !important; height: auto !important; transform: none !important; margin: 0 !important; opacity: 0 !important; background: transparent !important; }
+  .editable { position: relative; padding: 0 2px; }
+  .editable > span { border-bottom: 1px dashed #d8c9a8; }
+  .editable:hover, .editable:focus-within { background: transparent; }
+  .full .editable { font-size: 13.5px; }
+
+  /* Row tools appear under the row being edited; ↑↓ replace dragging. */
+  .rowTools { position: static; transform: none; grid-column: 1 / -1; width: auto; display: none; justify-content: flex-end; gap: 4px; opacity: 1; margin-top: 4px; }
+  .row:focus-within .rowTools { display: flex; }
+  .editor .rowTools .mobileMove { display: grid; }
+  .editor .rowTools button { width: 34px; height: 34px; border: 1px solid #e6dccb; background: #fffdf8; }
+
+  /* 섬기는 이들 · 봉사위원 · 헌금: label never wraps mid-word */
+  .cells, .cells[data-columns="2"] { grid-template-columns: minmax(5.4em, max-content) minmax(0, 1fr); gap: 6px 12px; align-items: center; }
+  .cells > .name { white-space: nowrap; font-size: 14px; }
+  .cells[data-columns="3"] { grid-template-columns: minmax(0, 1fr) 76px; }
+  .cells[data-columns="3"] > .name { grid-column: 1 / -1; }
+  .cells:not([data-columns="2"]) > .cell:last-child { grid-column: auto; }
+  .staffName .editable { padding-left: 0; }
+  .editor.editor.editor.editor.editor .cells textarea { padding-left: 10px; padding-right: 10px; }
+  .footer, .editor[data-order=true] > .footer { margin-top: 14px; }
+}
+/* Mobile: tapping anywhere in a row (even a disabled one like 특송) selects it and shows its tools */
+@media (max-width: 700px) {
+  .row { cursor: pointer; }
+  .row[data-active] { background: #fbf6ea; border-radius: 8px; padding-left: 6px; padding-right: 6px; }
+  .row[data-active] .rowTools { display: flex; }
+  .row:not([data-active]):focus-within .rowTools { display: none; }
+}

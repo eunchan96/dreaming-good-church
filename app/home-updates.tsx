@@ -1,8 +1,10 @@
 "use client";
+import { longDate } from "@/lib/korean-date";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import styles from "./public-site.module.css";
+import SiteIcon from './site-icon';
 
 type Item = { id: string; title: string; body?: string; service_date?: string; starts_at?: string | null; ends_at?: string | null };
 type Feed = "bulletins" | "notice" | "event" | "church";
@@ -27,13 +29,13 @@ function FeedCard({ feed, title, href }: { feed: Feed; title: string; href: stri
         if (feed === "church") {
           next = data.fields.filter((field: { key: string; body: string }) => field.key === "introduction" && field.body.trim()).map((field: { key: string; body: string }) => ({ id: field.key, title: "우리 교회 이야기", body: field.body }));
         } else if (feed === "bulletins") {
-          next = data.bulletins.slice(0, 1).map((row: { id: string; service_date: string; issue_number: number }) => ({ ...row, title: `${row.service_date} · ${row.issue_number}호` }));
+          next = data.bulletins.slice(0, 1).map((row: { id: string; service_date: string; issue_number: number }) => ({ ...row, title: `${longDate(row.service_date)} · ${row.issue_number}호` }));
         } else {
           next = data.entries;
           if (feed === "event") next = next.filter(row => row.starts_at && Date.parse(row.ends_at ?? row.starts_at) >= Date.now());
         }
         setItems(next.slice(0, 3));
-        setStatus(next.length ? "" : feed === "church" ? "교회 소개를 준비하고 있습니다." : "현재 공개된 소식이 없습니다.");
+        setStatus(next.length ? "" : feed === "church" ? "교회 소개를 준비하고 있습니다." : feed === "event" ? "다가오는 일정이 없습니다." : feed === "bulletins" ? "게시된 주보가 없습니다." : "현재 공개된 소식이 없습니다.");
         setFailed(false);
       } catch {
         if (controller.signal.aborted || current !== sequence) return;
@@ -46,7 +48,7 @@ function FeedCard({ feed, title, href }: { feed: Feed; title: string; href: stri
     return () => { controller.abort(); window.clearInterval(timer); window.removeEventListener("focus", refresh); };
   }, [feed, retry]);
   return <section className={styles.feed} aria-label={title}>
-    <div className={styles.feedHeading}><h2>{title}</h2><Link href={href} aria-label={`${title} 전체 보기`}>전체 보기 →</Link></div>
+    <div className={styles.feedHeading}><h2>{title}</h2><Link href={href} aria-label={`${title} 전체 보기`}>전체 보기 <SiteIcon size={17} /></Link></div>
     {status ? <p role="status">{status}</p> : null}
     {failed ? <button onClick={() => setRetry(value => value + 1)}>다시 불러오기</button> : null}
     <ul>{items.map(item => <li key={item.id}><Link href={href}>{item.title}</Link>{item.starts_at ? <p>{new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(item.starts_at))}</p> : null}{item.body && feed === "church" ? <p className={styles.introduction}>{item.body}</p> : null}</li>)}</ul>

@@ -44,9 +44,11 @@ export function sqlBackupContents(bundle) {
     if(!Object.hasOwn(counts,name)) throw new Error(`Backup COPY section missing: ${name}.`);
   }
   const inventory=JSON.parse(files.get('inventory.json').toString());
+  const tableKeys={...KEYS,...(Object.hasOwn(counts,'public.worship_videos')?{worship_videos:'id'}:{}),...(Object.hasOwn(counts,'public.homepage_content')?{homepage_content:'id'}:{}),...(Object.hasOwn(counts,'public.church_page_settings')?{church_page_settings:'key'}:{})};
   if(sha256(files.get('inventory.json'))!==bundle.metadata.sourceInventorySha256) throw new Error('Backup inventory checksum mismatch.');
   if(!inventory.tables || !Array.isArray(inventory.objects) || inventory.bucket?.id!=='bulletin-images' || inventory.bucket.public!==false) throw new Error('Invalid private photo inventory.');
-  for(const name of Object.keys(KEYS)) {
+  if(Object.keys(inventory.tables).some(name=>!Object.hasOwn(tableKeys,name)))throw new Error('Unknown application inventory table.');
+  for(const name of Object.keys(tableKeys)) {
     if(!Array.isArray(inventory.tables[name]) || inventory.tables[name].length!==counts[`public.${name}`]) throw new Error(`Snapshot row count differs: ${name}.`);
   }
   const migrationNames=[...files.keys()].filter((name)=>/^migrations\/\d{14}_[a-z0-9_]+\.sql$/.test(name));
@@ -58,7 +60,7 @@ export function sqlBackupContents(bundle) {
   if(photos.length!==names.size || photos.length!==bundle.metadata.photoCount) throw new Error('Photo inventory count differs.');
   for(const name of photos) if(!names.has(name.slice(7))) throw new Error('Unexpected photo in backup.');
   for(const image of inventory.tables.bulletin_images) if(!files.has(`photos/${image.id}.webp`)) throw new Error('Image reference missing from backup.');
-  return {files,counts,inventory,migrationNames,photoPolicy:matches[0]};
+  return {files,counts,inventory,migrationNames,photoPolicy:matches[0],tableKeys};
 }
 
 async function docker(args,{input,signal,stage='Docker',limit=MAX_FILE_BYTES}={}) {
@@ -84,7 +86,7 @@ async function docker(args,{input,signal,stage='Docker',limit=MAX_FILE_BYTES}={}
 }
 
 export async function restoreSqlBackup(bundle) {
-  const {files,counts,inventory,migrationNames,photoPolicy}=sqlBackupContents(bundle);
+  const {files,counts,inventory,migrationNames,photoPolicy,tableKeys}=sqlBackupContents(bundle);
   const [context]=JSON.parse((await capture('docker',['context','inspect'])).toString());
   const localEndpoint=(value)=>typeof value==='string' && /^(npipe|unix):\/\//.test(value);
   if(!localEndpoint(context.Endpoints?.docker?.Host) || (process.env.DOCKER_HOST&&!localEndpoint(process.env.DOCKER_HOST))) throw new Error('SQL restore checks require a local Docker pipe/socket, not a remote Docker endpoint.');
@@ -152,7 +154,7 @@ export async function restoreSqlBackup(bundle) {
       const [schema,table]=name.split('.');return `select '${name}' as name,count(*) as total from "${schema}"."${table}"`;
     }).join(' union all ')}) rows;`,'Restored row counts')).toString());
     if(JSON.stringify(canonical(counts))!==JSON.stringify(canonical(actualCounts))) throw new Error('Restored COPY row counts differ.');
-    const actualTables=JSON.parse((await sql(`select jsonb_build_object(${Object.entries(KEYS).map(([table,key])=>
+    const actualTables=JSON.parse((await sql(`select jsonb_build_object(${Object.entries(tableKeys).map(([table,key])=>
       `'${table}',coalesce((select jsonb_agg(to_jsonb(t) order by "${key}") from public."${table}" t),'[]'::jsonb)`).join(',')});`,'Restored application values')).toString());
     if(JSON.stringify(canonical(actualTables))!==JSON.stringify(canonical(inventory.tables))) throw new Error('Restored application values differ from backup inventory.');
     const versions=JSON.parse((await sql('select jsonb_agg(version order by version) from supabase_migrations.schema_migrations;','Restored migration versions')).toString());
@@ -161,7 +163,7 @@ export async function restoreSqlBackup(bundle) {
     const acceptance=await readFile(new URL('../../tests/restore-acceptance.sql',import.meta.url));
     await sql(acceptance,'Restored anonymous/editor/publication acceptance');
     report={checkedAt:new Date().toISOString(),backupTarget:bundle.metadata.target,copiedTables:Object.keys(counts).length,
-      applicationTablesCompared:6,authUsers:counts['auth.users'],migrationCount:versions.length,photoFiles:inventory.objects.length,
+      applicationTablesCompared:Object.keys(tableKeys).length,authUsers:counts['auth.users'],migrationCount:versions.length,photoFiles:inventory.objects.length,
       rowCountsMatched:true,applicationValuesMatched:true,foreignKeysValidated:true,rlsAndPublicationPassed:true,photoPolicyFromBackup:true,
       networkDisabled:true,noHostPortsOrVolumes:true,plaintextWrittenToHost:false,remoteAccess:false,
       limitations:['Managed service schema and platform roles bootstrapped from local stack','Auth HTTP login, Storage HTTP restoration and hosted failover not tested']};

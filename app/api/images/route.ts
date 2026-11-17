@@ -19,8 +19,11 @@ export async function POST(request: Request) {
   try {
     if (!await requireEditor(request)) return reply("관리자 로그인이 필요합니다.", 401);
     const title = decodeURIComponent(request.headers.get("x-image-title") ?? "").trim();
-    const alt = decodeURIComponent(request.headers.get("x-image-alt") ?? "").trim();
-    if (!title || title.length > 200 || !alt || alt.length > 500) return reply("제목과 이미지 설명을 입력해 주세요.", 400);
+    // The description is optional at upload time; it falls back to the title and can be refined where the image is used.
+    const alt = decodeURIComponent(request.headers.get("x-image-alt") ?? "").trim() || title;
+    if (!title || title.length > 200 || alt.length > 500) return reply("이미지 제목을 확인해 주세요.", 400);
+    const folder = decodeURIComponent(request.headers.get("x-image-folder") ?? "").trim();
+    if (folder.length > 40) return reply("폴더 이름은 40자 이하로 입력해 주세요.", 400);
     if (Number(request.headers.get("content-length")) > MAX_IMAGE_BYTES) return reply("8MB 이하의 이미지를 선택해 주세요.", 413);
     const reader = request.body?.getReader();
     if (!reader) return reply("이미지를 선택해 주세요.", 400);
@@ -32,9 +35,10 @@ export async function POST(request: Request) {
     const uploaded = await client.storage.from("bulletin-images").upload(path, image.data, { contentType: "image/webp", upsert: false });
     if (uploaded.error) return reply("이미지를 저장하지 못했습니다. 다시 시도해 주세요.", 503);
     const record = { id, title, alt, width: image.width, height: image.height, bytes: image.data.length };
-    const saved = await client.from("bulletin_images").insert(record);
+    // folder is only sent when set, so uploads keep working before the folder column exists.
+    const saved = await client.from("bulletin_images").insert({ ...record, ...(folder ? { folder } : {}) });
     if (saved.error) { await client.storage.from("bulletin-images").remove([path]); return reply("이미지 정보를 저장하지 못했습니다.", 503); }
-    return Response.json(record, { status: 201, headers: noStore });
+    return Response.json({ ...record, folder }, { status: 201, headers: noStore });
   } catch { return reply("이미지 서비스를 이용할 수 없습니다.", 503); }
 }
 export async function DELETE(request: Request) {
@@ -45,10 +49,28 @@ export async function DELETE(request: Request) {
     const client = imageWriter();
     // FK locks serialize deletion against attaching images, including historical copies.
     const deleted = await client.from("bulletin_images").delete().eq("id", id);
-    if (deleted.error?.code === "23503") return reply("주보에서 사용 중인 이미지는 삭제할 수 없습니다. 과거 주보도 확인해 주세요.", 409);
+    if (deleted.error?.code === "23503") return reply("사용 중인 이미지는 삭제할 수 없습니다. 주보·과거 주보·홈페이지 연결을 먼저 확인해 주세요.", 409);
     if (deleted.error) return reply("이미지를 삭제하지 못했습니다.", 503);
     const removed = await client.storage.from("bulletin-images").remove([`${id}.webp`]);
     if (removed.error) return reply("파일 정리가 완료되지 않았습니다. 같은 이미지의 삭제를 다시 시도해 주세요.", 503);
     return Response.json({ deleted: true }, { headers: noStore });
+  } catch { return reply("이미지 서비스를 이용할 수 없습니다.", 503); }
+}
+
+/** Edit an image's folder, title or description: { id, folder?, title?, alt? } (an empty description falls back to the title). */
+export async function PATCH(request: Request) {
+  try {
+    if (!await requireEditor(request)) return reply("관리자 로그인이 필요합니다.", 401);
+    const body = await request.json().catch(() => null) as { id?: string; folder?: unknown; title?: unknown; alt?: unknown } | null;
+    if (!body || !validId(body.id ?? null)) return reply("이미지를 찾을 수 없습니다.", 404);
+    const changes: { folder?: string; title?: string; alt?: string } = {};
+    if (body.folder !== undefined) { if (typeof body.folder !== "string" || body.folder.trim().length > 40) return reply("폴더 이름은 40자 이하로 입력해 주세요.", 400); changes.folder = body.folder.trim(); }
+    if (body.title !== undefined) { if (typeof body.title !== "string" || !body.title.trim() || body.title.trim().length > 200) return reply("이미지 제목을 확인해 주세요.", 400); changes.title = body.title.trim(); }
+    if (body.alt !== undefined) { if (typeof body.alt !== "string" || body.alt.trim().length > 500) return reply("설명은 500자 이하로 입력해 주세요.", 400); const fallback = changes.title ?? (await imageWriter().from("bulletin_images").select("title").eq("id", body.id!).maybeSingle()).data?.title ?? ""; changes.alt = body.alt.trim() || fallback; }
+    if (!Object.keys(changes).length) return reply("바꿀 내용이 없습니다.", 400);
+    const { data, error } = await imageWriter().from("bulletin_images").update(changes).eq("id", body.id!).select("*").maybeSingle();
+    if (error) return reply(error.code === "42703" || error.code === "PGRST204" ? "폴더 기능은 DB 업데이트 후 사용할 수 있습니다." : "이미지 정보를 바꾸지 못했습니다.", 503);
+    if (!data) return reply("이미지를 찾을 수 없습니다.", 404);
+    return Response.json(data, { headers: noStore });
   } catch { return reply("이미지 서비스를 이용할 수 없습니다.", 503); }
 }
