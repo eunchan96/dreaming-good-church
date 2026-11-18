@@ -59,7 +59,7 @@
 .phone:hover { color: #8b713f; }
 .phone:hover svg { translate: 4px 0; }
 .visitInfo dl { display: grid; margin: 0; }
-.visitInfo dl + dl { margin-top: 28px; }
+.visitInfo dl + dl { margin-top: 34px; }
 .facts { grid-template-columns: max-content minmax(0, 1fr); column-gap: 18px; row-gap: 14px; }
 .facts > div { display: contents; }
 .facts dt { align-self: start; min-height: 25.5px; margin: 0; }
@@ -70,7 +70,7 @@
 .transitCards { display: grid; grid-template-columns: repeat(var(--cards), minmax(0, 1fr)); gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; }
 .transitCards[data-fit=true] { grid-template-columns: repeat(var(--cards), auto); }
 .transitCards[data-measure] { display: flex; width: max-content; }
-.transitCards li { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px; background: #f3efe6; font-size: 14px; line-height: 1.45; color: #342b25; }
+.transitCards li { display: flex; align-items: center; gap: 10px; min-height: 84px; padding: 16px 20px; border-radius: 12px; background: #f3efe6; font-size: 14px; line-height: 1.45; color: #342b25; }
 .transitCards[data-fit=true] li { justify-content: center; }
 .transitCards[data-measure] li { white-space: nowrap; }
 .transitCards svg { flex-shrink: 0; color: #b99132; }
@@ -101,5 +101,6 @@
 @media (max-width: 600px) {
   .transitCards, .transitCards[data-fit=true] { grid-template-columns: minmax(0, 1fr); }
   .transitCards[data-fit=true] li { justify-content: flex-start; }
+  .transitCards li { min-height: 56px; }
 }
 @media (prefers-reduced-motion: reduce) { .phone svg { transition: none; translate: none !important; } .mapActions a:hover, .mapActions button:hover { transform: none; } }
