@@ -124,11 +124,12 @@ export function Directions({ name, address, directions, transit, phone, mapSrc }
       </div>
       <div ref={info} className={css.visitInfo}>
         <h2>{name}</h2>
-        <dl>
+        {/* 주소·문의 share one label column; long values wrap inside the value column. */}
+        <dl className={css.facts}>
           <div><dt><SiteIcon name="pin" size={18} />주소</dt><dd><p>{address}</p>{directions ? <p className={css.muted}>{directions}</p> : null}</dd></div>
-          {stops.length ? <div><dt><SiteIcon name="arrow" size={18} />대중교통으로 오실 때</dt><dd><TransitCards stops={stops} /></dd></div> : null}
-          {phone ? <div><dt><SiteIcon name="phone" size={18} />방문 문의</dt><dd><a className={css.phone} href={`tel:${phone.replace(/[^+\d]/g, '')}`} aria-label={`전화 걸기 ${phone}`}>{phone}<SiteIcon size={15} /></a></dd></div> : null}
+          {phone ? <div><dt><SiteIcon name="phone" size={18} />문의</dt><dd><a className={css.phone} href={`tel:${phone.replace(/[^+\d]/g, '')}`} aria-label={`전화 걸기 ${phone}`}>{phone}<SiteIcon size={15} /></a></dd></div> : null}
         </dl>
+        {stops.length ? <dl><div><dt><SiteIcon name="arrow" size={18} />대중교통으로 오실 때</dt><dd><TransitCards stops={stops} /></dd></div></dl> : null}
       </div>
     </div>
     <iframe className={css.liveMap} title="꿈꾸는좋은교회 위치 지도" src={mapSrc} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />

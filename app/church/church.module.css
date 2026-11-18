@@ -58,7 +58,15 @@
 .phone svg { color: #b99132; transition: translate .2s; }
 .phone:hover { color: #8b713f; }
 .phone:hover svg { translate: 4px 0; }
-.visitInfo dl { display: grid; gap: 26px; margin: 0; }
+.visitInfo dl { display: grid; margin: 0; }
+.visitInfo dl + dl { margin-top: 28px; }
+.facts { grid-template-columns: max-content minmax(0, 1fr); column-gap: 18px; row-gap: 14px; }
+.facts > div { display: contents; }
+.facts dt { align-self: start; min-height: 25.5px; margin: 0; }
+.facts dd p { margin: 0; }
+.facts dd p + p { margin-top: 2px; }
+.facts .phone { display: inline; line-height: 1.7; }
+.facts .phone svg { display: inline-block; margin-left: 6px; vertical-align: -2px; }
 .transitCards { display: grid; grid-template-columns: repeat(var(--cards), minmax(0, 1fr)); gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; }
 .transitCards[data-fit=true] { grid-template-columns: repeat(var(--cards), auto); }
 .transitCards[data-measure] { display: flex; width: max-content; }
