@@ -47,7 +47,6 @@
 .sketch button:hover { border-color: #cdbf9f; box-shadow: 0 10px 24px rgba(80, 62, 30, .08); }
 .sketch img { display: block; width: 100%; height: auto; }
 .sketch button > span { position: absolute; right: 14px; bottom: 14px; display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: rgba(52, 43, 37, .8); color: #fff; font-size: 12px; }
-.sketchColumn { display: grid; gap: 14px; }
 .visitInfo h2 { margin: 0 0 18px; font-family: var(--font-display); font-size: 26px; font-weight: 500; letter-spacing: -.03em; }
 .visitInfo dt { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: #342b25; }
 .visitInfo dt svg { color: #b99132; }
@@ -65,21 +64,19 @@
 .facts dt { align-self: start; min-height: 25.5px; margin: 0; }
 .facts dd p { margin: 0; }
 .facts dd p + p { margin-top: 2px; }
+/* The site gives every button a 44px touch height; this one is a small inline chip. */
+.facts .copyAddress { display: inline-flex; align-items: center; gap: 4px; min-height: 0; margin-left: 8px; padding: 1px 9px; border: 1px solid #e3ded5; border-radius: 999px; background: #fff; color: #6f5622; font: inherit; font-size: 12px; line-height: 1.6; vertical-align: 1px; cursor: pointer; transition: background .2s, border-color .2s; }
+.copyAddress:hover { background: #f3efe6; border-color: #cdbf9f; }
+.copyAddress[data-copied=true] { background: #342b25; border-color: #342b25; color: #fff; }
 .facts .phone { display: inline; line-height: 1.7; }
 .facts .phone svg { display: inline-block; margin-left: 6px; vertical-align: -2px; }
 .transitCards { display: grid; grid-template-columns: repeat(var(--cards), minmax(0, 1fr)); gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; }
-.transitCards[data-fit=true] { grid-template-columns: repeat(var(--cards), auto); }
-.transitCards[data-measure] { display: flex; width: max-content; }
-.transitCards li { display: flex; align-items: center; gap: 10px; min-height: 84px; padding: 16px 20px; border-radius: 12px; background: #f3efe6; font-size: 14px; line-height: 1.45; color: #342b25; }
-.transitCards[data-fit=true] li { justify-content: center; }
-.transitCards[data-measure] li { white-space: nowrap; }
+.transitCards li { display: flex; justify-content: center; align-items: center; gap: 10px; text-align: center; min-height: 84px; padding: 16px 20px; border-radius: 12px; background: #f3efe6; font-size: 14px; line-height: 1.45; color: #342b25; }
 .transitCards svg { flex-shrink: 0; color: #b99132; }
-.mapActions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.mapActions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
 .mapActions a, .mapActions button { display: inline-flex; justify-content: center; align-items: center; gap: 7px; min-height: 46px; padding: 0 12px; border: 0; border-radius: 12px; background: #f3efe6; color: #342b25; font: inherit; font-size: 14px; font-weight: 500; white-space: nowrap; cursor: pointer; transition: background .2s, color .2s, transform .2s; }
 .mapActions svg { flex-shrink: 0; color: #a7822f; }
 .mapActions a:hover, .mapActions button:hover { background: #e9e1d1; color: #6f5622; transform: translateY(-2px); }
-.mapActions button[data-copied=true] { background: #342b25; color: #fff; }
-.mapActions button[data-copied=true] svg { color: #ebc547; }
 .liveMap { display: block; width: 100%; height: 280px; border: 0; border-radius: 14px; background: #eee9dc; }
 .sketchDialog { width: min(1100px, calc(100vw - 24px)); max-width: none; max-height: calc(100vh - 24px); margin: auto; padding: 20px; border: 0; border-radius: 14px; background: #fff; }
 .sketchDialog::backdrop { background: rgba(30, 24, 20, .7); }
@@ -99,8 +96,8 @@
   .sketchDialog img { width: 760px; max-width: none; }
 }
 @media (max-width: 600px) {
-  .transitCards, .transitCards[data-fit=true] { grid-template-columns: minmax(0, 1fr); }
-  .transitCards[data-fit=true] li { justify-content: flex-start; }
+  .transitCards { grid-template-columns: minmax(0, 1fr); }
+  .transitCards li { justify-content: flex-start; text-align: left; }
   .transitCards li { min-height: 56px; }
 }
 @media (prefers-reduced-motion: reduce) { .phone svg { transition: none; translate: none !important; } .mapActions a:hover, .mapActions button:hover { transform: none; } }
