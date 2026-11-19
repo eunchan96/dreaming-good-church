@@ -36,7 +36,7 @@
 }
 
 /* 예배시간 안내 아래 추가 안내: 표와 같은 왼쪽 정렬 */
-.worshipNote { margin: 40px 0 8px; padding: 22px 26px; border-radius: 12px; background: #f3eee4; }
+.worshipNote { margin: 12px 0 0; padding: 22px 26px; border: 1px solid #e3ded5; border-radius: 14px; background: #fff; }
 .worshipNote h2 { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: #8d6d2f; }
 .worshipNote p { margin: 0; font-size: 15px; line-height: 1.9; color: #4a3f33; white-space: pre-wrap; }
 
@@ -101,3 +101,11 @@
   .transitCards li { min-height: 56px; }
 }
 @media (prefers-reduced-motion: reduce) { .phone svg { transition: none; translate: none !important; } .mapActions a:hover, .mapActions button:hover { transform: none; } }
+
+/* 예배시간 안내: link to the online worship page, styled like the map buttons. */
+.onlineWorship { display: inline-flex; align-items: center; gap: 8px; min-height: 46px; margin-top: 28px; padding: 0 18px; border-radius: 12px; background: #f3efe6; color: #342b25; font-size: 14px; font-weight: 500; transition: background .2s, color .2s, transform .2s; }
+.onlineWorship svg { color: #a7822f; }
+.onlineWorship svg:last-child { margin-left: 4px; transition: translate .2s; }
+.onlineWorship:hover { background: #e9e1d1; color: #6f5622; transform: translateY(-2px); }
+.onlineWorship:hover svg:last-child { translate: 4px 0; }
+@media (prefers-reduced-motion: reduce) { .onlineWorship:hover { transform: none; } .onlineWorship svg:last-child { transition: none; translate: none !important; } }
