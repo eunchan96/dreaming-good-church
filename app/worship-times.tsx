@@ -4,12 +4,7 @@ import Link from 'next/link';
 import { worshipTypes, additionalWorshipTimes, type WorshipType } from '@/lib/site-content';
 import styles from './public-site.module.css';
 import {useChurchContent} from './church-content';
-import {formatWorshipTime,type WorshipTimeSetting} from '@/lib/church-page-settings';
-// Splits "첫째·셋째 주일 오후 1:00" into the day/cycle and the clock time so the time can be shown large.
-function whenParts(row: WorshipTimeSetting) {
-  const full = formatWorshipTime(row);
-  return full.startsWith(row.recurrence) ? { cycle: row.recurrence, time: full.slice(row.recurrence.length).trim() } : { cycle: '', time: full };
-}
+import {formatWorshipTime} from '@/lib/church-page-settings';
 export default function WorshipTimes({ weekly = false, additional = false }: { weekly?: boolean; additional?: boolean }) {
   const {settings,settingsStatus,retry:retrySettings}=useChurchContent();
   const [data, setData] = useState<{ serviceDate: string | null; readings: Partial<Record<WorshipType,string>> } | null>(null);
@@ -27,5 +22,5 @@ export default function WorshipTimes({ weekly = false, additional = false }: { w
   }, [weekly,retry]);
   const times = additional ? [...worshipTypes,...additionalWorshipTimes] : worshipTypes;
   if(settingsStatus!=='ready')return <section className={styles.worshipTimes} aria-labelledby="worship-times-title"><p className={styles.eyebrow}>GATHER IN WORSHIP</p><h2 id="worship-times-title">함께 예배하는 시간</h2><p role="status">{settingsStatus==='loading'?'예배시간을 불러오고 있습니다.':'예배시간을 불러오지 못했습니다.'}</p>{settingsStatus==='error'?<button onClick={retrySettings}>예배시간 다시 불러오기</button>:null}</section>;
-  return <section className={styles.worshipTimes} aria-labelledby="worship-times-title"><p className={styles.eyebrow}>GATHER IN WORSHIP</p><h2 id="worship-times-title">함께 예배하는 시간</h2><div className={styles.timeGrid}>{times.map(w => { const when = whenParts(settings.worship_times.find(row=>row.key===w.key)!); return <div key={w.key}><span>{w.english}</span><h3>{w.name}</h3><p className={styles.worshipWhen}><strong>{when.time}</strong>{when.cycle ? <small>{when.cycle}</small> : null}</p>{weekly && data?.readings[w.key as WorshipType] ? <p className={styles.weeklyReading}><b>이번 주 말씀</b>{data.readings[w.key as WorshipType]}</p> : null}</div>; })}</div>{weekly && failed ? <p role="status" className={styles.readingsNote}>이번 주 말씀을 불러오지 못했습니다. <button onClick={() => setRetry(x => x + 1)}>다시 불러오기</button></p> : weekly && data?.serviceDate && Object.keys(data.readings).length ? <p className={styles.readingsNote}>{data.serviceDate} 공개 주보 기준 · <Link href={`/bulletins/${data.serviceDate}`}>주보 보기</Link></p> : null}</section>;
+  return <section className={styles.worshipTimes} aria-labelledby="worship-times-title"><p className={styles.eyebrow}>GATHER IN WORSHIP</p><h2 id="worship-times-title">함께 예배하는 시간</h2><div className={styles.timeGrid}>{times.map(w => <div key={w.key}><span>{w.english}</span><h3>{w.name}</h3><p>{formatWorshipTime(settings.worship_times.find(row=>row.key===w.key)!)}</p>{weekly && data?.readings[w.key as WorshipType] ? <p className={styles.weeklyReading}><b>이번 주 말씀</b>{data.readings[w.key as WorshipType]}</p> : null}</div>)}</div>{weekly && failed ? <p role="status" className={styles.readingsNote}>이번 주 말씀을 불러오지 못했습니다. <button onClick={() => setRetry(x => x + 1)}>다시 불러오기</button></p> : weekly && data?.serviceDate && Object.keys(data.readings).length ? <p className={styles.readingsNote}>{data.serviceDate} 공개 주보 기준 · <Link href={`/bulletins/${data.serviceDate}`}>주보 보기</Link></p> : null}</section>;
 }

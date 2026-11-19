@@ -131,22 +131,19 @@
 .subnav a[aria-current=page]::after{content:'';height:2px;background:#9a7837;position:absolute;bottom:0;left:0;right:0}
 .worshipTimes{margin-top:65px}
 .worshipTimes h2{font-family:var(--font-display);font-size:30px;font-weight:500;letter-spacing:-.05em}
-/* Worship times as cards: Sunday first and wide on a dark card, the rest three to a row (two on phones); a short last row stretches. */
-.timeGrid{display:flex;flex-wrap:wrap;gap:12px;margin-top:25px}
-.timeGrid>div{flex:1 1 calc((100% - 24px) / 3);min-width:0;padding:24px 24px 22px;border-radius:14px;background:#f3efe6}
-.timeGrid>div:first-child{flex-basis:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:24px;padding:30px 34px;background:#342b25;color:#fbf7ef}
-.timeGrid span{display:block;font-size:10px;font-weight:600;letter-spacing:.14em;color:#75592a}
-.timeGrid h3{font-size:16px;font-weight:600;margin:8px 0 14px;letter-spacing:-.02em}
-.worshipWhen{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;margin:0}
-.worshipWhen strong{font-family:var(--font-display);font-size:26px;font-weight:500;letter-spacing:-.03em;color:#342b25}
-.worshipWhen small{font-size:13px;color:var(--muted)}
-.timeGrid>div:first-child span{color:#d9b65a}
-.timeGrid>div:first-child h3{font-size:20px;margin:8px 0 0}
-.timeGrid>div:first-child .worshipWhen{grid-column:2;grid-row:1 / span 2;flex-direction:column;align-items:flex-end;gap:2px}
-.timeGrid>div:first-child .worshipWhen strong{font-size:42px;color:#ebc547}
-.timeGrid>div:first-child .worshipWhen small{color:#d8cdbb;font-size:14px}
-.timeGrid>div:first-child .weeklyReading{grid-column:1 / -1;border-top-color:#5a4c40;color:#e8dfcf!important}
-.timeGrid>div:first-child .weeklyReading b{color:#d9b65a}
+/* Worship times: plain cells split by thin lines. Sunday spans the first row; the rest go three to a row (two on phones) and a short last row stretches. */
+.timeGrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border-top:1px solid #9f8d70;margin-top:25px}
+.timeGrid>div{grid-column:span 2;padding:27px 20px;border-bottom:1px solid var(--line);border-left:1px solid var(--line)}
+.timeGrid>div:first-child{grid-column:1 / -1;padding:30px 0}
+.timeGrid>div:nth-child(3n + 2){border-left:0;padding-left:0}
+.timeGrid>div:first-child,.timeGrid>div:nth-child(3n + 2){border-left:0}
+.timeGrid>div:nth-child(3n + 2):nth-last-child(2),.timeGrid>div:nth-child(3n):last-child{grid-column:span 3}
+.timeGrid>div:nth-child(3n + 2):last-child{grid-column:1 / -1}
+.timeGrid span{font-size:9px;letter-spacing:.1em;color:#806a42}
+.timeGrid h3{font-size:17px;font-weight:500;margin:12px 0 8px}
+.timeGrid p{font-size:13px;color:var(--muted)}
+.timeGrid>div:first-child h3{font-family:var(--font-display);font-size:24px;letter-spacing:-.04em}
+.timeGrid>div:first-child p{font-size:15px;color:var(--ink)}
 .prose{max-width:780px;margin:55px auto;line-height:2.1;font-size:16px}
 .prose h2{font-family:var(--font-display);font-size:32px;line-height:1.7;font-weight:500;letter-spacing:-.05em;margin-bottom:28px}
 .prose p{white-space:pre-wrap;color:#6e6254;margin:20px 0}
@@ -271,15 +268,17 @@ to{opacity:1}
 .subnav a{font-size:12px;min-height:53px}
 .worshipTimes{margin-top:45px}
 .worshipTimes h2{font-size:27px}
-.timeGrid{gap:8px}
-.timeGrid>div{flex-basis:calc((100% - 8px) / 2);padding:18px 16px}
-.timeGrid>div:first-child{padding:22px 20px}
-.timeGrid h3{font-size:15px;margin:6px 0 10px}
-.worshipWhen strong{font-size:21px}
-.worshipWhen small{font-size:12px}
-.timeGrid>div:first-child h3{font-size:17px}
-.timeGrid>div:first-child .worshipWhen strong{font-size:32px}
-.timeGrid>div:first-child .worshipWhen small{font-size:12px}
+.timeGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.timeGrid>div,.timeGrid>div:nth-child(3n + 2):nth-last-child(2),.timeGrid>div:nth-child(3n):last-child,.timeGrid>div:nth-child(3n + 2):last-child{grid-column:span 2;padding:20px 12px;border-left:1px solid var(--line)}
+.timeGrid>div:first-child{grid-column:1 / -1;padding:22px 0;border-left:0}
+.timeGrid>div:nth-child(3n + 2){border-left:1px solid var(--line);padding-left:12px}
+.timeGrid>div:nth-child(2n){border-left:0;padding-left:0}
+.timeGrid>div:nth-child(2n):last-child{grid-column:1 / -1;border-left:0;padding-left:0}
+.timeGrid h3{font-size:15px}
+.timeGrid p{font-size:12px}
+.timeGrid span{font-size:8px}
+.timeGrid>div:first-child h3{font-size:20px}
+.timeGrid>div:first-child p{font-size:14px}
 .prose{margin:35px 0;font-size:14px}
 .prose h2{font-size:27px}
 .contactRow{align-items:flex-start;flex-direction:column;padding:24px 0;gap:15px}
