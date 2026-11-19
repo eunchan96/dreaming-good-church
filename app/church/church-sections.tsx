@@ -36,8 +36,8 @@ export function Offering({ accounts }: { accounts: ChurchPageSettings['offering_
   return <div className={css.accounts}>{accounts.map(account => <article key={account.key} className={css.account} data-copied={copied === account.key}>
     <h3>{accountName(account.key)}</h3>
     <button type="button" onClick={() => void copy(account.key, account.number)} aria-label={`${accountName(account.key)} 계좌번호 복사`}><SiteIcon name="copy" size={15} />{copied === account.key ? '복사했어요' : '복사'}</button>
-    <p className={css.number}>{account.number}</p>
-    <p className={css.bank}>{account.bank} · 예금주 {account.holder}</p>
+    <p className={css.number}><span className={css.bankName}>{account.bank}</span><span>{account.number}</span></p>
+    <p className={css.bank}>예금주 {account.holder}</p>
     <span role="status" className={css.srOnly}>{copied === account.key ? '계좌번호를 복사했습니다.' : ''}</span>
   </article>)}</div>;
 }
