@@ -67,8 +67,10 @@
 .facts .phone { display: inline; line-height: 1.7; }
 .facts .phone svg { display: inline-block; margin-left: 6px; vertical-align: -2px; }
 /* 대중교통: plain cells split by thin lines, like the worship times. */
-.transitCards { display: grid; grid-template-columns: repeat(var(--cards), minmax(0, 1fr)); margin: 10px 0 0; padding: 0; list-style: none; border-top: 1px solid #9f8d70; }
-.transitCards li { display: flex; align-items: center; gap: 10px; padding: 18px 16px; border-bottom: 1px solid #e3ded5; border-left: 1px solid #e3ded5; font-size: 15px; line-height: 1.5; color: #342b25; }
+/* 대중교통: label and stops together in one line-style block (dark rule on top, light rule below). */
+.transitBlock { padding: 18px 0 4px; border-top: 1px solid #9f8d70; border-bottom: 1px solid #e3ded5; }
+.transitCards { display: grid; grid-template-columns: repeat(var(--cards), minmax(0, 1fr)); margin: 6px 0 0; padding: 0; list-style: none; }
+.transitCards li { display: flex; align-items: center; gap: 10px; padding: 12px 16px 14px; border-left: 1px solid #e3ded5; font-size: 15px; line-height: 1.5; color: #342b25; }
 .transitCards li:first-child { border-left: 0; padding-left: 0; }
 .transitCards svg { flex-shrink: 0; color: #b99132; }
 /* Links styled like the home page ones: text, arrow and a thin underline; gold on hover. */
@@ -77,8 +79,8 @@
 .textLink:hover { color: #8b713f; border-color: #8b713f; }
 .textLink:hover svg { translate: 5px 0; }
 .textLink[target=_blank]:hover svg { translate: 3px -3px; }
-.mapActions { display: flex; flex-wrap: wrap; gap: 10px 36px; margin-top: 14px; }
-.onlineWorship { margin-top: 28px; }
+.mapActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px 36px; margin-top: 14px; }
+.onlineWorship { display: flex; justify-content: flex-end; margin-top: 28px; }
 /* The site gives every button a 44px touch height; the copy action is a small inline text button. */
 .facts .copyAddress { display: inline-flex; align-items: center; gap: 4px; min-height: 0; margin-left: 10px; padding: 0 0 1px; border: 0; border-bottom: 1px solid #c6bba8; background: none; color: #6f5622; font: inherit; font-size: 12px; line-height: 1.5; vertical-align: 1px; cursor: pointer; transition: color .2s, border-color .2s; }
 .facts .copyAddress:hover { color: #8b713f; border-color: #8b713f; }
@@ -102,7 +104,8 @@
 }
 @media (max-width: 600px) {
   .transitCards { grid-template-columns: minmax(0, 1fr); }
-  .transitCards li { padding: 14px 0; border-left: 0; }
+  .transitCards li { padding: 10px 0; border-left: 0; }
+  .transitCards li + li { border-top: 1px solid #e3ded5; }
 }
 @media (prefers-reduced-motion: reduce) { .phone svg, .textLink svg { transition: none; translate: none !important; } }
 
