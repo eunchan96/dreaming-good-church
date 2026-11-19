@@ -14,17 +14,23 @@
 .greetingText .signature { margin: 30px 0 0; color: #6e6254; font-size: 15px; }
 .greetingText .signature strong { margin-left: 6px; font-family: var(--font-display); font-size: 21px; font-weight: 500; letter-spacing: -.03em; color: #2f2720; }
 
-/* 온라인 헌금 */
-.offering { max-width: 880px; margin: 8px auto 0; }
-.accounts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; }
-.account { display: grid; gap: 6px; line-height: 1.5; padding: 26px 28px 24px; border: 1px solid #e6dccb; border-radius: 14px; background: #fffdf8; }
-.account h3 { margin: 0 0 8px; font-size: 14px; font-weight: 600; letter-spacing: .02em; color: #8d6d2f; }
-.account .number { margin: 0 0 4px; font-size: clamp(22px, 2.6vw, 28px); font-weight: 600; letter-spacing: .02em; color: #2f2720; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.account .bank { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; color: #6e6254; }
-.account .bank span { padding: 2px 8px; border-radius: 999px; background: #eef3e4; color: #3f6b2a; font-size: 12px; font-weight: 600; }
-.account button { justify-self: start; margin-top: 14px; min-height: 38px; padding: 0 16px; border: 1px solid #342b25; border-radius: 8px; background: #342b25; color: #fff; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; }
-.account button:hover { background: #4a3e33; }
-.offering .note { margin: 20px 2px 0; line-height: 1.7; font-size: 13.5px; color: #6b5a42; }
+/* 온라인 헌금: heading on the left, note on the right, then two filled cards like the home news cards. */
+.offeringSection { margin: 50px 0 20px; }
+.offeringHead { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; margin-bottom: 36px; }
+.offeringHead h2 { margin: 0; white-space: pre-line; font-family: var(--font-display); font-size: clamp(28px, 3vw, 36px); font-weight: 500; line-height: 1.55; letter-spacing: -.06em; color: #2f2720; }
+.offeringHead > p { margin: 0 0 8px; max-width: 420px; font-size: 14px; line-height: 1.8; color: #6e6254; text-align: right; }
+.accounts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 20px; }
+.account { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-content: space-between; row-gap: 6px; min-height: 210px; padding: 30px 30px 28px; background: #f5f1ea; transition: background .25s, transform .25s, box-shadow .25s; }
+.account:hover, .account:focus-within { background: #ece6da; transform: scale(1.02); box-shadow: 0 10px 24px rgba(80, 62, 30, .08); }
+.account h3 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -.04em; color: #342b25; }
+.account button { position: static; display: inline-flex; align-items: center; gap: 6px; min-height: 0; padding: 0 0 2px; border: 0; border-bottom: 1px solid #c6bba8; background: none; color: #6f5622; font: inherit; font-size: 13px; cursor: pointer; align-self: center; }
+.account button::after { content: ''; position: absolute; inset: 0; }
+.account button:focus-visible { outline: none; }
+.account:has(button:focus-visible) { outline: 2px solid #8b713f; outline-offset: 3px; }
+.account[data-copied=true] button { color: #8b713f; border-color: transparent; }
+.account .number { grid-column: 1 / -1; align-self: end; margin: 48px 0 0; font-family: var(--font-display); font-size: clamp(26px, 2.8vw, 34px); font-weight: 500; letter-spacing: -.01em; color: #2f2720; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.account .bank { grid-column: 1 / -1; margin: 0; font-size: 14px; color: #6e6254; }
+@media (prefers-reduced-motion: reduce) { .account:hover, .account:focus-within { transform: none; } }
 .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 
 @media (max-width: 760px) {
@@ -32,7 +38,12 @@
   .greeting > .eyebrow { padding-top: 0; }
   .portrait { width: min(240px, 70%); margin: 0 auto 30px; }
   .greetingText { font-size: 15px; }
-  .account { padding: 22px 20px 20px; }
+  .offeringSection { margin: 30px 0 10px; }
+  .offeringHead { flex-direction: column; align-items: flex-start; gap: 14px; margin-bottom: 24px; }
+  .offeringHead > p { text-align: left; font-size: 13px; }
+  .accounts { gap: 10px; }
+  .account { min-height: 0; padding: 22px 20px 20px; }
+  .account .number { margin-top: 26px; font-size: 25px; }
 }
 
 /* 예배시간 안내 아래 추가 안내: 표와 같은 왼쪽 정렬 */
@@ -70,7 +81,7 @@
 /* 대중교통: label and stops together in one line-style block (dark rule on top, light rule below). */
 .transitBlock { padding: 18px 0 4px; border-top: 1px solid #9f8d70; border-bottom: 1px solid #e3ded5; }
 .transitCards { display: grid; grid-template-columns: repeat(var(--cards), minmax(0, 1fr)); margin: 6px 0 0; padding: 0; list-style: none; }
-.transitCards li { display: flex; align-items: center; gap: 10px; padding: 12px 16px 14px; border-left: 1px solid #e3ded5; font-size: 15px; line-height: 1.5; color: #342b25; }
+.transitCards li { display: flex; align-items: center; gap: 10px; padding: 12px 16px 14px; font-size: 15px; line-height: 1.5; color: #342b25; }
 .transitCards li:first-child { border-left: 0; padding-left: 0; }
 .transitCards svg { flex-shrink: 0; color: #b99132; }
 /* Links styled like the home page ones: text, arrow and a thin underline; gold on hover. */
@@ -105,7 +116,6 @@
 @media (max-width: 600px) {
   .transitCards { grid-template-columns: minmax(0, 1fr); }
   .transitCards li { padding: 10px 0; border-left: 0; }
-  .transitCards li + li { border-top: 1px solid #e3ded5; }
 }
 @media (prefers-reduced-motion: reduce) { .phone svg, .textLink svg { transition: none; translate: none !important; } }
 

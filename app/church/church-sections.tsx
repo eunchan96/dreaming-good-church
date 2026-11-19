@@ -26,23 +26,20 @@ export function Greeting({ name, pastor, title, introduction, closing, portrait 
 
 const accountName = (key: string) => key === 'general' ? '온라인 헌금' : key === 'building' ? '건축 헌금' : '헌금';
 
-/** 온라인 헌금: account cards with a copy button. */
-export function Offering({ accounts, note }: { accounts: ChurchPageSettings['offering_accounts']; note: string }) {
+/** 온라인 헌금: filled account cards (like the home news cards); the copy button stretches over the whole card. */
+export function Offering({ accounts }: { accounts: ChurchPageSettings['offering_accounts'] }) {
   const [copied, setCopied] = useState('');
   async function copy(key: string, number: string) {
     try { await navigator.clipboard.writeText(number); setCopied(key); window.setTimeout(() => setCopied(current => current === key ? '' : current), 2000); }
     catch { setCopied(''); }
   }
-  return <div className={css.offering}>
-    <div className={css.accounts}>{accounts.map(account => <article key={account.key} className={css.account}>
-      <h3>{accountName(account.key)}</h3>
-      <p className={css.number}>{account.number}</p>
-      <p className={css.bank}><span>{account.bank}</span>예금주 {account.holder}</p>
-      <button type="button" onClick={() => void copy(account.key, account.number)} aria-label={`${accountName(account.key)} 계좌번호 복사`}>{copied === account.key ? '복사했어요' : '계좌번호 복사'}</button>
-      <span role="status" className={css.srOnly}>{copied === account.key ? '계좌번호를 복사했습니다.' : ''}</span>
-    </article>)}</div>
-    <p className={css.note}>{note}</p>
-  </div>;
+  return <div className={css.accounts}>{accounts.map(account => <article key={account.key} className={css.account} data-copied={copied === account.key}>
+    <h3>{accountName(account.key)}</h3>
+    <button type="button" onClick={() => void copy(account.key, account.number)} aria-label={`${accountName(account.key)} 계좌번호 복사`}><SiteIcon name="copy" size={15} />{copied === account.key ? '복사했어요' : '복사'}</button>
+    <p className={css.number}>{account.number}</p>
+    <p className={css.bank}>{account.bank} · 예금주 {account.holder}</p>
+    <span role="status" className={css.srOnly}>{copied === account.key ? '계좌번호를 복사했습니다.' : ''}</span>
+  </article>)}</div>;
 }
 
 /** Transit cards: one equal-width card per line, side by side (stacked on phones). */
