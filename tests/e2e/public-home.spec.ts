@@ -7,7 +7,8 @@ test("public home adapts navigation without horizontal overflow", async ({ page 
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
-    await expect(page.getByText("2026년 11월 8일 주일 · 45호")).toBeVisible();
+    const bulletin = page.getByRole("region", { name: "이번 주 주보", exact: true });
+    await expect(bulletin.getByText("2026년 11월 8일 주일", { exact: true })).toBeVisible();
     if (width < 900) await page.getByRole('button', { name: '전체 메뉴 열기' }).click();
     await expect(page.getByRole("navigation", { name: width < 900 ? "모바일 주 메뉴" : "주 메뉴", exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -22,12 +23,11 @@ test("public home adapts navigation without horizontal overflow", async ({ page 
 test("a failed home feed can recover without blocking the other feeds", async ({ page }) => {
   let fail = true;
   await page.route("**/api/bulletins", route => route.fulfill(fail ? { status: 503, json: { error: "unavailable" } } : { json: { bulletins: [] } }));
-  await page.route("**/api/church", route => route.fulfill({ json: { fields: [{ key: "introduction", body: "공개된 교회 소개" }] } }));
-  await page.route("**/api/community?*", route => route.fulfill({ json: { entries: [] } }));
+  await page.route("**/api/community?*", route => route.fulfill({ json: { entries: [{ id: "n1", title: "공개된 교회 소식", body: "소식 내용" }] } }));
   await page.goto("/");
   const bulletin = page.getByRole("region", { name: "이번 주 주보", exact: true });
   await expect(bulletin.getByText("소식을 불러오지 못했습니다.")).toBeVisible();
-  await expect(page.getByText("공개된 교회 소개")).toBeVisible();
+  await expect(page.getByRole("region", { name: "교회 소식", exact: true }).getByText("공개된 교회 소식")).toBeVisible();
   fail = false;
   await bulletin.getByRole("button", { name: "다시 불러오기" }).click();
   await expect(bulletin.getByText("게시된 주보가 없습니다.")).toBeVisible();

@@ -332,7 +332,8 @@ small.churchLine { font-size: .88em; }
 /* Two-column 예배 안내 for narrow web columns (hidden otherwise) */
 .scheduleNarrow { display: none; }
 @container (max-width: 560px) {
-  .flow .schedule { display: none; }
+  /* !important: the print pass below forces .schedule to display:grid !important. */
+  .flow .schedule { display: none !important; }
   .flow .scheduleNarrow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: .5em .4em; background: #e4e8cf; }
   .flow .scheduleNarrow > div { display: grid; grid-template-columns: max-content max-content; justify-content: center; align-content: start; column-gap: .7em; row-gap: .3em; padding: .1em .4em; }
   .flow .scheduleNarrow > div + div { border-left: 1px solid #b9c08f; }

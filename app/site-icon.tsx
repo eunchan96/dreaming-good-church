@@ -7,10 +7,15 @@ const paths = {
   menu: <><path d="M4 7h16M4 12h16M4 17h16" /></>,
   close: <><path d="m6 6 12 12M6 18 18 6" /></>,
   play: <path d="m9 5 11 7-11 7Z" />,
+  document: <><path d="M7 3h7l5 5v13H7Z" /><path d="M14 3v5h5M10 13h6M10 17h5" /></>,
+  megaphone: <><path d="M4 10v4h4l7 5V5l-7 5Z" /><path d="M18.5 9a4 4 0 0 1 0 6" /></>,
+  calendar: <><rect x="4" y="5" width="16" height="16" rx="2" /><path d="M4 10h16M9 3v4M15 3v4" /></>,
   pin: <><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></>,
   clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
   book: <><path d="M12 6v15M3 4c4-1 6 0 9 2 3-2 5-3 9-2v15c-4-1-6 0-9 2-3-2-5-3-9-2Z" /></>,
   youtube: <><rect x="2" y="5" width="20" height="14" rx="4" /><path d="m10 9 5 3-5 3Z" /></>,
+  copy: <><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" /></>,
+  expand: <><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7" /></>,
   phone: <path d="m5 3 4 1 1 5-3 2c2 3 3 4 6 6l2-3 5 1 1 4c0 4-7 3-12-2S1 3 5 3Z" />,
 };
 export default function SiteIcon({ name = 'arrow', size = 20, style }: { name?: keyof typeof paths; size?: number; style?: CSSProperties }) {

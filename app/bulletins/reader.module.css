@@ -26,7 +26,7 @@
 .retry { margin-bottom: 24px; }
 
 .reading { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 40px; align-items: start; }
-.contents { position: sticky; top: 112px; }
+.contents { position: sticky; top: 96px; }
 .contents h2 { margin: 0 0 8px; font-size: 13px; font-weight: 600; letter-spacing: .04em; color: #8d6d2f; }
 .contents ul { margin: 0; padding: 0; list-style: none; }
 .contents a { display: block; padding: 9px 12px; border-left: 2px solid #ece5d8; color: #5d4930; font-size: 14px; text-decoration: none; }

@@ -18,7 +18,8 @@ import { CHURCH_ADDRESS,CHURCH_PHONE,CHURCH_VISIT } from '@/lib/site-content';
 import {defaultPageSettings,settingLabels,validPageSetting,type ChurchPageSettings,type SettingKey} from '@/lib/church-page-settings';
 import {readPageSettings,savePageSetting} from '@/lib/church-page-store';
 import {SettingFields} from './page-settings-editor';
-const defaultInfo:Record<string,string>={name:'꿈꾸는좋은교회',address:CHURCH_ADDRESS,phone:CHURCH_PHONE,directions:CHURCH_VISIT,introduction:'꿈꾸는좋은교회에 오신 여러분을 주님의 이름으로 환영합니다.\n하나님 앞에서 더 나은 예배를 드리고, 일상에서 사랑을 나누는 공동체를 함께 꿈꿉니다.'};
+import {churchCopyDefaults} from '@/lib/church-copy';
+const defaultInfo:Record<string,string>={...churchCopyDefaults,name:'꿈꾸는좋은교회',address:CHURCH_ADDRESS,phone:CHURCH_PHONE,directions:CHURCH_VISIT};
 
 const effectiveField=(field:ChurchField):ChurchField=>({...field,body:field.body.trim()?field.body:defaultInfo[field.key]||field.body});
 
@@ -121,12 +122,15 @@ export default function ChurchWorkspace() {
   }
   // 교회 소개 follows the public 교회 소개 menu: 인사말 · 오시는 길 · 예배시간 안내 · 온라인 헌금.
   const categories:{id:string;title:string;fields:string[];groups:SettingKey[]}[]=[
-    {id:'greeting',title:'인사말',fields:['name','introduction'],groups:[]},
+    {id:'greeting',title:'인사말',fields:['pastor_name','name','page_lead','greeting_title','introduction','greeting_closing'],groups:[]},
     {id:'directions',title:'오시는 길',fields:['address','phone','directions'],groups:['location']},
-    {id:'worship',title:'예배시간 안내',fields:[],groups:['worship_times']},
-    {id:'offering',title:'온라인 헌금',fields:[],groups:['offering_accounts']},
+    {id:'worship',title:'예배시간 안내',fields:['worship'],groups:['worship_times']},
+    {id:'offering',title:'온라인 헌금',fields:['offering_title','offering_note'],groups:['offering_accounts']},
   ];
   const fieldLabel=(key:string)=>key==='introduction'?'인사말 글':key==='directions'?'찾아오는 길 설명':key==='worship'?'추가 안내':churchLabels[key];
+  // Short notes under labels say where each piece of wording appears on the public site.
+  const fieldHints:Record<string,string>={pastor_name:'인사말 끝 서명과 하단 정보에 표시',name:'인사말 위 작은 글씨와 하단 정보에 표시',page_lead:'교회 소개 모든 화면의 제목 아래 문구',greeting_title:'줄바꿈 그대로 표시',worship:'예배시간 표 아래에 표시, 비우면 숨김'};
+  const fieldRows=(key:string)=>key==='introduction'?5:['directions','worship'].includes(key)?3:['greeting_title','greeting_closing','offering_title'].includes(key)?2:1;
   const groupDirty=(key:SettingKey)=>JSON.stringify(pages[key])!==JSON.stringify(savedPages[key]);
   const categoryDirty=(c:typeof categories[number])=>fields.some(f=>c.fields.includes(f.key)&&changed(f))||c.groups.some(groupDirty)||(c.id==='greeting'&&portraitDirty);
   async function saveCategory(c:typeof categories[number]){if(c.id==='greeting'&&portraitDirty)await savePortrait();if(fields.some(f=>c.fields.includes(f.key)&&changed(f)))await saveInfo(c.fields);for(const key of c.groups)if(groupDirty(key))await saveGroup(key);}
@@ -139,8 +143,8 @@ export default function ChurchWorkspace() {
         <SectionHeading title={c.title} dirty={categoryDirty(c)} busy={busy} onSave={()=>void saveCategory(c)} onReload={()=>void reloadCategory(c)} saveLabel={`${c.title} 저장`} reloadLabel={`${c.title} 다시 불러오기`}/>
         <fieldset disabled={busy} className={`${styles.fields} ${ui.formRows}`}>
           {c.id==='greeting'?<div className={`${ui.infoField} ${church.infoField}`}><div className={`${ui.infoLabel} ${church.infoLabel}`}><span>목사님 사진</span></div><div className={ui.infoControl}><PortraitField value={portrait} ready={portraitReady} disabled={busy} onChange={setPortrait}/></div></div>:null}
-          {c.fields.flatMap(key=>fields.filter(f=>f.key===key)).map(field=><div key={field.key} id={`church-field-${field.key}`} className={`${ui.infoField} ${church.infoField}`}><div className={`${ui.infoLabel} ${church.infoLabel}`}><label htmlFor={`church-${field.key}`}>{fieldLabel(field.key)}</label></div><div className={ui.infoControl}>
-            <textarea id={`church-${field.key}`} rows={field.key==='introduction'?5:field.key==='directions'||field.key==='worship'?3:1} maxLength={10000} placeholder={defaultInfo[field.key]||''} value={field.body} onChange={e=>{const value=e.target.value;setFields(current=>current.map(row=>row.key===field.key?{...row,body:value}:row));setInfoMessage('');}}/>
+          {c.fields.flatMap(key=>fields.filter(f=>f.key===key)).map(field=><div key={field.key} id={`church-field-${field.key}`} className={`${ui.infoField} ${church.infoField}`}><div className={`${ui.infoLabel} ${church.infoLabel}`}><label htmlFor={`church-${field.key}`}>{fieldLabel(field.key)}</label>{fieldHints[field.key]?<small className={church.fieldHint}>{fieldHints[field.key]}</small>:null}</div><div className={ui.infoControl}>
+            <textarea id={`church-${field.key}`} rows={fieldRows(field.key)} maxLength={10000} placeholder={defaultInfo[field.key]||''} value={field.body} onChange={e=>{const value=e.target.value;setFields(current=>current.map(row=>row.key===field.key?{...row,body:value}:row));setInfoMessage('');}}/>
           </div></div>)}
           {pagesReady?c.groups.map(key=><div key={key} id={`page-setting-${key}`} className={church.groupFields}><SettingFields settingKey={key} value={pages} onChange={(k,payload)=>{setPages(current=>({...current,[k]:payload}));setPageMessages(current=>({...current,[k]:''}));}}/>{pageMessages[key]?<p role="status" className={`${styles.message} ${ui.feedback}`}>{pageMessages[key]}</p>:null}</div>)
             :c.groups.length?<p role="status">예배시간·계좌·지도 설정을 불러오지 못했습니다. <button type="button" onClick={()=>setReload(n=>n+1)}>다시 확인</button></p>:null}
