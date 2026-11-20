@@ -31,7 +31,7 @@ test('confirmed offering and afternoon time, zoomed directions and anonymous API
   for(const number of ['301-0223-0182-71','301-0220-0484-81'])await expect(page.getByText(number,{exact:true})).toBeVisible();
   await page.goto('/church/worship-times');await expect(page.getByText('첫째·셋째 주일 오후 1:00',{exact:true})).toBeVisible();
   await page.goto('/church/directions');await expect(page.locator('iframe[title="꿈꾸는좋은교회 위치 지도"]')).toHaveAttribute('src',/q=37\.6223746%2C126\.8354385&z=16/);
-  await expect(page.getByText('샘터마을2단지아파트 앞에 있습니다.',{exact:false})).toBeVisible();
+  await expect(page.getByText('샘터마을2단지아파트 앞',{exact:true})).toBeVisible();
   await expect(page.getByText('경기도 고양시 덕양구 충장로 118-35, 선아빌딩 5층',{exact:true}).first()).toBeVisible();
   expect((await request.get('/api/bulletin-sections?section=invalid')).status()).toBe(400);
   const r=await request.get('/api/bulletin-sections?section=torah-tov');expect(r.ok()).toBe(true);expect(Array.isArray((await r.json()).items)).toBe(true);
@@ -65,6 +65,7 @@ test('compact footer policy destinations and TOP work on mobile',async({page})=>
   await expect(page.getByText('정책 확인 중',{exact:true})).toBeVisible();
   await page.locator('footer').getByRole('link',{name:'개인정보처리방침',exact:true}).click();
   await expect(page.getByRole('heading',{name:'개인정보처리방침',exact:true})).toBeVisible();
+  await page.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
   await page.getByRole('button',{name:'맨 위로 이동',exact:true}).click();
   await expect.poll(()=>page.evaluate(()=>scrollY)).toBeLessThan(5);
   await expect(page.locator('footer').getByRole('button',{name:'맨 위로 이동',exact:true})).toHaveCount(0);

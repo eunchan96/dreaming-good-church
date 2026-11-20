@@ -14,7 +14,7 @@ test('church info atomic updates and image privacy, immutable storage, historica
   assert.equal((await outsider.rpc('save_church_info',{p_fields:fields})).error?.code,'42501');
   assert.ifError((await editor.rpc('save_church_info',{p_fields:fields})).error);
   assert.equal((await editor.rpc('save_church_info',{p_fields:fields})).error?.code,'40001');
-  const publicFields=await anon.from('church_info').select('key,body');assert.ifError(publicFields.error);assert.equal(publicFields.data.length,5);assert.ok(!JSON.stringify(publicFields.data).includes('private phone'));
+  const publicFields=await anon.from('church_info').select('key,body');assert.ifError(publicFields.error);assert.equal(publicFields.data.length,original.data.length-1);assert.ok(!JSON.stringify(publicFields.data).includes('private phone'));
   assert.ok((await anon.from('church_info').select('revision')).error);assert.ok((await editor.from('church_info').delete().eq('key','name')).error);
   const pixels=await sharp({create:{width:10,height:10,channels:3,background:'white'}}).webp().toBuffer();
   assert.ifError((await admin.storage.from('bulletin-images').upload(`${image}.webp`,pixels,{contentType:'image/webp'})).error);

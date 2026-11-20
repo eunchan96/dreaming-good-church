@@ -9,7 +9,7 @@ export const timeLabels:Record<TimeKey,string>={sunday:'주일예배',afternoon:
 export const defaultPageSettings:ChurchPageSettings={
  worship_times:[{key:'sunday',time:'10:45',recurrence:'주일'},{key:'afternoon',time:'13:00',recurrence:'첫째·셋째 주일'},{key:'friday',time:'20:45',recurrence:'금요일'},{key:'dawn',time:'05:25',recurrence:'새벽'},{key:'students',time:'09:30',recurrence:'주일'},{key:'monthly',time:'05:25',recurrence:'매월 첫날'}],
  offering_accounts:[{key:'general',bank:'농협',number:'301-0223-0182-71',holder:'좋은교회'},{key:'building',bank:'농협',number:'301-0220-0484-81',holder:'좋은교회'}],
- location:{latitude:37.6223746,longitude:126.8354385,zoom:16,landmark:'샘터마을2단지아파트 앞 · 행신초등학교에서 도보 2분',transit:'샘터마을2단지아파트 앞에 있습니다.\n행신초등학교에서 도보로 약 2분 거리입니다.'}
+ location:{latitude:37.6223746,longitude:126.8354385,zoom:16,landmark:'샘터마을2단지아파트 앞 · 행신초등학교에서 도보 2분',transit:'샘터마을2단지아파트 앞\n행신초등학교에서 도보 약 2분'}
 };
 const text=(v:unknown,min:number,max:number,multiline=false)=>typeof v==='string'&&v.trim().length>=min&&v.length<=max&&(multiline||!/[\r\n]/.test(v));
 const object=(v:unknown,n:number):v is Record<string,unknown>=>!!v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).length===n;
