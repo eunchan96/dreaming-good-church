@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { rememberSignedIn, useRememberedSignIn } from './admin-session';
+import AdminInvitation from './admin-invitation';
 import { ChurchBrand } from '../public-shell';
 import SiteIcon from '../site-icon';
 import styles from './admin-shell.module.css';
@@ -53,6 +54,7 @@ export default function AdminShell({ children, intro, active, authenticated = fa
       <a href="/" target="_blank" rel="noreferrer" className={styles.brand} title="홈페이지 새 탭에서 열기"><ChurchBrand /><span className={styles.badge}>관리</span></a>
       {signedIn ? <nav id="admin-navigation" className={styles.managementNav} data-open={menu} aria-label="관리 메뉴">
         {links.map(link => <Link key={link.key} href={link.href} aria-current={active === link.key || (link.key === 'home' && active === 'church') ? 'page' : undefined} onClick={e => { if (busy || !canLeave()) { e.preventDefault(); return; } setMenu(false); }}>{link.label}</Link>)}
+        {authenticated ? <AdminInvitation disabled={busy} /> : null}
       </nav> : null}
       <div className={styles.headerActions}>
         <a href={publicPaths[active] ?? '/'} target="_blank" rel="noreferrer" aria-label="공개 화면 확인"><span>공개 화면 확인</span><SiteIcon name="diagonal" size={14} /></a>

@@ -35,10 +35,13 @@
 .badge { align-self: center; margin-left: 4px; font-size: 11px; font-weight: 600; color: #6f5420; background: #f3ead6; border-radius: 999px; padding: 2px 9px; line-height: 1.6; }
 
 .managementNav { display: flex; align-items: stretch; justify-content: center; gap: 4px; flex: 1; height: 100%; }
-.managementNav a {
+.managementNav > :is(a, button) {
   position: relative; display: flex; align-items: center;
   padding: 0 14px; font-size: 15px; font-weight: 600; white-space: nowrap; color: var(--ink);
 }
+.managementNav > button { border: 0; background: transparent; }
+.managementNav > button:hover:not(:disabled) { color: #6f5420; }
+.managementNav > button:disabled { opacity: .5; cursor: not-allowed; }
 .managementNav a::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: 22px; height: 2px; background: var(--gold); transform: scaleX(0); transition: transform .2s; }
 .managementNav a:hover::after, .managementNav a[aria-current=page]::after { transform: scaleX(1); }
 .managementNav a[aria-current=page] { color: #6f5420; }
@@ -87,7 +90,7 @@
     background: var(--bg); border-bottom: 1px solid var(--line); box-shadow: 0 12px 24px #342b2512;
   }
   .managementNav[data-open=true] { display: flex; }
-  .managementNav a { min-height: 50px; padding: 0 4px; font-size: 16px; border-bottom: 1px solid var(--line); }
+  .managementNav > :is(a, button) { min-height: 50px; padding: 0 4px; font-size: 16px; border-bottom: 1px solid var(--line); }
   .managementNav a::after { display: none; }
   .titleBar { padding: 24px 20px 0; }
   .tabs { padding: 0 20px; gap: 22px; flex-wrap: wrap; }
