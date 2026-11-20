@@ -54,11 +54,9 @@ export default function AdminShell({ children, intro, active, authenticated = fa
       <a href="/" target="_blank" rel="noreferrer" className={styles.brand} title="홈페이지 새 탭에서 열기"><ChurchBrand /><span className={styles.badge}>관리</span></a>
       {signedIn ? <nav id="admin-navigation" className={styles.managementNav} data-open={menu} aria-label="관리 메뉴">
         {links.map(link => <Link key={link.key} href={link.href} aria-current={active === link.key || (link.key === 'home' && active === 'church') ? 'page' : undefined} onClick={e => { if (busy || !canLeave()) { e.preventDefault(); return; } setMenu(false); }}>{link.label}</Link>)}
-        {authenticated ? <AdminInvitation disabled={busy} /> : null}
       </nav> : null}
       <div className={styles.headerActions}>
         <a href={publicPaths[active] ?? '/'} target="_blank" rel="noreferrer" aria-label="공개 화면 확인"><span>공개 화면 확인</span><SiteIcon name="diagonal" size={14} /></a>
-        {onLogout ? <button type="button" onClick={() => void onLogout()} disabled={busy}>로그아웃</button> : null}
         {signedIn ? <button type="button" ref={menuButton} className={styles.menuToggle} aria-label={menu ? '관리 메뉴 닫기' : '관리 메뉴 열기'} aria-controls="admin-navigation" aria-expanded={menu} onClick={() => setMenu(!menu)}><SiteIcon name={menu ? 'close' : 'menu'} size={24} /></button> : null}
       </div>
     </div></header>
@@ -78,5 +76,11 @@ export default function AdminShell({ children, intro, active, authenticated = fa
       </aside> : null}
       <div className={styles.content}>{children}</div>
     </div>
+    {authenticated || onLogout ? <footer className={styles.footer} aria-label="관리자 계정">
+      <div className={styles.footerActions}>
+        {authenticated ? <AdminInvitation disabled={busy} /> : null}
+        {onLogout ? <button type="button" onClick={() => void onLogout()} disabled={busy}>로그아웃</button> : null}
+      </div>
+    </footer> : null}
   </div>;
 }

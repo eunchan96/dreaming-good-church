@@ -22,7 +22,7 @@ https://dreaming-good-church-git-codex-bulle-a36b08-eunchan96s-projects.vercel.a
 
 서버 환경변수 `ADMIN_INVITER_USER_IDS`에 초대를 맡을 운영자의 Supabase Auth UID를 쉼표로 구분해 설정한다. UID는 [Supabase Authentication Users](https://supabase.com/dashboard/project/zefnxczgwpsmfcixonpb/auth/users)에서 찾을 수 있다. 각 계정은 `church_editors`에도 등록되어 있어야 하며, 목록이 비어 있으면 사이트에서 누구도 초대할 수 없다. 로컬은 `.env.local`에 넣고 서버를 재시작한다. Vercel은 대상 환경에 변수를 등록한 뒤 배포에 반영한다.
 
-지정된 운영자는 사이트에 로그인한 뒤 **관리 메뉴 → 관리자 초대**에서 이메일을 입력하고 **초대 링크 만들기 → 링크 복사**를 누른다. 담당자가 아직 초대를 확인하지 않았다면 같은 이메일로 새 링크를 만들 수 있다. 새 링크가 이전 링크를 대체한다. 운영 환경의 링크는 발급 후 1시간 동안 유효하고, 이미 초대를 확인한 계정은 비밀번호 재설정 절차를 사용한다.
+지정된 운영자는 사이트에 로그인한 뒤 화면 하단의 **관리자 초대**에서 이메일을 입력하고 **초대 링크 만들기 → 링크 복사**를 누른다. 담당자가 아직 초대를 확인하지 않았다면 같은 이메일로 새 링크를 만들 수 있다. 새 링크가 이전 링크를 대체한다. 운영 환경의 링크는 발급 후 1시간 동안 유효하고, 이미 초대를 확인한 계정은 비밀번호 재설정 절차를 사용한다.
 
 ## Supabase 대시보드에서 관리자 초대하기
 
