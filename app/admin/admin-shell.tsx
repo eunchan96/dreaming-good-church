@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { rememberSignedIn, useRememberedSignIn } from './admin-session';
+import AdminIcon from './admin-icons';
 import AdminInvitation from './admin-invitation';
 import { ChurchBrand } from '../public-shell';
 import SiteIcon from '../site-icon';
@@ -77,9 +78,16 @@ export default function AdminShell({ children, intro, active, authenticated = fa
       <div className={styles.content}>{children}</div>
     </div>
     {authenticated || onLogout ? <footer className={styles.footer} aria-label="관리자 계정">
-      <div className={styles.footerActions}>
-        {authenticated ? <AdminInvitation disabled={busy} /> : null}
-        {onLogout ? <button type="button" onClick={() => void onLogout()} disabled={busy}>로그아웃</button> : null}
+      <div className={styles.footerInner}>
+        <a href="/" target="_blank" rel="noreferrer" className={styles.footerBrand} aria-label="교회 홈페이지 새 탭에서 열기">
+          <ChurchBrand />
+        </a>
+        <div className={styles.footerActions}>
+          {authenticated ? <AdminInvitation disabled={busy} /> : null}
+          {onLogout ? <button type="button" onClick={() => void onLogout()} disabled={busy}>
+            <AdminIcon name="logout" size={18} /> 로그아웃
+          </button> : null}
+        </div>
       </div>
     </footer> : null}
   </div>;
