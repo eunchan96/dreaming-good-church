@@ -8,8 +8,6 @@ const paths = {
   on: <><circle cx="12" cy="12" r="8" /><path d="M8 12h8M12 8v8" /></>,
   remove: <><path d="M6 6l12 12M18 6L6 18" /></>,
   plus: <><path d="M12 5v14M5 12h14" /></>,
-  invite: <><circle cx="9" cy="7" r="3" /><path d="M3 20v-2a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v2M19 8v6m-3-3h6" /></>,
-  logout: <><path d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5M10 12h10m-4-4 4 4-4 4" /></>,
   back: <><path d="M15 5l-7 7 7 7" /></>,
   up: <><path d="M6 15l6-6 6 6" /></>,
   down: <><path d="M6 9l6 6 6-6" /></>,

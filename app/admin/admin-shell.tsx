@@ -2,7 +2,6 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { rememberSignedIn, useRememberedSignIn } from './admin-session';
-import AdminIcon from './admin-icons';
 import AdminInvitation from './admin-invitation';
 import { ChurchBrand } from '../public-shell';
 import SiteIcon from '../site-icon';
@@ -84,9 +83,7 @@ export default function AdminShell({ children, intro, active, authenticated = fa
         </a>
         <div className={styles.footerActions}>
           {authenticated ? <AdminInvitation disabled={busy} /> : null}
-          {onLogout ? <button type="button" onClick={() => void onLogout()} disabled={busy}>
-            <AdminIcon name="logout" size={18} /> 로그아웃
-          </button> : null}
+          {onLogout ? <button type="button" onClick={() => void onLogout()} disabled={busy}>로그아웃</button> : null}
         </div>
       </div>
     </footer> : null}

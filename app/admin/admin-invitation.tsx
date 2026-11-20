@@ -2,7 +2,6 @@
 
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { makeBrowserClient } from '@/lib/bulletin-store';
-import AdminIcon from './admin-icons';
 import styles from './admin-invitation.module.css';
 
 const endpoint = '/api/admin/invitations';
@@ -117,9 +116,7 @@ function InvitationDialog({ inviterId, disabled }: { inviterId: string; disabled
   }
 
   return <>
-    <button type="button" ref={trigger} aria-haspopup="dialog" disabled={disabled} onClick={open}>
-      <AdminIcon name="invite" size={18} /> 관리자 초대
-    </button>
+    <button type="button" ref={trigger} aria-haspopup="dialog" disabled={disabled} onClick={open}>관리자 초대</button>
     <dialog
       ref={dialog}
       className={styles.dialog}
