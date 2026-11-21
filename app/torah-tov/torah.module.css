@@ -1,7 +1,7 @@
 /* 토라&토브: 주보처럼 < 날짜 > 로 이동, 나의 묵상·토라&토브 항목 */
 .week { min-width: 0; scroll-margin-top: 90px; }
 .entries { display: grid; gap: 0; }
-.entries article { padding: 44px 0 40px; border-bottom: 1px solid #ece5d8; text-align: center; }
+.entries article { padding: 44px 0 80px; border-bottom: 1px solid #ece5d8; text-align: center; }
 .reference { margin: 0 0 16px; font-size: 15px; font-weight: 600; letter-spacing: .02em; color: #8d6d2f; }
 .entries blockquote { max-width: 760px; margin: 0 auto; font-family: var(--font-public-serif), serif; font-size: 20px; line-height: 1.95; color: #342b25; text-align: center; white-space: pre-wrap; }
 .empty { margin: 0; padding: 40px 0; color: #6b5a42; }
@@ -56,7 +56,7 @@
   .weekGrid u { display: none; }
   .weekGrid > li { aspect-ratio: 1; }
 }
-.more { display: inline-flex; align-items: center; gap: 8px; padding-bottom: 4px; border-bottom: 1px solid #b9a37a; color: #5d4930; font-size: 14px; text-decoration: none; transition: color .15s, border-color .15s; }
+.more { display: inline-flex; align-items: center; gap: 8px; padding-bottom: 0; border-bottom: 1px solid #b9a37a; color: #5d4930; font-size: 13px; line-height: 1.8; text-decoration: none; transition: color .15s, border-color .15s; }
 .more:hover { color: #8d6d2f; border-color: #8d6d2f; }
 .more svg { transition: translate .15s; }
 .more:hover svg { translate: 4px 0; }
@@ -65,6 +65,6 @@
 .loading { color: #6b5a42; }
 
 @media (max-width: 860px) {
-  .entries article { padding: 32px 0 30px; }
+  .entries article { padding: 32px 0 60px; }
   .entries blockquote { font-size: 17.5px; }
 }
