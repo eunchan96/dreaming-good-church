@@ -466,14 +466,19 @@ small.churchLine { font-size: .88em; }
 .supportGrid [data-role=staff] .table tr:first-child td:first-child { background-size: 1px calc(100% - .45em) !important; background-position: right bottom !important; }
 
 /* ── 2026-11-21 공개 주보(웹) 다듬기 — .flow 안에서만, 인쇄 시트는 그대로 ── */
-/* 섬기는 이들: 담임·협동 어두운 줄이 상자 끝까지 끊기지 않게 */
+/* 섬기는 이들: 어두운 줄은 상자 끝까지, 세로선은 합쳐진 표 테두리라 행 사이에서 끊기지 않음 */
 .flow .supportGrid [data-role=staff] .table { width: 100%; }
-/* 예배 안내(좁은 칸): 예배|시간 세로선이 열마다 한 줄로 이어지게 (줄 사이 간격 대신 칸 안쪽 여백) */
+.flow .supportGrid [data-role=staff] .table td:first-child { background-image: none !important; border-right: 0 !important; }
+.flow .supportGrid [data-role=staff] .table td:last-child { border-left: 1px solid #b9c08f; }
+/* 예배 안내(좁은 칸): 두 열이 같은 행 칸을 쓰고(빈 칸 포함), 세로선은 열 전체를 한 줄로 */
 @container (max-width: 560px) {
-  .flow .scheduleNarrow > div { row-gap: 0 !important; align-content: stretch; }
-  .flow .scheduleNarrow > div > :is(.scheduleLabel, .scheduleTime) { display: flex; align-items: center; justify-content: center; padding-block: .17em; text-align: center; }
+  .flow .scheduleNarrow > div { position: relative; grid-template-rows: repeat(var(--rows, 3), 1fr); row-gap: 0 !important; align-content: stretch; padding-block: .45em !important; }
+  .flow .scheduleNarrow > div::before { content: ""; position: absolute; left: 50%; top: .5em; bottom: .5em; width: 1px; background: #a9b27a; }
+  .flow .scheduleNarrow > div > :is(.scheduleLabel, .scheduleTime) { display: flex; align-items: center; justify-content: center; padding-block: .2em; text-align: center; border-right: 0 !important; }
 }
 /* 넓은 웹 칸: 왼쪽(공지·봉사위원)과 오른쪽(섬기는 이들)을 1:1로 */
 @container (min-width: 561px) {
   .flow .supportGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+/* 표지 사진은 읽는 폭에 맞춰 키우되 너무 커지지 않게 */
+.flow .cover .coverImages img { width: 100% !important; max-height: 480px !important; object-fit: contain; }
