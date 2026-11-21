@@ -7,7 +7,30 @@
 .reference { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: .01em; color: #8d6d2f; }
 .entries blockquote { margin: 0; font-family: var(--font-public-serif), serif; font-size: 19px; line-height: 1.9; color: #342b25; white-space: pre-wrap; }
 .empty { margin: 0; padding: 40px 0; color: #6b5a42; }
-.moreRow { display: flex; justify-content: flex-end; margin-top: 26px; }
+.weekTitle { display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: 2px 10px; min-width: 0; text-align: center; }
+.weekTitle strong { font-family: var(--font-public-serif), serif; font-size: clamp(19px, 2.2vw, 26px); font-weight: 500; letter-spacing: -.02em; color: #2f2720; white-space: nowrap; }
+.weekTitle span { font-size: 15px; color: #8d6d2f; white-space: nowrap; }
+.footRow { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 26px; }
+/* 다른 주차 찾기: 밑줄 글자 버튼, 목록은 위로 열림 */
+.findWrap { position: relative; display: flex; }
+.findWrap .findToggle { display: inline-flex; align-items: center; gap: 6px; min-height: 0; padding: 0; border: 0; border-bottom: 1px solid #b9a77f; border-radius: 0; background: transparent; color: #4a3f33; font: inherit; font-size: 14px; line-height: 1; cursor: pointer; position: relative; transition: color .15s, border-color .15s; }
+.findToggle::after { content: ""; position: absolute; inset: -14px -10px; }
+.findToggle:hover, .findToggle[aria-expanded=true] { color: #8d6d2f; border-bottom-color: #8d6d2f; }
+.findPanel { position: absolute; left: 0; bottom: calc(100% + 10px); z-index: 30; display: flex; flex-direction: column; width: min(380px, calc(100vw - 44px)); max-height: min(460px, 72dvh); border: 1px solid #e3dbcd; border-radius: 12px; background: #fffdf8; box-shadow: 0 18px 50px #342b2522; overflow: hidden; }
+.findInput { flex: none; width: 100%; height: 44px; padding: 0 16px; border: 0; border-bottom: 1px solid #ece5d8; background: transparent; color: #342b25; font: inherit; font-size: 14px; outline: none; }
+.findInput:focus-visible { border-bottom-color: #8d6d2f; }
+.findList { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 8px 10px; overscroll-behavior: contain; }
+.findList h3 { margin: 8px 0 2px; padding: 4px 10px; font-size: 12px; font-weight: 600; color: #8d6d2f; }
+.findList ul { margin: 0; padding: 0; list-style: none; }
+.findList li button { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; width: 100%; min-height: 0; padding: 9px 10px; border: 0; border-radius: 8px; background: transparent; color: #342b25; font: inherit; font-size: 14.5px; text-align: left; cursor: pointer; }
+.findList li button:hover { background: #f3eee4; }
+.findList li button[aria-current] { background: #342b25; color: #fff; }
+.findList li button span { display: flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.findList li button strong { font-weight: 600; }
+.findList li button em { font-style: normal; font-size: 12.5px; color: #6f604a; }
+.findList li button small { overflow: hidden; font-size: 12.5px; color: #6f604a; white-space: nowrap; text-overflow: ellipsis; }
+.findList li button[aria-current] em, .findList li button[aria-current] small { color: #e8dcc4; }
+.findEmpty { margin: 0; padding: 20px 10px; font-size: 14px; color: #6b5a42; }
 .more { display: inline-flex; align-items: center; gap: 8px; padding-bottom: 4px; border-bottom: 1px solid #b9a37a; color: #5d4930; font-size: 14px; text-decoration: none; transition: color .15s, border-color .15s; }
 .more:hover { color: #8d6d2f; border-color: #8d6d2f; }
 .more svg { transition: translate .15s; }
