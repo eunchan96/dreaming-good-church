@@ -121,7 +121,7 @@
 /* The page banner runs edge to edge under the header while its text stays on the content edge. */
 .site{overflow-x:clip}
 .pageHeading{position:relative;isolation:isolate;margin:-30px calc(50% - 50vw) 0;padding:44px calc(50vw - 50%) 40px;background:#f0ece2;border-bottom:1px solid var(--line);overflow:hidden}
-.pageHeading::after{content:'';position:absolute;z-index:-1;width:300px;height:402px;right:max(10px,calc((100% - 1160px)/2 + 20px));top:-96px;transform:rotate(13deg) perspective(900px) rotateY(-26deg);transform-origin:50% 60%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 112 150'%3E%3Cdefs%3E%3Cg id='c'%3E%3Crect x='42' y='4' width='16' height='132' rx='1.5'/%3E%3Crect x='14' y='38' width='72' height='16' rx='1.5'/%3E%3C/g%3E%3C/defs%3E%3Cuse href='%23c' x='11.7' y='9.0' fill='%23ddd2b9'/%3E%3Cuse href='%23c' x='10.4' y='8.0' fill='%23ddd2b9'/%3E%3Cuse href='%23c' x='9.1' y='7.0' fill='%23ddd2b9'/%3E%3Cuse href='%23c' x='7.8' y='6.0' fill='%23ddd2b9'/%3E%3Cuse href='%23c' x='6.5' y='5.0' fill='%23ddd2b9'/%3E%3Cuse href='%23c' x='5.2' y='4.0' fill='%23ddd2b9'/%3E%3Cuse href='%23c' x='3.9' y='3.0' fill='%23ddd2b9'/%3E%3Cuse href='%23c' x='2.6' y='2.0' fill='%23ddd2b9'/%3E%3Cuse href='%23c' x='1.3' y='1.0' fill='%23ddd2b9'/%3E%3Cuse href='%23c' fill='%23e9e0cc'/%3E%3C/svg%3E") center/contain no-repeat}
+.pageHeading::after{content:'';position:absolute;z-index:-1;width:300px;height:402px;right:max(10px,calc((100% - 1160px)/2 + 20px));top:-14px;transform:rotate(13deg) perspective(900px) rotateY(-26deg);transform-origin:50% 60%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 112 150'%3E%3Cdefs%3E%3Cg id='c'%3E%3Crect x='38' y='4' width='24' height='132' rx='2'/%3E%3Crect x='10' y='34' width='80' height='24' rx='2'/%3E%3C/g%3E%3C/defs%3E%3Cuse href='%23c' x='11.7' y='9.0' fill='%23ddd2b9'/%3E%3Cuse href='%23c' x='10.4' y='8.0' fill='%23ddd2b9'/%3E%3Cuse href='%23c' x='9.1' y='7.0' fill='%23ddd2b9'/%3E%3Cuse href='%23c' x='7.8' y='6.0' fill='%23ddd2b9'/%3E%3Cuse href='%23c' x='6.5' y='5.0' fill='%23ddd2b9'/%3E%3Cuse href='%23c' x='5.2' y='4.0' fill='%23ddd2b9'/%3E%3Cuse href='%23c' x='3.9' y='3.0' fill='%23ddd2b9'/%3E%3Cuse href='%23c' x='2.6' y='2.0' fill='%23ddd2b9'/%3E%3Cuse href='%23c' x='1.3' y='1.0' fill='%23ddd2b9'/%3E%3Cuse href='%23c' fill='%23e9e0cc'/%3E%3C/svg%3E") center/contain no-repeat}
 .pageHeading .eyebrow{margin-bottom:8px}
 .pageHeading h1{font-family:var(--font-display);font-size:clamp(34px,4vw,52px);font-weight:500;letter-spacing:-.06em;margin:10px 0}
 .pageHeading>p:last-child{font-size:14px;color:#6e6254;margin-top:15px}
@@ -257,7 +257,7 @@ to{opacity:1}
 .install button{font-size:12px}
 .subpage{padding:30px 22px 60px}
 .pageHeading{padding-top:32px;padding-bottom:30px}
-.pageHeading::after{width:176px;height:236px;right:-44px;top:-40px}
+.pageHeading::after{width:176px;height:236px;right:-44px;top:18px}
 .pageHeading h1{font-size:35px}
 .pageHeading>p:last-child{font-size:13px}
 .subnav{gap:5px 22px;margin-bottom:30px}
