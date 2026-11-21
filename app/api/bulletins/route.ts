@@ -34,9 +34,14 @@ export async function GET(request: Request) {
       const bulletins = data.slice(0, 20);
       return Response.json({ bulletins, nextCursor: data.length > 20 ? bulletins.at(-1)!.service_date : null }, { headers });
     }
-    let selection = client.from("bulletins").select("id,service_date,issue_number,items:bulletin_items(id,position,title,body,kind,content)").eq("status", "published");
-    selection = id ? selection.eq("id", id) : selection.eq("service_date", date!);
-    const { data, error } = await selection.maybeSingle();
+    // print_page(인쇄 면)는 공개 읽기 권한을 여는 DB 업데이트 뒤에만 읽힌다. 아직이면 면 없이 읽는다.
+    const withPage = client.from("bulletins").select("id,service_date,issue_number,items:bulletin_items(id,position,title,body,kind,content,print_page)").eq("status", "published");
+    let { data, error } = await (id ? withPage.eq("id", id) : withPage.eq("service_date", date!)).maybeSingle();
+    if (error) {
+      const plain = client.from("bulletins").select("id,service_date,issue_number,items:bulletin_items(id,position,title,body,kind,content)").eq("status", "published");
+      const retry = await (id ? plain.eq("id", id) : plain.eq("service_date", date!)).maybeSingle();
+      data = retry.data as typeof data; error = retry.error;
+    }
     if (error) throw error;
     if (!data) return Response.json({ error: "주보를 찾을 수 없습니다." }, { status: 404, headers });
     data.items.sort((a, b) => a.position - b.position);

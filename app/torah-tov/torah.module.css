@@ -1,41 +1,70 @@
-/* 토라&토브: date list (left) + the chosen week's entries */
-.layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 48px; align-items: start; margin-top: 8px; }
-.weeks { position: sticky; top: 112px; }
-.weeks h2 { margin: 0 0 10px; font-size: 13px; font-weight: 600; letter-spacing: .04em; color: #8d6d2f; }
-.weeks ul { display: grid; gap: 2px; max-height: calc(100dvh - 180px); margin: 0; padding: 0; overflow-y: auto; list-style: none; }
-.weeks button { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 2px 10px; width: 100%; padding: 11px 14px; border: 0; border-left: 2px solid transparent; border-radius: 0 8px 8px 0; background: transparent; color: #4a3f33; text-align: left; cursor: pointer; font: inherit; }
-.weeks button:hover { background: #f3eee4; }
-.weeks button[aria-current] { border-left-color: #8d6d2f; background: #efe7d6; color: #2f2720; }
-.weeks strong { font-size: 15px; font-weight: 600; }
-.weeks span { font-size: 12px; color: #6f604a; }
-.weeks small { grid-column: 1 / -1; overflow: hidden; font-size: 12.5px; color: #6b5a42; white-space: nowrap; text-overflow: ellipsis; }
-
+/* 토라&토브: 주보처럼 < 날짜 > 로 이동, 나의 묵상·토라&토브 항목 */
 .week { min-width: 0; scroll-margin-top: 90px; }
-.week > header { padding-bottom: 20px; border-bottom: 1px solid #e3dbcd; }
-.week > header p { margin: 0 0 6px; font-size: 12px; font-weight: 600; letter-spacing: .06em; color: #8d6d2f; }
-.week > header h2 { margin: 0; font-family: var(--font-public-serif), serif; font-size: clamp(24px, 2.6vw, 32px); font-weight: 500; letter-spacing: -.03em; color: #2f2720; }
 .entries { display: grid; gap: 0; }
-.entries article { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 6px 32px; padding: 28px 0; border-bottom: 1px solid #ece5d8; }
-.entries h3 { grid-row: span 2; margin: 2px 0 0; font-size: 15px; font-weight: 600; color: #0b7d38; }
-.reference { margin: 0; font-size: 14px; font-weight: 600; color: #8d6d2f; }
-.entries blockquote { margin: 0; font-family: var(--font-public-serif), serif; font-size: 19px; line-height: 1.85; color: #342b25; white-space: pre-wrap; }
+.entries article { padding: 44px 0 80px; border-bottom: 1px solid #ece5d8; text-align: center; }
+.reference { margin: 0 0 16px; font-size: 15px; font-weight: 600; letter-spacing: .02em; color: #8d6d2f; }
+.entries blockquote { max-width: 760px; margin: 0 auto; font-family: var(--font-public-serif), serif; font-size: 20px; line-height: 1.95; color: #342b25; text-align: center; white-space: pre-wrap; }
 .empty { margin: 0; padding: 40px 0; color: #6b5a42; }
-.more { display: inline-flex; align-items: center; gap: 8px; margin-top: 24px; padding-bottom: 4px; border-bottom: 1px solid #b9a37a; color: #5d4930; font-size: 14px; text-decoration: none; }
-.more:hover { color: #2f2720; border-color: #5d4930; }
+.weekTitle { display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: 2px 10px; min-width: 0; text-align: center; }
+.weekTitle strong { font-family: var(--font-public-serif), serif; font-size: clamp(19px, 2.2vw, 26px); font-weight: 500; letter-spacing: -.02em; color: #2f2720; white-space: nowrap; }
+.weekTitle span { font-size: 15px; color: #8d6d2f; white-space: nowrap; }
+.footRow { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 26px; }
+/* 다른 주차 찾기: 밑줄 글자 버튼(주보의 지난 주보와 같은 모양) → 창으로 8×7 주차 칸 */
+.footRow .findToggle { display: inline-flex; align-items: center; gap: 6px; min-height: 0; padding: 0; border: 0; border-bottom: 1px solid #b9a77f; border-radius: 0; background: transparent; color: #4a3f33; font: inherit; font-size: 13px; line-height: 1.8; cursor: pointer; position: relative; transition: color .15s, border-color .15s; }
+.findToggle::after { content: ""; position: absolute; inset: -12px -10px; }
+.findToggle:hover { color: #8d6d2f; border-bottom-color: #8d6d2f; }
+.finder { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); margin: auto; padding: 0; border: 1px solid #e3dbcd; border-radius: 6px; background: #fffdf8; color: #342b25; box-shadow: 0 24px 70px #342b2530; overflow: auto; }
+.finder::backdrop { background: #2f27209e; }
+.finderBody { padding: 22px 24px 20px; }
+.finderHead { display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; align-items: center; padding-bottom: 14px; }
+.finderHead strong { font-family: var(--font-public-serif), serif; font-size: 22px; font-weight: 500; text-align: center; }
+.weekGrid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; border-top: 1px solid #ece5d8; border-left: 1px solid #ece5d8; }
+.weekGrid > li { aspect-ratio: 1.2; border-right: 1px solid #ece5d8; border-bottom: 1px solid #ece5d8; }
+.weekGrid > li:empty { border: 0; }
+.weekGrid > li > button, .weekGrid > li > .weekEmpty { display: grid; place-items: center; width: 100%; min-height: 0; height: 100%; padding: 0; border: 0; border-radius: 0; background: transparent; font: inherit; color: #342b25; }
+.weekGrid i { font-family: var(--font-public-serif), serif; font-style: normal; line-height: 1; white-space: nowrap; }
+.weekGrid i { font-size: 14.5px; font-weight: 400; }
+.weekGrid b { font-weight: inherit; }
+.weekGrid u { margin-left: 2px; text-decoration: none; }
+.weekGrid > li > button { cursor: pointer; transition: background .12s; }
+.weekGrid > li > button:hover, .weekGrid > li > button:focus-visible { background: #f3eee4; }
+.weekGrid > li > button[aria-current] { background: #342b25; color: #fff; }
+.weekGrid > li > .weekEmpty, .weekGrid > li > .weekEmpty u { color: #cfc5b2; }
+.finderSearchRow { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; padding: 0 4px; border-bottom: 1px solid #cdbd9b; color: #8a7a62; }
+.finderSearchRow:focus-within { border-bottom-color: #8d6d2f; color: #8d6d2f; }
+.finderSearch { display: block; flex: 1; min-width: 0; height: 36px; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; color: #342b25; font: inherit; font-size: 13.5px; outline: 0 !important; box-shadow: none !important; }
+.finderSearch::-webkit-search-cancel-button { display: none; }
+.finderSearch::placeholder { color: #9a8c76; }
+.found { max-height: 322px; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+.found li button { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; width: 100%; min-height: 0; padding: 12px 8px; border: 0; border-bottom: 1px solid #ece5d8; border-radius: 0; background: transparent; color: #342b25; font: inherit; font-size: 14.5px; text-align: left; cursor: pointer; }
+.found li button:hover { background: #f3eee4; }
+.found li button[aria-current] { background: #342b25; color: #fff; }
+.found li button span { display: flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.found li button strong { font-weight: 600; }
+.found li button em { font-style: normal; font-size: 12.5px; color: #6f604a; }
+.found li button small { overflow: hidden; font-size: 12.5px; color: #6f604a; white-space: nowrap; text-overflow: ellipsis; }
+.found li button[aria-current] em, .found li button[aria-current] small { color: #e8dcc4; }
+.foundEmpty { margin: 0; padding: 28px 8px; font-size: 14px; color: #6b5a42; }
+.finderPeek { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; min-height: 28px; margin: 14px 0 0; font-size: 14px; color: #6f604a; }
+.finderPeek strong { font-size: 15px; font-weight: 600; color: #2f2720; }
+.finderPeek em { font-style: normal; color: #8d6d2f; }
+.finderPeek small { font-size: 13px; color: #6f604a; }
+.finder .finderClose { display: block; min-height: 0; margin: 14px 0 0 auto; padding: 0; border: 0; border-bottom: 1px solid #b9a77f; border-radius: 0; background: transparent; color: #4a3f33; font: inherit; font-size: 13px; line-height: 1.8; cursor: pointer; }
+.finderClose:hover { color: #8d6d2f; border-bottom-color: #8d6d2f; }
+@media (max-width: 560px) {
+  .finderBody { padding: 18px 14px 16px; }
+  .weekGrid u { display: none; }
+  .weekGrid > li { aspect-ratio: 1; }
+}
+.more { display: inline-flex; align-items: center; gap: 8px; padding-bottom: 0; border-bottom: 1px solid #b9a37a; color: #5d4930; font-size: 13px; line-height: 1.8; text-decoration: none; transition: color .15s, border-color .15s; }
+.more:hover { color: #8d6d2f; border-color: #8d6d2f; }
+.more svg { transition: translate .15s; }
+.more:hover svg { translate: 4px 0; }
 .state { display: grid; justify-items: start; gap: 12px; padding: 28px; border-radius: 10px; background: #f3eee4; color: #5d4930; }
 .state p { margin: 0; }
 .loading { color: #6b5a42; }
 
 @media (max-width: 860px) {
-  .layout { grid-template-columns: minmax(0, 1fr); gap: 24px; }
-  .weeks { position: static; }
-  .weeks ul { display: flex; gap: 8px; max-height: none; padding: 2px 2px 8px; overflow-x: auto; overflow-y: visible; }
-  .weeks li { flex: 0 0 auto; }
-  .weeks button { display: grid; grid-template-columns: auto; gap: 0; min-width: 104px; padding: 10px 14px; border: 1px solid #e3dbcd; border-radius: 10px; background: #fffdf8; }
-  .weeks button[aria-current] { border-color: #342b25; background: #342b25; color: #fff; }
-  .weeks button[aria-current] span { color: #e8dcc4; }
-  .weeks small { display: none; }
-  .entries article { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 22px 0; }
-  .entries h3 { grid-row: auto; }
-  .entries blockquote { font-size: 17px; }
+  .entries article { padding: 32px 0 60px; }
+  .entries blockquote { font-size: 17.5px; }
 }

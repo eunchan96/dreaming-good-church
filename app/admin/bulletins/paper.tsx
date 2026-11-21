@@ -107,7 +107,7 @@ function Schedule({item}:{item:BulletinItem}){
  // Narrow web layout: two columns (주일·금요·새벽 | 학생·월삭) with short names.
  const narrow=[[...columns[0],...[...columns[2]].sort((a,b)=>Number(/새벽/.test(a.row[0]))-Number(/새벽/.test(b.row[0])))],columns[1]];
  const shortLabel=(label:string)=>{const name=label.replace(/\s+/g,'');return /주일|하늘보좌/.test(name)&&!/오후/.test(name)?'주일 예배':/월삭/.test(name)?'월삭 예배':/^(새벽|금요)예배$/.test(name)?name.replace('예배',' 예배'):label;};
- const narrowBlock=<div className={css.scheduleNarrow}>{narrow.map((column,index)=><div key={index} className={css.scheduleColumn}>{column.map(({row,i})=><Fragment key={i}><span className={css.scheduleLabel}>{shortLabel(row[0])}</span><span className={css.scheduleTime}>{timeOnly(row[1]??'')}</span></Fragment>)}</div>)}</div>;
+ const narrowBlock=<div className={css.scheduleNarrow} style={{'--rows':Math.max(...narrow.map(column=>column.length),1)} as React.CSSProperties}>{narrow.map((column,index)=><div key={index} className={css.scheduleColumn}>{column.map(({row,i})=><Fragment key={i}><span className={css.scheduleLabel}>{shortLabel(row[0])}</span><span className={css.scheduleTime}>{timeOnly(row[1]??'')}</span></Fragment>)}</div>)}</div>;
  return <Scope item={item}><Band title="예배 안내" tone="olive"/><div className={css.schedule}>{columns.map((column,index)=><div key={index} className={css.scheduleColumn}>{column.map(({row,i})=><Fragment key={i}><span className={css.scheduleLabel}>{scheduleLabel(row[0])}</span><span className={css.scheduleTime}>{timeOnly(row[1]??'')}</span></Fragment>)}</div>)}</div>{narrowBlock}</Scope>;
 }
 function Volunteers({item}:{item:BulletinItem}){
