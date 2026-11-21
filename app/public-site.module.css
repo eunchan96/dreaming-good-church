@@ -121,7 +121,7 @@
 /* The page banner runs edge to edge under the header while its text stays on the content edge. */
 .site{overflow-x:clip}
 .pageHeading{position:relative;isolation:isolate;margin:-30px calc(50% - 50vw) 0;padding:44px calc(50vw - 50%) 40px;background:#f0ece2;border-bottom:1px solid var(--line);overflow:hidden}
-.pageHeading::after{content:'';position:absolute;z-index:-1;width:230px;height:230px;right:max(22px,calc((100% - 1160px)/2 + 36px));top:8px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath d='M91.3 19.5A54 54 0 1 0 91.3 104.5A44 44 0 1 1 91.3 19.5Z' fill='%23efe4c4'/%3E%3Cellipse cx='88' cy='25' rx='21' ry='14' transform='rotate(-6 88 25)' fill='%23efe4c4'/%3E%3Ccircle cx='92' cy='101' r='8' fill='%23efe4c4'/%3E%3Cpath d='M80 19c2-3 5-3 7 0M92 17c2-3 5-3 7 0M84 30c4 3 8 3 11 0' fill='none' stroke='%23e0d2ae' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M58 42h8v12h11v7H66v21h-8V61H47v-7h11Z' fill='%23e1d4ba'/%3E%3Cpath d='M95 82C79 71 83 56 95 64 107 56 111 71 95 82Z' fill='%23ebd8cb'/%3E%3C/svg%3E") center/contain no-repeat}
+.pageHeading::after{content:'';position:absolute;z-index:-1;width:134px;height:188px;right:max(40px,calc((100% - 1160px)/2 + 64px));top:30px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 140'%3E%3Crect x='42' y='0' width='16' height='140' rx='2' fill='%23e7dec9'/%3E%3Crect x='14' y='36' width='72' height='16' rx='2' fill='%23e7dec9'/%3E%3C/svg%3E") center/contain no-repeat}
 .pageHeading .eyebrow{margin-bottom:8px}
 .pageHeading h1{font-family:var(--font-display);font-size:clamp(34px,4vw,52px);font-weight:500;letter-spacing:-.06em;margin:10px 0}
 .pageHeading>p:last-child{font-size:14px;color:#6e6254;margin-top:15px}
@@ -257,7 +257,7 @@ to{opacity:1}
 .install button{font-size:12px}
 .subpage{padding:30px 22px 60px}
 .pageHeading{padding-top:32px;padding-bottom:30px}
-.pageHeading::after{width:132px;height:132px;right:14px;top:14px}
+.pageHeading::after{width:78px;height:110px;right:26px;top:22px}
 .pageHeading h1{font-size:35px}
 .pageHeading>p:last-child{font-size:13px}
 .subnav{gap:5px 22px;margin-bottom:30px}
