@@ -1,5 +1,5 @@
 /* Public 주보: date bar (‹ date › · 지난 주보), contents + paper */
-.issueBar { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px auto; align-items: center; gap: 12px; margin: 0 0 36px; padding: 28px 0 22px; border-bottom: 1px solid #e3dbcd; }
+.issueBar { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; align-items: center; gap: 12px; margin: 0 0 36px; padding: 28px 0 22px; border-bottom: 1px solid #e3dbcd; }
 .issueTitle { display: flex; align-items: baseline; justify-content: center; gap: 10px; min-width: 0; text-align: center; }
 .issueTitle strong { font-family: var(--font-public-serif), serif; font-size: clamp(19px, 2.2vw, 26px); font-weight: 500; letter-spacing: -.02em; color: #2f2720; white-space: nowrap; }
 .issueTitle span { font-size: 13px; font-weight: 600; color: #8d6d2f; white-space: nowrap; }
@@ -7,10 +7,11 @@
 .step:hover:not(:disabled) { color: #8d6d2f; transform: translateX(2px); }
 .step:first-child:hover:not(:disabled) { transform: translateX(-2px); }
 .step:disabled { color: #d6ccb9; cursor: default; }
+.historyBar { display: flex; justify-content: center; margin-top: 48px; padding-top: 24px; border-top: 1px solid #e3dbcd; }
 .historyWrap { position: relative; }
 .historyToggle { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 0 2px; border: 0; border-bottom: 1px solid #b9a77f; border-radius: 0; background: transparent; color: #4a3f33; font: inherit; font-size: 14px; cursor: pointer; height: 30px; transition: color .15s, border-color .15s; }
 .historyToggle:hover, .historyToggle[aria-expanded=true] { color: #8d6d2f; border-bottom-color: #8d6d2f; }
-.historyPanel { position: absolute; right: 0; top: calc(100% + 8px); z-index: 30; width: 300px; max-height: min(420px, 70dvh); overflow-y: auto; padding: 10px; border: 1px solid #e3dbcd; border-radius: 12px; background: #fffdf8; box-shadow: 0 18px 50px #342b2522; }
+.historyPanel { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 8px); z-index: 30; width: 300px; max-height: min(420px, 70dvh); overflow-y: auto; padding: 10px; border: 1px solid #e3dbcd; border-radius: 12px; background: #fffdf8; box-shadow: 0 18px 50px #342b2522; }
 .historyPanel section + section { margin-top: 6px; }
 .historyPanel h3 { margin: 0; padding: 8px 10px 4px; font-size: 12px; font-weight: 600; color: #8d6d2f; }
 .historyPanel ul { margin: 0; padding: 0; list-style: none; }
@@ -54,7 +55,6 @@
   .issueTitle { flex-direction: column; align-items: center; gap: 2px; }
   .issueTitle strong { font-size: 19px; }
   .step { width: 36px; height: 36px; }
-  .historyWrap { grid-column: 1 / -1; justify-self: center; }
-  .historyPanel { right: auto; left: 50%; transform: translateX(-50%); width: min(320px, calc(100vw - 32px)); }
+  .historyPanel { width: min(320px, calc(100vw - 32px)); }
 }
-@media print { .contents, .issueBar, .paperFoot { display: none; } .reading { display: block; } .paper { border: 0; padding: 0; } }
+@media print { .contents, .issueBar, .historyBar, .paperFoot { display: none; } .reading { display: block; } .paper { border: 0; padding: 0; } }

@@ -107,15 +107,6 @@ export default function PublicBulletins({ initialDate }: { initialDate?: string 
       <button type="button" className={styles.step} aria-label="이전 주보" title="이전 주보" disabled={!bulletin || (!older && !nextCursor) || index < 0} onClick={() => void goOlder()}><SiteIcon name="arrow" size={18} style={{ transform: "scaleX(-1)" }} /></button>
       <div className={styles.issueTitle}>{bulletin ? <><strong>{longDate(bulletin.service_date)}</strong><span>{bulletin.issue_number}호</span></> : <strong>{failed ? "주보" : " "}</strong>}</div>
       <button type="button" className={styles.step} aria-label="다음 주보" title="다음 주보" disabled={!newer} onClick={() => newer && select(newer)}><SiteIcon name="arrow" size={18} /></button>
-      <div className={styles.historyWrap}>
-        <button ref={toggle} type="button" className={styles.historyToggle} aria-expanded={open} aria-controls="bulletin-history" onClick={() => setOpen(value => !value)}>지난 주보<SiteIcon name="chevron" size={16} style={{ transform: open ? "rotate(180deg)" : undefined }} /></button>
-        {open ? <div ref={panel} id="bulletin-history" className={styles.historyPanel} role="region" aria-label="지난 주보">
-          {historyFailed ? <div className={styles.historyState}><p>목록을 불러오지 못했습니다.</p><button type="button" onClick={() => setHistoryRetry(n => n + 1)}>다시 불러오기</button></div>
-            : !rows.length ? <p className={styles.historyState}>게시된 주보가 없습니다.</p>
-            : <>{months.map(group => <section key={group.label}><h3>{group.label}</h3><ul>{group.rows.map(row => <li key={row.id}><button type="button" aria-label={`${longDate(row.service_date)} · ${row.issue_number}호`} aria-current={bulletin?.id === row.id ? "true" : undefined} onClick={() => select(row)}><span>{monthDay(row.service_date)}</span><small>{row.issue_number}호</small></button></li>)}</ul></section>)}
-              {nextCursor ? <button type="button" className={styles.more} disabled={loadingMore} onClick={() => void loadMore()}>{loadingMore ? "불러오는 중…" : "더 보기"}</button> : null}</>}
-        </div> : null}
-      </div>
     </div>
     {message ? <p role="status" className={styles.message}>{message}</p> : null}
     {failed ? <button type="button" className={styles.retry} onClick={() => setRetry(value => value + 1)}>다시 불러오기</button> : null}
@@ -127,5 +118,16 @@ export default function PublicBulletins({ initialDate }: { initialDate?: string 
         <footer className={styles.paperFoot}><PublicPdfDownload key={bulletin.id} date={bulletin.service_date} /><a href="#public-content">맨 위로 ↑</a></footer>
       </section>
     </div> : null}
+    <div className={styles.historyBar}>
+      <div className={styles.historyWrap}>
+        <button ref={toggle} type="button" className={styles.historyToggle} aria-expanded={open} aria-controls="bulletin-history" onClick={() => setOpen(value => !value)}>지난 주보<SiteIcon name="chevron" size={16} style={{ transform: open ? "rotate(180deg)" : undefined }} /></button>
+        {open ? <div ref={panel} id="bulletin-history" className={styles.historyPanel} role="region" aria-label="지난 주보">
+          {historyFailed ? <div className={styles.historyState}><p>목록을 불러오지 못했습니다.</p><button type="button" onClick={() => setHistoryRetry(n => n + 1)}>다시 불러오기</button></div>
+            : !rows.length ? <p className={styles.historyState}>게시된 주보가 없습니다.</p>
+            : <>{months.map(group => <section key={group.label}><h3>{group.label}</h3><ul>{group.rows.map(row => <li key={row.id}><button type="button" aria-label={`${longDate(row.service_date)} · ${row.issue_number}호`} aria-current={bulletin?.id === row.id ? "true" : undefined} onClick={() => select(row)}><span>{monthDay(row.service_date)}</span><small>{row.issue_number}호</small></button></li>)}</ul></section>)}
+              {nextCursor ? <button type="button" className={styles.more} disabled={loadingMore} onClick={() => void loadMore()}>{loadingMore ? "불러오는 중…" : "더 보기"}</button> : null}</>}
+        </div> : null}
+      </div>
+    </div>
   </main>;
 }
