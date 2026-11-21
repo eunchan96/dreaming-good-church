@@ -20,8 +20,10 @@ export default function CommunityReader({kind}:{kind:"notice"|"event"}){
   },[kind,retry,calendarMonth]);
   return <main id="public-content" tabIndex={-1} className={site.subpage}>
     <header className={site.pageHeading}><p className={site.eyebrow}>LIFE TOGETHER</p><h1>{kind === "notice" ? "교회 소식" : "교회 일정"}</h1><p>{kind === "notice" ? "함께 알아두면 좋은 소식을 전합니다." : "예배와 모임의 시간, 장소를 확인하세요."}</p></header><NewsNavigation />
+    <div className={site.newsBody}>
     {message ? <div className={styles.state}><p role="status">{message}</p>{failed ? <button onClick={() => { setMessage("불러오고 있습니다…"); setFailed(false); setRetry(value => value + 1); }}>다시 불러오기</button> : null}</div> : null}
     {kind === "event" ? <EventCalendar events={rows} onMonthChange={month => { if (month !== calendarMonth) { setRows([]); setMessage("불러오고 있습니다…"); setCalendarMonth(month); } }}>{ids => renderRows(ids ? rows.filter(row => ids.has(row.id)) : rows)}</EventCalendar> : renderRows(rows)}
+    </div>
   </main>;
   function renderRows(entries: PublicEntry[]) { return <div className={styles.list}>{entries.map(row => <article className={styles.card} key={row.id}><h2>{row.title}</h2>
       {kind === "event" ? <dl className={styles.meta}><div><dt><SiteIcon name="clock" size={16}/><span>일시</span></dt><dd>{row.starts_at ? eventWhen(koreanInput(row.starts_at), row.ends_at ? koreanInput(row.ends_at) : null) : "시간 안내를 준비 중입니다."}</dd></div><div><dt><SiteIcon name="pin" size={16}/><span>장소</span></dt><dd>{row.location?.trim() || "장소 안내를 준비 중입니다."}</dd></div></dl> : null}

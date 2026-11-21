@@ -32,6 +32,7 @@
 
 .reading { display: grid; grid-template-columns: 180px minmax(0, 760px); justify-content: center; gap: 48px; align-items: start; }
 .contents { position: sticky; top: 104px; }
+.paper :global([id^="bulletin-section-"]) { scroll-margin-top: 108px; }
 .contents h2 { margin: 0 0 8px; font-size: 13px; font-weight: 600; letter-spacing: .04em; color: #8d6d2f; }
 .contents ul { margin: 0; padding: 0; list-style: none; }
 .contents a { display: block; padding: 9px 12px; border-left: 2px solid #ece5d8; color: #5d4930; font-size: 14px; text-decoration: none; }
@@ -45,6 +46,7 @@
 
 @media (max-width: 860px) {
   .reading { display: block; }
+  .paper :global([id^="bulletin-section-"]) { scroll-margin-top: 78px; }
   .issueBar { margin-bottom: 14px; }
   .contents { position: static; margin: 0 0 22px; }
   .contents h2 { display: none; }
@@ -61,3 +63,6 @@
   .historyPanel { width: min(320px, calc(100vw - 32px)); }
 }
 @media print { .contents, .issueBar, .historyBar, .paperFoot { display: none; } .reading { display: block; } .paper { border: 0; padding: 0; } }
+
+/* PDF(인쇄 미리보기 그대로): 화면 밖에 그려 두었다가 인쇄 대화상자를 연다 */
+@media screen { .printHost.printHost { inset: 0 auto auto -20000px; width: 297mm; height: auto; overflow: visible; pointer-events: none; z-index: -1; } }

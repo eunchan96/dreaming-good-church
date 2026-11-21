@@ -48,10 +48,10 @@ test("publish and withdraw expose only reviewed public content in API and reader
     expect(shareHtml).not.toContain("숨겨진 제목");
     await reader.goto("/bulletins/2094-11-07");
     await expect(reader.getByText("성도에게 보여줄 내용", { exact: true })).toBeVisible();
-    const download = reader.waitForEvent("download");
+    // 화면의 PDF 버튼은 인쇄 미리보기와 같은 시트로 인쇄(PDF로 저장) 창을 연다.
+    await reader.evaluate(() => { (window as unknown as { __printed: number }).__printed = 0; window.print = () => { (window as unknown as { __printed: number }).__printed++; }; });
     await reader.getByRole("button", { name: "PDF로 내려받기", exact: true }).click();
-    const file = await download;
-    expect(file.suggestedFilename()).toBe("bulletin-2094-11-07.pdf");
+    await expect.poll(() => reader.evaluate(() => (window as unknown as { __printed: number }).__printed)).toBe(1);
     const pdf = await reader.request.get("/api/bulletins/pdf?date=2094-11-07");
     expect(pdf.status()).toBe(200);
     expect(pdf.headers()["content-type"]).toBe("application/pdf");
@@ -60,10 +60,6 @@ test("publish and withdraw expose only reviewed public content in API and reader
     expect((await PDFDocument.load(bytes)).getPageCount()).toBeGreaterThan(0);
     await mkdir(".local", { recursive: true });
     await writeFile(".local/public-bulletin.pdf", bytes);
-    await reader.route("**/api/bulletins/pdf?*", route => route.fulfill({ status: 503, json: { error: "PDF를 만들지 못했습니다. 다시 시도해 주세요." } }), { times: 1 });
-    await reader.getByRole("button", { name: "PDF로 내려받기", exact: true }).click();
-    await expect(reader.getByText("PDF를 만들지 못했습니다. 다시 시도해 주세요.", { exact: true })).toBeVisible();
-    await expect(reader.getByRole("button", { name: "PDF로 내려받기", exact: true })).toBeEnabled();
     await reader.goto("/bulletins");
     await reader.getByRole("button", { name: "지난 주보", exact: true }).click();
     await reader.getByRole("region", { name: "지난 주보" }).getByRole("button", { name: /^2094년 11월 7일 .* · 1호$/ }).click();

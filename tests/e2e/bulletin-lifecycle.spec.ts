@@ -74,9 +74,9 @@ test("one bulletin travels from published source through copy, print, public PDF
       await expect(reader.getByText("인쇄 전용 안내", { exact: true })).toHaveCount(0);
       const payload = await reader.request.get("/api/bulletins?date=2086-11-10");
       expect(await payload.text()).not.toContain("비공개");
-      const download = reader.waitForEvent("download");
+      await reader.evaluate(() => { (window as unknown as { __printed: number }).__printed = 0; window.print = () => { (window as unknown as { __printed: number }).__printed++; }; });
       await reader.getByRole("button", { name: "PDF로 내려받기", exact: true }).click();
-      expect((await download).suggestedFilename()).toBe("bulletin-2086-11-10.pdf");
+      await expect.poll(() => reader.evaluate(() => (window as unknown as { __printed: number }).__printed)).toBe(1);
     });
     await test.step("withdrawal removes the public page and blocks new PDF access without changing the source", async () => {
       page.once("dialog", dialog => dialog.accept());

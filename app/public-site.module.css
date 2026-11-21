@@ -368,7 +368,7 @@ to{opacity:1}
 @media (prefers-reduced-motion:reduce){.heroFootnote>a svg,.textLink svg,.videoCaption>a svg,.youtubeLink svg,.footerYoutube svg{transition:none;translate:none!important;scale:none!important}}
 
 /* 예배 page: the 교회 소개 column width, this week's passage above the video. */
-.worshipBody{max-width:1040px;margin:0 auto}
+.worshipBody,.newsBody{max-width:1040px;margin:0 auto}
 .worshipBody>.worshipTimes{margin-top:56px}
 .worshipHead{display:flex;justify-content:space-between;align-items:center;gap:8px 24px;margin-bottom:10px}
 .worshipHead>h2{margin:0}

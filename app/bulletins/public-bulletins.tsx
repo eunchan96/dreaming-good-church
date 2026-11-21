@@ -18,7 +18,7 @@ export default function PublicBulletins({ initialDate }: { initialDate?: string 
   const [rows, setRows] = useState<Summary[]>([]), [nextCursor, setNextCursor] = useState<string | null>(null);
   const [historyFailed, setHistoryFailed] = useState(false), [historyRetry, setHistoryRetry] = useState(0), [loadingMore, setLoadingMore] = useState(false);
   const [id, setId] = useState<string | null>(null);
-  const [bulletin, setBulletin] = useState<(Summary & { items: PublicItem[]; formats?: PrintFormats }) | null>(null);
+  const [bulletin, setBulletin] = useState<(Summary & { items: PublicItem[]; printItems: BulletinItem[]; formats?: PrintFormats }) | null>(null);
   const [message, setMessage] = useState("주보를 불러오고 있습니다…"), [failed, setFailed] = useState(false), [retry, setRetry] = useState(0);
   const [open, setOpen] = useState(false);
   const panel = useRef<HTMLDivElement>(null), toggle = useRef<HTMLButtonElement>(null);
@@ -67,7 +67,7 @@ export default function PublicBulletins({ initialDate }: { initialDate?: string 
         const content = await detail.json();
         if (controller.signal.aborted || currentRequest !== requestNumber) return;
         if (!detail.ok) throw new Error(content.error);
-        setBulletin({...content,items:presentationItems<PublicItem>(content.items).filter(item=>!printOnlyItem(item))}); setMessage(""); setFailed(false);
+        setBulletin({...content,items:presentationItems<PublicItem>(content.items).filter(item=>!printOnlyItem(item)),printItems:presentationItems<PublicItem>(content.items).map(item=>({webVisible:true,reviewOnCopy:false,needsReview:false,printPage:null,...item}) as BulletinItem)}); setMessage(""); setFailed(false);
       } catch (error) {
         if (controller.signal.aborted || currentRequest !== requestNumber) return;
         setBulletin(null); setFailed(true); setMessage(error instanceof Error ? error.message : "주보를 불러오지 못했습니다.");
@@ -98,7 +98,16 @@ export default function PublicBulletins({ initialDate }: { initialDate?: string 
   function jump(event: React.MouseEvent<HTMLAnchorElement>, section: number) {
     const target = document.getElementById(`bulletin-section-${section}`); if (!target) return;
     event.preventDefault();
-    target.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    target.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    // 사진·글꼴이 늦게 불러와 자리가 밀렸을 때, 이동이 끝난 뒤 한 번 더 맞춘다.
+    const settle = () => {
+      const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+      if (Math.abs(target.getBoundingClientRect().top - margin) > 4 && window.innerHeight + window.scrollY < document.documentElement.scrollHeight - 4) target.scrollIntoView({ behavior: "auto", block: "start" });
+    };
+    let done = false;
+    const finish = () => { if (done) return; done = true; window.removeEventListener("scrollend", finish); settle(); };
+    window.addEventListener("scrollend", finish); window.setTimeout(finish, reduce ? 50 : 1200);
   }
   const index = bulletin ? rows.findIndex(row => row.id === bulletin.id) : -1;
   const newer = index > 0 ? rows[index - 1] : null;
@@ -120,6 +129,7 @@ export default function PublicBulletins({ initialDate }: { initialDate?: string 
 
   return <main id="public-content" tabIndex={-1} className={site.subpage}>
     <header className={site.pageHeading}><p className={site.eyebrow}>WEEKLY BULLETIN</p><h1>주일 주보</h1><p>말씀과 예배 순서, 이번 주 교회 소식을 만나보세요.</p></header><NewsNavigation />
+    <div className={site.newsBody}>
     <div className={styles.issueBar}>
       <button type="button" className={styles.step} aria-label="이전 주보" title="이전 주보" disabled={!bulletin || (!older && !nextCursor) || index < 0} onClick={() => void goOlder()}><SiteIcon name="arrow" size={18} style={{ transform: "scaleX(-1)" }} /></button>
       <div className={styles.issueTitle}>{bulletin ? <><strong>{longDate(bulletin.service_date)}</strong></> : <strong>{failed ? "주보" : " "}</strong>}</div>
@@ -132,9 +142,10 @@ export default function PublicBulletins({ initialDate }: { initialDate?: string 
       <section className={styles.paper} aria-label={`${longDate(bulletin.service_date)} ${bulletin.issue_number}호 주보`}>
         {!bulletin.items.length ? <p>웹에 공개된 주보 항목이 없습니다.</p> : null}
         {bulletin.items.length ? <PrintEditorProvider key={`${bulletin.id}:${JSON.stringify(bulletin.formats ?? {})}`} bulletinId={bulletin.id} editable={false} plain webFormats initialFormats={bulletin.formats ?? {}} onReplace={() => {}}><PaperView items={bulletin.items.map(item => ({ webVisible: true, reviewOnCopy: false, needsReview: false, printPage: null, ...item }) as BulletinItem)} meta={{ serviceDate: bulletin.service_date, issueNumber: bulletin.issue_number }} sectionIdPrefix="bulletin-section" addSchedule/></PrintEditorProvider> : null}
-        <footer className={styles.paperFoot}><PublicPdfDownload key={bulletin.id} date={bulletin.service_date} /><div className={styles.historyBar}>{historyControl}</div></footer>
+        <footer className={styles.paperFoot}><PublicPdfDownload key={bulletin.id} bulletin={bulletin} /><div className={styles.historyBar}>{historyControl}</div></footer>
       </section>
     </div> : null}
     {!bulletin ? <div className={styles.historyBar}>{historyControl}</div> : null}
+    </div>
   </main>;
 }
