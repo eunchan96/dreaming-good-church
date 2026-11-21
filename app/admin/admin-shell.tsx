@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { rememberSignedIn, useRememberedSignIn } from './admin-session';
+import AdminInvitation from './admin-invitation';
 import { ChurchBrand } from '../public-shell';
 import SiteIcon from '../site-icon';
 import styles from './admin-shell.module.css';
@@ -56,7 +57,6 @@ export default function AdminShell({ children, intro, active, authenticated = fa
       </nav> : null}
       <div className={styles.headerActions}>
         <a href={publicPaths[active] ?? '/'} target="_blank" rel="noreferrer" aria-label="공개 화면 확인"><span>공개 화면 확인</span><SiteIcon name="diagonal" size={14} /></a>
-        {onLogout ? <button type="button" onClick={() => void onLogout()} disabled={busy}>로그아웃</button> : null}
         {signedIn ? <button type="button" ref={menuButton} className={styles.menuToggle} aria-label={menu ? '관리 메뉴 닫기' : '관리 메뉴 열기'} aria-controls="admin-navigation" aria-expanded={menu} onClick={() => setMenu(!menu)}><SiteIcon name={menu ? 'close' : 'menu'} size={24} /></button> : null}
       </div>
     </div></header>
@@ -76,5 +76,16 @@ export default function AdminShell({ children, intro, active, authenticated = fa
       </aside> : null}
       <div className={styles.content}>{children}</div>
     </div>
+    {authenticated || onLogout ? <footer className={styles.footer} aria-label="관리자 계정">
+      <div className={styles.footerInner}>
+        <a href="/" target="_blank" rel="noreferrer" className={styles.footerBrand}>
+          <ChurchBrand /><span className={styles.srOnly}> 홈페이지 새 탭에서 열기</span>
+        </a>
+        <div className={styles.footerActions}>
+          {authenticated ? <AdminInvitation disabled={busy} /> : null}
+          {onLogout ? <button type="button" onClick={() => void onLogout()} disabled={busy}>로그아웃</button> : null}
+        </div>
+      </div>
+    </footer> : null}
   </div>;
 }

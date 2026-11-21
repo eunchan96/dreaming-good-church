@@ -6,4 +6,6 @@ $env:NEXT_PUBLIC_SUPABASE_URL = $localStatus.API_URL
 $env:NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = $localStatus.PUBLISHABLE_KEY
 $env:SUPABASE_SERVICE_ROLE_KEY = $localStatus.SERVICE_ROLE_KEY
 $env:CHURCH_TEST_SERVER = '1'
+# Local only: editors with an @inviter.test e-mail may invite (used by the e2e tests). Ignored on hosted Supabase.
+$env:ADMIN_INVITER_TEST_DOMAIN = 'inviter.test'
 node node_modules/next/dist/bin/next dev --port 3001

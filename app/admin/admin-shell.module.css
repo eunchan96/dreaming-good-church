@@ -10,6 +10,9 @@
   --soft: #f3efe6;
   --header-h: 84px;
   min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
   background: var(--bg);
   color: var(--ink);
   font: 400 15px/1.65 var(--font-public-sans), 'Malgun Gothic', sans-serif;
@@ -35,7 +38,7 @@
 .badge { align-self: center; margin-left: 4px; font-size: 11px; font-weight: 600; color: #6f5420; background: #f3ead6; border-radius: 999px; padding: 2px 9px; line-height: 1.6; }
 
 .managementNav { display: flex; align-items: stretch; justify-content: center; gap: 4px; flex: 1; height: 100%; }
-.managementNav a {
+.managementNav > a {
   position: relative; display: flex; align-items: center;
   padding: 0 14px; font-size: 15px; font-weight: 600; white-space: nowrap; color: var(--ink);
 }
@@ -46,14 +49,11 @@
 .headerActions { display: flex; align-items: center; gap: 16px; flex-shrink: 0; margin-left: auto; }
 .headerActions > a { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); min-height: 40px; }
 .headerActions > a:hover { color: var(--ink); }
-.headerActions > button { min-height: 38px; padding: 0 16px; border: 1px solid #d8cebb; border-radius: 999px; background: transparent; color: var(--ink); font-size: 13px; }
-.headerActions > button:hover:not(:disabled) { background: var(--soft); }
-.headerActions > button:disabled { opacity: .5; cursor: not-allowed; }
 .headerActions .menuToggle { display: none; }
 
 /* Page title + tabs — like the public sub pages */
-.titleBar { max-width: 1440px; margin: 0 auto; padding: 32px 40px 0; }
-.tabs { max-width: 1440px; margin: 0 auto; padding: 0 40px; display: flex; gap: 32px; flex-wrap: wrap; position: relative; }
+.titleBar { width: 100%; max-width: 1440px; margin: 0 auto; padding: 32px 40px 0; }
+.tabs { width: 100%; max-width: 1440px; margin: 0 auto; padding: 0 40px; display: flex; gap: 32px; flex-wrap: wrap; position: relative; }
 .tabs::after { content: ''; position: absolute; left: 40px; right: 40px; bottom: 0; border-bottom: 1px solid var(--line); }
 .tabItem { position: relative; display: flex; }
 .tabs .tabItem > button { position: relative; z-index: 1; min-height: 56px; padding: 0; border: 0; background: transparent; font-size: 15px; color: var(--muted); }
@@ -63,7 +63,7 @@
 .tabs .tabItem > button:disabled { cursor: not-allowed; }
 
 /* Layout */
-.layout { max-width: 1440px; margin: 0 auto; min-height: calc(100vh - var(--header-h)); }
+.layout { flex: 1; width: 100%; max-width: 1440px; margin: 0 auto; }
 .layout[data-sidebar=true] { display: grid; grid-template-columns: 220px minmax(0, 1fr); }
 .content { min-width: 0; }
 
@@ -75,19 +75,39 @@
 .desktopContents a[data-child] { margin-left: 2px; padding-left: 12px; border-left: 1px solid var(--line); border-radius: 0 6px 6px 0; font-size: 12.5px; }
 .desktopContents a:hover { background: var(--soft); color: var(--ink); }
 
+.footer { background: #302a24; color: #e6dfd2; padding-bottom: env(safe-area-inset-bottom); }
+.footerInner {
+  max-width: 1440px; margin: 0 auto; padding: 0 40px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; column-gap: 12px;
+}
+.footerBrand { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: inherit; }
+.footerBrand img { width: 22px; height: 22px; }
+.footerBrand > span { flex-direction: row; align-items: baseline; gap: 2px; }
+.footerBrand > span > span { font-size: 11px; letter-spacing: 0; margin: 0; }
+.footerBrand > span > strong { font-size: 13px; }
+.footerBrand:hover { color: #edcd72; }
+.footerActions { display: flex; flex-wrap: wrap; align-items: center; gap: 0 22px; }
+.footerActions > button {
+  min-height: 44px; padding: 0; border: 0;
+  background: transparent; color: #b0a18a; font-size: 12px; white-space: nowrap; cursor: pointer; transition: color .2s;
+}
+.footerActions > button:hover:not(:disabled) { color: #edcd72; }
+.footerActions > button:disabled { opacity: .5; cursor: not-allowed; }
+.footer :is(.footerBrand, .footerActions > button):focus-visible { outline-color: #f6d98b; outline-offset: -2px; }
+
 
 /* Tablet & mobile */
 @media (max-width: 1100px) {
   .shell { --header-h: 72px; }
   .headerInner { padding: 0 20px; gap: 12px; }
-  .headerActions .menuToggle { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; background: transparent; }
+  .headerActions .menuToggle { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 0; background: transparent; color: var(--ink); }
   .managementNav {
     display: none; position: absolute; top: 100%; left: 0; right: 0; height: auto;
     flex-direction: column; align-items: stretch; gap: 0; padding: 8px 20px 16px;
     background: var(--bg); border-bottom: 1px solid var(--line); box-shadow: 0 12px 24px #342b2512;
   }
   .managementNav[data-open=true] { display: flex; }
-  .managementNav a { min-height: 50px; padding: 0 4px; font-size: 16px; border-bottom: 1px solid var(--line); }
+  .managementNav > a { min-height: 50px; padding: 0 4px; font-size: 16px; border-bottom: 1px solid var(--line); }
   .managementNav a::after { display: none; }
   .titleBar { padding: 24px 20px 0; }
   .tabs { padding: 0 20px; gap: 22px; flex-wrap: wrap; }
@@ -96,6 +116,7 @@
 .tabs .tabItem > button { min-height: 50px; font-size: 14px; white-space: nowrap; }
 
   .layout[data-sidebar=true] { display: block; }
+  .footerInner { padding-inline: 20px; }
   .sidebar { display: none; }
   .desktopContents { display: none !important; }
 }
@@ -111,9 +132,9 @@
 @media (prefers-reduced-motion: reduce) { .shell * { transition: none !important; } }
 
 @media print {
-  .header, .sidebar, .skip, .tabs { display: none; }
+  .header, .sidebar, .skip, .tabs, .footer { display: none; }
   .layout, .layout[data-sidebar=true] { display: block; }
-  .shell { background: white; }
+  .shell { display: block; background: white; }
 }
 
 /* Quick-jump dropdown under the active tab (narrow screens only) */
@@ -134,3 +155,4 @@
 }
 @media (hover: none) { .tabItem[data-menu=true]:hover > .tocMenu { display: none; } .tabItem[data-open=true] > .tocMenu { display: block; } }
 
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
