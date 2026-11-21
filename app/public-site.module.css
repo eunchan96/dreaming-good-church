@@ -284,8 +284,41 @@ to{opacity:1}
 .site{background:white}
 .heroArtwork{display:none}
 }
-.videoCollection{padding:24px 0 36px;border-bottom:1px solid var(--line);min-width:0}.videoCollectionHeading{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.videoCollectionHeading h3{font-size:17px;font-weight:500}.videoCollectionHeading button{width:44px;height:44px;border:1px solid var(--line);background:transparent;margin-left:8px;display:inline-grid;place-items:center}.videoCollectionHeading button:first-child svg{transform:rotate(180deg)}.videoStrip{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x proximity;padding:4px 4px 20px;overscroll-behavior-x:contain}.videoChoice{flex:0 0 240px;min-width:0;border:1px solid transparent;background:transparent;text-align:left;padding:8px;scroll-snap-align:start;color:var(--ink)}.videoChoice[aria-pressed=true]{border-color:#9b7a38;background:#f2ecdf}.videoChoice img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;background:#e9e1d0}.videoChoice span{display:block;font-size:11px;color:#715b36;margin:12px 0 6px}.videoChoice strong{display:block;font-size:14px;font-weight:500;overflow-wrap:anywhere}.moreVideos{margin-top:20px;padding:12px 24px;border:1px solid var(--line);background:transparent;min-height:44px}.videoEmpty{padding:40px 0;border-block:1px solid var(--line)}.videoEmpty a{display:flex;gap:12px;align-items:center;font-size:13px;min-height:44px}@media(max-width:540px){.videoChoice{flex-basis:210px}.videoStrip{gap:12px}}
-.videoEmpty{padding:40px 0;border-block:1px solid var(--line)}.videoEmpty a{display:flex;gap:12px;align-items:center;font-size:13px;min-height:44px}@media(max-width:540px){.videoChoice{flex-basis:210px}.videoStrip{gap:12px}}
+.videoCollection{--thumb:240px;padding:24px 0 36px;border-bottom:1px solid var(--line);min-width:0}
+.videoCollectionHeading{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.videoCollectionHeading h3{font-size:17px;font-weight:500}
+/* Arrows: plain icons like the site's text links, shown only when the list is wider than the screen. */
+.stripArrows{display:flex;gap:4px}
+.stripArrows button{width:44px;height:44px;display:inline-grid;place-items:center;border:0;background:transparent;color:var(--ink);cursor:pointer;transition:color .2s,transform .2s,opacity .2s}
+.stripArrows button:first-child svg{transform:rotate(180deg)}
+.stripArrows button:hover:not(:disabled){color:#8b713f}
+.stripArrows button:first-child:hover:not(:disabled){transform:translateX(-3px)}
+.stripArrows button:last-child:hover:not(:disabled){transform:translateX(3px)}
+.stripArrows button:disabled{opacity:.25;cursor:default}
+.videoStrip{display:flex;align-items:flex-start;gap:24px;overflow-x:auto;scroll-snap-type:x proximity;padding:6px 2px 18px;overscroll-behavior-x:contain}
+/* Each card keeps thumbnail on top and title right under it, whatever the title length. */
+.videoChoice{flex:0 0 var(--thumb);display:flex;flex-direction:column;justify-content:flex-start;min-width:0;padding:0;border:0;background:transparent;text-align:left;scroll-snap-align:start;color:var(--ink);cursor:pointer}
+.videoThumb{position:relative;display:block;overflow:hidden;background:#e9e1d0}
+.videoThumb img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;transition:transform .35s ease}
+.videoThumb::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:#b38b2e;transform:scaleX(0);transform-origin:left;transition:transform .3s ease}
+.videoChoice>span:not(.videoThumb){display:block;font-size:11px;color:#715b36;margin:12px 0 6px}
+.videoChoice strong{display:block;font-size:14px;font-weight:500;line-height:1.5;overflow-wrap:anywhere;transition:color .2s}
+.videoChoice:hover .videoThumb img{transform:scale(1.05)}
+.videoChoice:hover strong{color:#75592a}
+/* The playing video: gold bar under the thumbnail, a small 재생 중 tag on it, gold title. */
+.videoChoice[aria-pressed=true] .videoThumb::after{transform:scaleX(1)}
+.videoChoice[aria-pressed=true] strong{color:#75592a;font-weight:600}
+.nowPlaying{position:absolute;left:8px;top:8px;z-index:1;display:inline-flex;align-items:center;gap:6px;padding:3px 9px 3px 7px;border-radius:999px;background:rgba(36,30,24,.82);color:#fff;font-size:11px;font-weight:600;letter-spacing:.02em}
+.nowPlaying::before{content:'';width:0;height:0;border-left:6px solid #edcd72;border-top:4px solid transparent;border-bottom:4px solid transparent}
+/* 이전 영상 더 보기 sits at the end of the row, centred on the thumbnails. */
+.moreSlot{flex:0 0 auto;display:flex;align-items:center;height:calc(var(--thumb) * 9 / 16);padding:0 8px 0 4px}
+.moreVideos{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:10px 0;border:0;border-bottom:1px solid #c6bba8;background:transparent;color:var(--ink);font-size:13px;white-space:nowrap;cursor:pointer;transition:color .2s,border-color .2s}
+.moreVideos svg{transition:transform .2s}
+.moreVideos:hover:not([aria-disabled=true]){color:#8b713f;border-color:#8b713f}
+.moreVideos:hover:not([aria-disabled=true]) svg{transform:translateX(3px)}
+.moreVideos[aria-disabled=true]{color:#8a7d6a;cursor:progress}
+@media(max-width:540px){.videoCollection{--thumb:210px}.videoStrip{gap:16px}}
+@media (prefers-reduced-motion:reduce){.videoThumb img,.videoThumb::after,.stripArrows button,.moreVideos svg{transition:none}.videoChoice:hover .videoThumb img{transform:none}}
+.videoEmpty{padding:40px 0;border-block:1px solid var(--line)}.videoEmpty a{display:flex;gap:12px;align-items:center;font-size:13px;min-height:44px}
 .managedHeroTitle>span,.managedHeroTitle>em{display:block;white-space:nowrap}.heroCopy{min-width:0}.heroMedia{width:min(100%,440px);aspect-ratio:4/5;max-height:510px;position:relative;justify-self:end;overflow:hidden;border-radius:180px 180px 8px 8px;background:#ece5d7}.heroMedia[data-ratio=square]{aspect-ratio:1;border-radius:100px 8px 8px 8px}.heroMedia[data-ratio=landscape]{aspect-ratio:4/3;border-radius:80px 8px 8px 8px}.heroMedia[data-mode=illustration]{background:transparent;border-radius:0}.heroMedia>img{width:100%;height:100%;position:absolute;inset:0}.heroMedia>p{padding:40px;font-size:13px}@media(max-width:760px){.heroMedia{width:min(100%,300px);margin:20px auto 0;justify-self:center;max-height:none}}
 .hero .heroLink{max-width:100%;overflow-wrap:anywhere;word-break:normal}.heroLink>span{flex-shrink:0}
 
@@ -337,7 +370,8 @@ to{opacity:1}
 /* 예배 page: the 교회 소개 column width, this week's passage above the video. */
 .worshipBody{max-width:1040px;margin:0 auto}
 .worshipBody>.worshipTimes{margin-top:56px}
-.weeklyPassage{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin:0 0 18px;font-size:15px;color:var(--ink)}
+.worshipHead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px 24px;margin-bottom:18px}
+.worshipHead>h2{margin:0}
+.weeklyPassage{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:baseline;gap:4px 14px;margin:0 0 0 auto;font-size:15px;color:var(--ink);text-align:right}
 .weeklyPassage b{font-size:11px;font-weight:600;letter-spacing:.08em;color:#80642f}
 .srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-.worshipBody>h2{margin-bottom:12px}

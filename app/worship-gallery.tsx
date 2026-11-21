@@ -10,7 +10,14 @@ type Legacy={id:string;title:string;source:string};
 export default function WorshipGallery({type,compact}:{type:WorshipType;compact:boolean}){
  const [rows,setRows]=useState<PublicWorshipEntry[]>([]),[selected,setSelected]=useState<PublicWorshipEntry|null>(null);
  const [fallback,setFallback]=useState<Legacy|null>(null),[next,setNext]=useState<Cursor>(null),[loading,setLoading]=useState(true),[failed,setFailed]=useState(false),[retry,setRetry]=useState(0);
- const strip=useRef<HTMLDivElement>(null),request=useRef<AbortController|null>(null);
+ const strip=useRef<HTMLDivElement>(null),request=useRef<AbortController|null>(null),[edges,setEdges]=useState({start:true,end:true});
+ // Tracks whether the row can scroll each way; arrows are hidden when everything already fits.
+ useEffect(()=>{const el=strip.current;if(!el)return;
+  const update=()=>setEdges({start:el.scrollLeft<=2,end:el.scrollLeft+el.clientWidth>=el.scrollWidth-2});
+  update();el.addEventListener('scroll',update,{passive:true});const observer=new ResizeObserver(update);observer.observe(el);for(const child of el.children)observer.observe(child);
+  return()=>{el.removeEventListener('scroll',update);observer.disconnect();};
+ },[rows,next,compact]);
+ const move=(dir:number)=>{const el=strip.current;if(!el)return;el.scrollBy({left:dir*Math.max(240,el.clientWidth*.8),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});};
  useEffect(()=>{const controller=new AbortController();request.current=controller;
   async function load(){setLoading(true);setFailed(false);try{
    const r=await fetch(`/api/worship/videos?type=${type}`,{signal:controller.signal,cache:'no-store'});if(!r.ok)throw new Error();
@@ -31,10 +38,10 @@ export default function WorshipGallery({type,compact}:{type:WorshipType;compact:
  const worship=worshipTypes.find(w=>w.key===type)!,id=selected?.video_id??fallback?.id,title=selected?.title??fallback?.title;
  return <div className={styles.videoBlock}>
   {id?<><div className={styles.videoFrame}><iframe key={id} src={`https://www.youtube-nocookie.com/embed/${id}?rel=0`} title={`${worship.name} 영상`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin"/></div><div className={styles.videoCaption} data-compact={compact||undefined}><div>{compact?null:<p>{selected?`${selected.service_date} · ${worship.name}`:fallback?.source==='verified'?'최근 확인한 주일 말씀':'최근 주일 말씀'}</p>}<h3>{title}</h3></div><a href={`https://www.youtube.com/watch?v=${id}`} target="_blank" rel="noreferrer" aria-label={`${worship.name} YouTube에서 보기`}>{compact?'YouTube':'YouTube에서 보기'}<SiteIcon name="diagonal" size={17}/></a></div></>:null}
-  {!compact&&rows.length>0?<section className={styles.videoCollection} aria-label={`${worship.name} 영상 목록`}><div className={styles.videoCollectionHeading}><h3>함께 나눈 말씀</h3><div><button aria-label="이전 영상 쪽으로 이동" onClick={()=>strip.current?.scrollBy({left:-480,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})}><SiteIcon/></button><button aria-label="다음 영상 쪽으로 이동" onClick={()=>strip.current?.scrollBy({left:480,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})}><SiteIcon/></button></div></div><div ref={strip} className={styles.videoStrip}>{rows.map(row=><button key={row.id} aria-pressed={selected?.id===row.id} onClick={()=>setSelected(row)} className={styles.videoChoice}>
+  {!compact&&rows.length>0?<section className={styles.videoCollection} aria-label={`${worship.name} 영상 목록`}><div className={styles.videoCollectionHeading}><h3>함께 나눈 말씀</h3>{edges.start&&edges.end?null:<div className={styles.stripArrows}><button aria-label="이전 영상 쪽으로 이동" disabled={edges.start} onClick={()=>move(-1)}><SiteIcon/></button><button aria-label="다음 영상 쪽으로 이동" disabled={edges.end} onClick={()=>move(1)}><SiteIcon/></button></div>}</div><div ref={strip} className={styles.videoStrip}>{rows.map(row=>{const playing=selected?.id===row.id;return <button key={row.id} aria-pressed={playing} onClick={()=>setSelected(row)} className={styles.videoChoice}>
    {/* Fixed-host thumbnails; playback uses the direct iframe. */}
    {/* eslint-disable-next-line @next/next/no-img-element */}
-   <img src={`https://i.ytimg.com/vi/${row.video_id}/mqdefault.jpg`} alt="" loading="lazy" width={320} height={180}/><span>{row.service_date}{row.featured?' · 대표':''}</span><strong>{row.title}</strong></button>)}</div>{next?<button className={styles.moreVideos} disabled={loading} onClick={()=>void more()}>{loading?'불러오는 중…':'이전 영상 더 보기'}</button>:null}</section>:null}
+   <span className={styles.videoThumb}><img src={`https://i.ytimg.com/vi/${row.video_id}/mqdefault.jpg`} alt="" loading="lazy" width={320} height={180}/>{playing?<span className={styles.nowPlaying}>재생 중</span>:null}</span><span>{row.service_date}{row.featured?' · 대표':''}</span><strong>{row.title}</strong></button>;})}{next?<div className={styles.moreSlot}><button className={styles.moreVideos} aria-disabled={loading||undefined} onClick={()=>{if(!loading)void more();}}>{loading?'불러오는 중…':'이전 영상 더 보기'}<SiteIcon size={15}/></button></div>:null}</div></section>:null}
   {failed?<div className={styles.unconfirmed}><p role="status">예배 영상을 불러오지 못했습니다.</p><button disabled={loading} onClick={()=>{if(rows.length&&next)void more();else setRetry(n=>n+1);}}>다시 불러오기</button></div>:loading&&!id?<p role="status">예배 영상을 불러오고 있습니다.</p>:!id?<div className={styles.videoEmpty}><p>등록된 {worship.name} 영상을 준비하고 있습니다.</p><a href={YOUTUBE_CHANNEL} target="_blank" rel="noreferrer">교회 YouTube 채널에서 보기<SiteIcon name="diagonal" size={16}/></a></div>:null}
  </div>;
 }
