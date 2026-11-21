@@ -9,6 +9,7 @@ import bar from '../bulletins/reader.module.css';
 
 type Entry = { id: string; title: string; body: string; content: { reference?: string } | null };
 type Week = { serviceDate: string; issueNumber: number; reference: string };
+const squash = (value: string) => value.replace(/\s+/g, '').toLowerCase();
 type Data = { dates: Week[]; items: Entry[]; serviceDate: string | null; issueNumber: number | null };
 
 /** 토라&토브 by week: ‹ 26-45주차 (11/9~11/14) › and a searchable list of other weeks at the bottom. */
@@ -58,34 +59,40 @@ export default function TorahReader() {
         {item.body.trim() ? <blockquote>{item.body}</blockquote> : null}
       </article>)}</div> : <p className={css.empty}>이 주차에는 토라&amp;토브가 없습니다.</p>}
       <div className={css.footRow}>
-        <button ref={toggle} type="button" className={css.findToggle} onClick={openFinder}>다른 주차 찾기<SiteIcon name="chevron" size={16} /></button>
+        <button ref={toggle} type="button" className={css.findToggle} onClick={openFinder}>다른 주차 찾기<SiteIcon name="calendar" size={15} /></button>
         {current ? <Link className={css.more} href={`/bulletins/${current}`}>이 주보 전체 보기<SiteIcon size={16} /></Link> : null}
       </div>
     </section>
     <dialog ref={dialog} className={css.finder} aria-label="주차 선택" onClick={event => { if (event.target === dialog.current) dialog.current?.close(); }} onClose={() => { setPeek(null); toggle.current?.focus(); }}>
-      {year !== null ? <FinderBody year={year} years={years} weeks={byYear.get(year) ?? new Map()} current={current} peek={peek} onPeek={setPeek} onYear={setYear} onPick={date => choose(date, true)} onClose={() => dialog.current?.close()} /> : null}
+      {year !== null ? <FinderBody all={data.dates} year={year} years={years} weeks={byYear.get(year) ?? new Map()} current={current} peek={peek} onPeek={setPeek} onYear={setYear} onPick={date => choose(date, true)} onClose={() => dialog.current?.close()} /> : null}
     </dialog>
   </div>;
 }
 
 /** 한 해를 8×7 칸으로: 1주차부터 52(53)주차, 주보가 있는 주차만 누를 수 있다. */
-function FinderBody({ year, years, weeks, current, peek, onPeek, onYear, onPick, onClose }: { year: number; years: number[]; weeks: Map<number, Week>; current: string | null; peek: string | null; onPeek: (value: string | null) => void; onYear: (year: number) => void; onPick: (date: string) => void; onClose: () => void }) {
+function FinderBody({ all, year, years, weeks, current, peek, onPeek, onYear, onPick, onClose }: { all: Week[]; year: number; years: number[]; weeks: Map<number, Week>; current: string | null; peek: string | null; onPeek: (value: string | null) => void; onYear: (year: number) => void; onPick: (date: string) => void; onClose: () => void }) {
   const total = weeksInYear(year), shown = (peek && [...weeks.values()].find(row => row.serviceDate === peek)) || null;
   const older = years[years.indexOf(year) + 1], newer = years[years.indexOf(year) - 1];
+  const [query, setQuery] = useState('');
+  const needle = squash(query).replace(/주차$/, '');
+  // 검색: 주차(26-45)·날짜(11/9)·성경 본문(시편)으로, 모든 해에서 찾는다.
+  const found = needle ? all.map(row => ({ row, info: torahWeek(row.serviceDate) })).filter(({ row, info }) => squash(`${info.label} ${info.range} ${row.reference} ${row.serviceDate}`).includes(needle)) : [];
   return <div className={css.finderBody}>
     <div className={css.finderHead}>
       <button type="button" className={bar.step} aria-label="이전 해" disabled={!older} onClick={() => older && onYear(older)}><SiteIcon name="arrow" size={18} style={{ transform: 'scaleX(-1)' }} /></button>
       <strong>{year}년</strong>
       <button type="button" className={bar.step} aria-label="다음 해" disabled={!newer} onClick={() => newer && onYear(newer)}><SiteIcon name="arrow" size={18} /></button>
     </div>
+    <input type="search" className={css.finderSearch} value={query} onChange={event => setQuery(event.target.value)} placeholder="주차·날짜·성경 본문 검색" aria-label="주차 검색" />
+    {needle ? (found.length ? <ul className={css.found}>{found.map(({ row, info }) => <li key={row.serviceDate}><button type="button" aria-current={row.serviceDate === current ? 'true' : undefined} onClick={() => onPick(row.serviceDate)}><span><strong>{info.label}</strong><em>{info.range}</em></span>{row.reference ? <small>{row.reference}</small> : null}</button></li>)}</ul> : <p className={css.foundEmpty}>찾는 주차가 없습니다.</p>) : <>
     <ol className={css.weekGrid}>{Array.from({ length: 56 }, (_, i) => {
       const number = i + 1, row = number <= total ? weeks.get(number) : undefined;
       if (number > total) return <li key={number} aria-hidden="true" />;
       return <li key={number}>{row
-        ? <button type="button" aria-current={row.serviceDate === current ? 'true' : undefined} onClick={() => onPick(row.serviceDate)} onMouseEnter={() => onPeek(row.serviceDate)} onFocus={() => onPeek(row.serviceDate)} onMouseLeave={() => onPeek(null)} onBlur={() => onPeek(null)}><b>{number}</b><span>주차</span></button>
-        : <span className={css.weekEmpty} aria-label={`${number}주차 없음`}><b>{number}</b><span>주차</span></span>}</li>;
+        ? <button type="button" aria-current={row.serviceDate === current ? 'true' : undefined} onClick={() => onPick(row.serviceDate)} onMouseEnter={() => onPeek(row.serviceDate)} onFocus={() => onPeek(row.serviceDate)} onMouseLeave={() => onPeek(null)} onBlur={() => onPeek(null)}><i><b>{number}</b><u>주차</u></i></button>
+        : <span className={css.weekEmpty} aria-label={`${number}주차 없음`}><i><b>{number}</b><u>주차</u></i></span>}</li>;
     })}</ol>
-    <p className={css.finderPeek} aria-live="polite">{shown ? <><strong>{torahWeek(shown.serviceDate).label}</strong><em>{torahWeek(shown.serviceDate).range}</em>{shown.reference ? <small>{shown.reference}</small> : null}</> : <span>주차를 누르면 그 주의 토라&amp;토브로 이동해요.</span>}</p>
+    <p className={css.finderPeek} aria-live="polite">{shown ? <><strong>{torahWeek(shown.serviceDate).label}</strong><em>{torahWeek(shown.serviceDate).range}</em>{shown.reference ? <small>{shown.reference}</small> : null}</> : <span>주차를 누르면 그 주의 토라&amp;토브로 이동해요.</span>}</p></>}
     <button type="button" className={css.finderClose} onClick={onClose}>닫기</button>
   </div>;
 }
