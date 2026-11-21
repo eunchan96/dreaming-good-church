@@ -56,6 +56,7 @@
 @media (max-width: 560px) {
   .finderBody { padding: 18px 14px 16px; }
   .weekGrid u { display: none; }
+  .weekGrid > li { aspect-ratio: 1; }
 }
 .more { display: inline-flex; align-items: center; gap: 8px; padding-bottom: 4px; border-bottom: 1px solid #b9a37a; color: #5d4930; font-size: 14px; text-decoration: none; transition: color .15s, border-color .15s; }
 .more:hover { color: #8d6d2f; border-color: #8d6d2f; }
@@ -66,7 +67,9 @@
 .loading { color: #6b5a42; }
 
 @media (max-width: 860px) {
-  .entries article { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 24px 0; }
-  .entries h3 { grid-row: auto; font-size: 19px; transform: none; }
+  .entries article { grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 10px 12px; padding: 24px 0; }
+  .entries h3 { grid-column: 1; grid-row: 1; align-self: baseline; font-size: 19px; transform: none; text-align: left; }
+  .reference { grid-column: 2; grid-row: 1; text-align: right; }
+  .entries blockquote { grid-column: 1 / -1; }
   .entries blockquote { font-size: 17px; }
 }
