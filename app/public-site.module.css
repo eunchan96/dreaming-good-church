@@ -285,7 +285,7 @@ to{opacity:1}
 .heroArtwork{display:none}
 }
 .videoCollection{--thumb:240px;padding:20px 0 6px;min-width:0}
-.videoCaption>.stripArrows{align-self:flex-end;margin-bottom:-6px}
+.videoCollection>.stripArrows{justify-content:flex-end;margin:-6px -10px 0 0}
 /* Arrows: plain icons like the site's text links, shown only when the list is wider than the screen. */
 .stripArrows{display:flex;gap:4px}
 .stripArrows button{width:44px;height:44px;display:inline-grid;place-items:center;border:0;background:transparent;color:var(--ink);cursor:pointer;transition:color .2s,transform .2s,opacity .2s}
