@@ -3,7 +3,7 @@
 .entries { display: grid; gap: 0; }
 .entries article { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 8px 32px; padding: 30px 0; border-bottom: 1px solid #ece5d8; }
 .entries article:first-child { padding-top: 6px; }
-.entries h3 { grid-row: span 2; align-self: center; text-align: center; margin: 0; font-family: var(--font-public-serif), serif; font-size: 21px; font-weight: 600; letter-spacing: -.02em; line-height: 1.4; color: #647024; }
+.entries h3 { grid-row: span 2; align-self: center; transform: translateY(-9px); text-align: center; margin: 0; font-family: var(--font-public-serif), serif; font-size: 21px; font-weight: 600; letter-spacing: -.02em; line-height: 1.4; color: #647024; }
 .reference { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: .01em; color: #8d6d2f; }
 .entries blockquote { margin: 0; font-family: var(--font-public-serif), serif; font-size: 19px; line-height: 1.9; color: #342b25; white-space: pre-wrap; }
 .empty { margin: 0; padding: 40px 0; color: #6b5a42; }
@@ -21,7 +21,7 @@
 .finderHead { display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; align-items: center; padding-bottom: 14px; }
 .finderHead strong { font-family: var(--font-public-serif), serif; font-size: 22px; font-weight: 500; text-align: center; }
 .weekGrid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; border-top: 1px solid #ece5d8; border-left: 1px solid #ece5d8; }
-.weekGrid > li { aspect-ratio: 1; border-right: 1px solid #ece5d8; border-bottom: 1px solid #ece5d8; }
+.weekGrid > li { aspect-ratio: 1.2; border-right: 1px solid #ece5d8; border-bottom: 1px solid #ece5d8; }
 .weekGrid > li:empty { border: 0; }
 .weekGrid > li > button, .weekGrid > li > .weekEmpty { display: grid; place-items: center; width: 100%; min-height: 0; height: 100%; padding: 0; border: 0; border-radius: 0; background: transparent; font: inherit; color: #342b25; }
 .weekGrid i { font-family: var(--font-public-serif), serif; font-style: normal; line-height: 1; white-space: nowrap; }
@@ -67,6 +67,6 @@
 
 @media (max-width: 860px) {
   .entries article { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 24px 0; }
-  .entries h3 { grid-row: auto; font-size: 19px; }
+  .entries h3 { grid-row: auto; font-size: 19px; transform: none; }
   .entries blockquote { font-size: 17px; }
 }
