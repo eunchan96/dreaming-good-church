@@ -24,12 +24,12 @@
 .weekGrid > li { border-bottom: 1px solid #ece5d8; }
 .weekGrid > li > button, .weekGrid > li > .weekEmpty { display: grid; place-items: center; width: 100%; min-height: 0; height: 46px; padding: 0; border: 0; border-radius: 0; background: transparent; font: inherit; color: #342b25; }
 .weekGrid i { font-family: var(--font-public-serif), serif; font-style: normal; line-height: 1; white-space: nowrap; }
-.weekGrid b { font-size: 16px; font-weight: 600; }
-.weekGrid u { margin-left: 2px; font-size: 11px; text-decoration: none; color: #8a7a62; }
+.weekGrid i { font-size: 14.5px; font-weight: 400; }
+.weekGrid b { font-weight: inherit; }
+.weekGrid u { margin-left: 2px; text-decoration: none; }
 .weekGrid > li > button { cursor: pointer; transition: background .12s; }
 .weekGrid > li > button:hover, .weekGrid > li > button:focus-visible { background: #f3eee4; }
 .weekGrid > li > button[aria-current] { background: #342b25; color: #fff; }
-.weekGrid > li > button[aria-current] u { color: #e8dcc4; }
 .weekGrid > li > .weekEmpty, .weekGrid > li > .weekEmpty u { color: #cfc5b2; }
 .finderSearchRow { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; padding: 0 4px; border-bottom: 1px solid #cdbd9b; color: #8a7a62; }
 .finderSearchRow:focus-within { border-bottom-color: #8d6d2f; color: #8d6d2f; }
@@ -56,7 +56,6 @@
   .finderBody { padding: 18px 14px 16px; }
   .weekGrid > li > button, .weekGrid > li > .weekEmpty { height: 42px; }
   .weekGrid u { display: none; }
-  .weekGrid b { font-size: 15px; }
 }
 .more { display: inline-flex; align-items: center; gap: 8px; padding-bottom: 4px; border-bottom: 1px solid #b9a37a; color: #5d4930; font-size: 14px; text-decoration: none; transition: color .15s, border-color .15s; }
 .more:hover { color: #8d6d2f; border-color: #8d6d2f; }
