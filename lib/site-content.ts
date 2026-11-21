@@ -21,7 +21,7 @@ export const siteNavigation = [
     { label: '예배시간 안내', href: '/church/worship-times' }, { label: '온라인 헌금', href: '/church/offering' },
   ] },
   { name: '예배', href: '/worship', links: worshipTypes.map(w => ({ label: w.name, href: w.key === 'sunday' ? '/worship' : `/worship/${w.key}` })) },
-  { name: '소식', href: '/notices', links: [ { label: '교회 소식', href: '/notices' }, { label: '주보', href: '/bulletins' }, { label: '교회 일정', href: '/events' }, { label: '토라&토브', href: '/torah-tov' } ] },
+  { name: '소식', href: '/bulletins', links: [ { label: '주보', href: '/bulletins' }, { label: '교회 소식', href: '/notices' }, { label: '교회 일정', href: '/events' }, { label: '토라&토브', href: '/torah-tov' } ] },
 ];
 export const offeringAccounts = [
   { name: '온라인 헌금', bank: '농협', number: '301-0223-0182-71', holder: '좋은교회' },

@@ -34,10 +34,10 @@ export default function TorahReader() {
   return <div className={css.layout}>
     <nav className={css.weeks} aria-label="토라&토브 날짜">
       <h2>주보 날짜</h2>
-      <ul>{data.dates.map(week => <li key={week.serviceDate}><button type="button" aria-current={week.serviceDate === current ? 'true' : undefined} onClick={() => choose(week.serviceDate)}><strong>{monthDay(week.serviceDate)}</strong><span>{week.serviceDate.slice(0, 4)} · {week.issueNumber}호</span>{week.reference ? <small>{week.reference}</small> : null}</button></li>)}</ul>
+      <ul>{data.dates.map(week => <li key={week.serviceDate}><button type="button" aria-current={week.serviceDate === current ? 'true' : undefined} onClick={() => choose(week.serviceDate)}><strong>{monthDay(week.serviceDate)}</strong><span>{week.serviceDate.slice(0, 4)}</span>{week.reference ? <small>{week.reference}</small> : null}</button></li>)}</ul>
     </nav>
     <section id="torah-week" className={css.week} aria-label={current ? `${longDate(current)} 토라&토브` : '토라&토브'}>
-      {current ? <header><p>{data.issueNumber}호 주보</p><h2>{longDate(current)}</h2></header> : null}
+      {current ? <header><h2>{longDate(current)}</h2></header> : null}
       {data.items.length ? <div className={css.entries}>{data.items.map(item => <article key={item.id}>
         <h3>{displayTitle(item.title)}</h3>
         {item.content?.reference?.trim() ? <p className={css.reference}>{item.content.reference}</p> : null}
