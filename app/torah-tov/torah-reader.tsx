@@ -2,7 +2,6 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { torahWeek, weeksInYear } from '@/lib/korean-date';
-import { displayTitle } from '@/lib/bulletin-presentation';
 import SiteIcon from '../site-icon';
 import css from './torah.module.css';
 import bar from '../bulletins/reader.module.css';
@@ -44,6 +43,7 @@ export default function TorahReader() {
   if (!data.dates.length) return <div className={css.state}><p>아직 공개된 토라&amp;토브가 없습니다.</p></div>;
   const current = data.serviceDate;
   const week = current ? torahWeek(current) : null;
+  const torah = data.items.filter(item => /토라|토브/.test(item.title));
   const index = data.dates.findIndex(row => row.serviceDate === current);
   const newer = index > 0 ? data.dates[index - 1] : null, older = index >= 0 ? data.dates[index + 1] ?? null : null;
   return <div>
@@ -53,8 +53,7 @@ export default function TorahReader() {
       <button type="button" className={bar.step} aria-label="다음 주차" title="다음 주차" disabled={!newer} onClick={() => newer && choose(newer.serviceDate)}><SiteIcon name="arrow" size={18} /></button>
     </div>
     <section id="torah-week" className={css.week} aria-label={week ? `${week.label} 토라&토브` : '토라&토브'}>
-      {data.items.length ? <div className={css.entries}>{data.items.map(item => <article key={item.id}>
-        <h3>{displayTitle(item.title)}</h3>
+      {torah.length ? <div className={css.entries}>{torah.map(item => <article key={item.id}>
         {item.content?.reference?.trim() ? <p className={css.reference}>{item.content.reference}</p> : null}
         {item.body.trim() ? <blockquote>{item.body}</blockquote> : null}
       </article>)}</div> : <p className={css.empty}>이 주차에는 토라&amp;토브가 없습니다.</p>}

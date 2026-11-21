@@ -121,7 +121,7 @@
 /* The page banner runs edge to edge under the header while its text stays on the content edge. */
 .site{overflow-x:clip}
 .pageHeading{position:relative;isolation:isolate;margin:-30px calc(50% - 50vw) 0;padding:44px calc(50vw - 50%) 40px;background:#f0ece2;border-bottom:1px solid var(--line);overflow:hidden}
-.pageHeading::after{content:'';position:absolute;z-index:-1;width:210px;height:270px;right:max(22px,calc((100% - 1160px)/2 + 30px));top:15px;border:30px solid #e5dccb66;border-radius:130px 130px 0 0;transform:rotate(15deg)}
+.pageHeading::after{content:'';position:absolute;z-index:-1;width:330px;height:330px;right:max(-30px,calc((100% - 1160px)/2 - 20px));top:-34px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M65 17C26 7 7 32 13 62c6 29 46 35 65 12' fill='none' stroke='%23ece4d1' stroke-width='18' stroke-linecap='round'/%3E%3Cpath d='M43 37h8v13h12v8H51v17h-8V58H32v-8h11Z' fill='%23e4d9c2'/%3E%3Cpath d='M74 53c-12-14-25 5 0 22 25-17 12-36 0-22Z' fill='%23eadacd'/%3E%3C/svg%3E") center/contain no-repeat}
 .pageHeading .eyebrow{margin-bottom:8px}
 .pageHeading h1{font-family:var(--font-display);font-size:clamp(34px,4vw,52px);font-weight:500;letter-spacing:-.06em;margin:10px 0}
 .pageHeading>p:last-child{font-size:14px;color:#6e6254;margin-top:15px}
@@ -257,6 +257,7 @@ to{opacity:1}
 .install button{font-size:12px}
 .subpage{padding:30px 22px 60px}
 .pageHeading{padding-top:32px;padding-bottom:30px}
+.pageHeading::after{width:200px;height:200px;right:-44px;top:-4px}
 .pageHeading h1{font-size:35px}
 .pageHeading>p:last-child{font-size:13px}
 .subnav{gap:5px 22px;margin-bottom:30px}
