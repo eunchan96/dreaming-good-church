@@ -1,21 +1,38 @@
 .dialog {
-  width: min(440px, calc(100% - 32px));
+  width: min(520px, calc(100% - 32px));
+  margin: auto;
   max-height: calc(100dvh - 32px);
-  padding: 24px;
-  border: 1px solid var(--line);
+  padding: 26px 28px 24px;
+  border: 1px solid #e3ded5;
   border-radius: 16px;
-  background: var(--surface);
-  color: var(--ink);
+  background: #fffdf8;
+  color: #2f2720;
+  box-shadow: 0 24px 60px rgba(48, 42, 36, .18);
 }
 .dialog::backdrop { background: #342b2570; }
 .heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.heading h2 { margin: 0; font-size: 22px; }
-.dialog button { min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); }
-.dialog button:disabled { opacity: .55; cursor: not-allowed; }
-.fields { display: grid; gap: 14px; margin-top: 14px; }
-.fields p, .status { margin: 0; color: var(--muted); }
-.fields label { display: grid; gap: 5px; font-weight: 600; }
-.fields input { width: 100%; min-width: 0; min-height: 44px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); font: inherit; font-size: 16px; }
-.fields input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.dialog .primary { justify-self: start; background: #6f5420; color: white; border-color: transparent; }
-.status:not(:empty) { margin-top: 12px; }
+.heading h2 { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -.03em; }
+
+/* Two plain sections split by a thin line, like the rest of the admin forms. */
+.section { margin-top: 22px; padding-top: 18px; border-top: 1px solid #e3ded5; }
+.section h3 { margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #4a3f33; }
+.note { margin: 0; font-size: 13px; line-height: 1.7; color: #6e6254; }
+
+.editors { display: grid; margin: 0; padding: 0; list-style: none; }
+.editors li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-height: 48px; padding: 8px 0; border-bottom: 1px solid #efe9de; }
+.editors li:last-child { border-bottom: 0; }
+.email { flex: 1 1 180px; min-width: 0; font-size: 14px; overflow-wrap: anywhere; }
+.tags { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.tag { padding: 2px 8px; border-radius: 999px; background: #f1ece2; color: #6e6254; font-size: 11.5px; font-weight: 600; }
+.tag[data-status=active] { background: #e7f0df; color: #3f6b2a; }
+.tag[data-status=pending] { background: #f8ecd6; color: #8a5f12; }
+.remove.remove { min-height: 32px; padding: 4px 10px; font-size: 13px !important; }
+.inlineButton { padding: 0; border: 0; background: none; color: #6f5622; font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+.fields { display: grid; gap: 12px; }
+.fields label { display: grid; gap: 6px; font-size: 13px; font-weight: 600; color: #4a3f33; }
+.fields input { width: 100%; min-width: 0; min-height: 44px; padding: 8px 12px; border: 1px solid #dcd3c3; border-radius: 8px; background: #fff; color: #2f2720; font: inherit; font-size: 16px; font-weight: 400; }
+.fields input:focus-visible { outline: 2px solid #8d6d2f; outline-offset: 1px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.status { margin: 0; font-size: 13px; color: #6e6254; }
+.status:not(:empty) { margin-top: 14px; }
