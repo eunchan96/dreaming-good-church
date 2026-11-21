@@ -18,6 +18,7 @@ import { useEditHistory } from "./use-edit-history";
 import AdminLoading from "../admin-loading";
 import styles from "./workspace.module.css";
 import AdminShell from '../admin-shell';
+import { forgetSignedIn } from '../admin-session';
 import PasswordField from '../password-field';
 import ui from '../management.module.css';
 import view_ from './view.module.css';
@@ -41,6 +42,8 @@ function nextSunday() {
 export default function BulletinWorkspace() {
   const [client] = useState(makeBrowserClient);
   const [session, setSession] = useState<"loading" | "login" | "editor" | "denied">("loading");
+  // Signed out (or never signed in): drop the remembered sign-in hint so the menu and tabs hide with the login form.
+  useEffect(() => { if (session === 'login') forgetSignedIn(); }, [session]);
   const [rows, setRows] = useState<SavedBulletin[]>([]);
   const [draft, setDraft] = useState<SavedBulletin | null>(null);
   const [dirty, setDirty] = useState(false);
