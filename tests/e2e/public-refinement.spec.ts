@@ -36,23 +36,13 @@ test('confirmed offering and afternoon time, zoomed directions and anonymous API
   expect((await request.get('/api/bulletin-sections?section=invalid')).status()).toBe(400);
   const r=await request.get('/api/bulletin-sections?section=torah-tov');expect(r.ok()).toBe(true);expect(Array.isArray((await r.json()).items)).toBe(true);
 });
-test('the worship page shows this or last week passage above the video and keeps it out of the times table',async({page})=>{
+test('the worship page shows no passage, puts the YouTube link beside the worship label and keeps readings out of the times table',async({page})=>{
   await page.route('**/api/church',r=>r.fulfill({json:{fields:['name','address','phone','introduction','directions','worship'].map(key=>({key,body:''}))}}));
-  // Weeks start on Sunday in Korea time.
-  const kst=new Date(Date.now()+9*3600e3),sunday=(weeksAgo:number)=>new Date(kst.getTime()-(kst.getUTCDay()+7*weeksAgo)*864e5).toISOString().slice(0,10);
-  let serviceDate=sunday(0);
-  await page.route('**/api/bulletin-sections?section=worship',r=>r.fulfill({json:{serviceDate,issueNumber:3,readings:{dawn:'사도행전 11장',friday:'갈라디아서 1장',sunday:'사도행전 12장'}}}));
+  await page.route('**/api/bulletin-sections?section=worship',r=>r.fulfill({json:{serviceDate:new Date().toISOString().slice(0,10),issueNumber:3,readings:{dawn:'사도행전 11장',friday:'갈라디아서 1장',sunday:'사도행전 12장'}}}));
   await page.goto('/worship');
-  await expect(page.getByText('이번 주 본문',{exact:true})).toBeVisible();
-  await expect(page.getByText('사도행전 12장',{exact:true})).toBeVisible();
-  const times=page.getByRole('region',{name:'함께 예배하는 시간',exact:true});
-  await expect(times.getByText('사도행전',{exact:false})).toHaveCount(0);
-  await page.getByRole('navigation',{name:'예배 종류'}).getByRole('link',{name:'금요예배',exact:true}).click();
-  await expect(page.getByText('갈라디아서 1장',{exact:true})).toBeVisible();
-  serviceDate=sunday(1);await page.goto('/worship');
-  await expect(page.getByText('지난 주 본문',{exact:true})).toBeVisible();
-  serviceDate=sunday(2);await page.goto('/worship');
-  await expect(page.getByText('사도행전 12장',{exact:true})).toHaveCount(0);
+  const head=page.getByRole('heading',{name:'SUNDAY WORSHIP · 주일예배',exact:true}).locator('..');
+  await expect(head.getByRole('link',{name:'주일예배 YouTube에서 보기'})).toBeVisible();
+  await expect(page.getByText('사도행전',{exact:false})).toHaveCount(0);
   await expect(page.getByText('주 본문',{exact:false})).toHaveCount(0);
   await page.goto('/church/worship-times');
   await expect(page.getByRole('heading',{name:'학생부 예배',exact:true}).locator('..')).toContainText('주일 오전 09:30');

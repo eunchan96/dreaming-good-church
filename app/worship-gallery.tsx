@@ -7,7 +7,8 @@ import SiteIcon from './site-icon';
 import styles from './public-site.module.css';
 type Cursor={date:string;id:string}|null;
 type Legacy={id:string;title:string;source:string};
-export default function WorshipGallery({type,compact}:{type:WorshipType;compact:boolean}){
+/** With `label` (the 예배 page) the worship label heads the player and the YouTube link sits beside it instead of under the title. */
+export default function WorshipGallery({type,compact,label}:{type:WorshipType;compact:boolean;label?:string}){
  const [rows,setRows]=useState<PublicWorshipEntry[]>([]),[selected,setSelected]=useState<PublicWorshipEntry|null>(null);
  const [fallback,setFallback]=useState<Legacy|null>(null),[next,setNext]=useState<Cursor>(null),[loading,setLoading]=useState(true),[failed,setFailed]=useState(false),[retry,setRetry]=useState(0);
  const strip=useRef<HTMLDivElement>(null),request=useRef<AbortController|null>(null),[edges,setEdges]=useState({start:true,end:true});
@@ -36,8 +37,10 @@ export default function WorshipGallery({type,compact}:{type:WorshipType;compact:
   setRows(current=>[...current,...data.videos.filter(row=>!current.some(x=>x.id===row.id))]);setNext(data.next);
  }catch{if(!controller.signal.aborted)setFailed(true);}finally{if(!controller.signal.aborted)setLoading(false);}}
  const worship=worshipTypes.find(w=>w.key===type)!,id=selected?.video_id??fallback?.id,title=selected?.title??fallback?.title;
+ const youtube=id?<a href={`https://www.youtube.com/watch?v=${id}`} target="_blank" rel="noreferrer" aria-label={`${worship.name} YouTube에서 보기`}>{compact?'YouTube':'YouTube에서 보기'}<SiteIcon name="diagonal" size={17}/></a>:null;
  return <div className={styles.videoBlock}>
-  {id?<><div className={styles.videoFrame}><iframe key={id} src={`https://www.youtube-nocookie.com/embed/${id}?rel=0`} title={`${worship.name} 영상`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin"/></div><div className={styles.videoCaption} data-compact={compact||undefined}><div>{compact?null:<p>{selected?`${selected.service_date} · ${worship.name}`:fallback?.source==='verified'?'최근 확인한 주일 말씀':'최근 주일 말씀'}</p>}<h3>{title}</h3></div><a href={`https://www.youtube.com/watch?v=${id}`} target="_blank" rel="noreferrer" aria-label={`${worship.name} YouTube에서 보기`}>{compact?'YouTube':'YouTube에서 보기'}<SiteIcon name="diagonal" size={17}/></a></div></>:null}
+  {label?<div className={styles.worshipHead}><h2 className={styles.eyebrow}>{label}</h2>{youtube}</div>:null}
+  {id?<><div className={styles.videoFrame}><iframe key={id} src={`https://www.youtube-nocookie.com/embed/${id}?rel=0`} title={`${worship.name} 영상`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin"/></div><div className={styles.videoCaption} data-compact={compact||undefined}><div>{compact?null:<p>{selected?`${selected.service_date} · ${worship.name}`:fallback?.source==='verified'?'최근 확인한 주일 말씀':'최근 주일 말씀'}</p>}<h3>{title}</h3></div>{label?null:youtube}</div></>:null}
   {!compact&&rows.length>0?<section className={styles.videoCollection} aria-label={`${worship.name} 영상 목록`}><div className={styles.videoCollectionHeading}><h3>함께 나눈 말씀</h3>{edges.start&&edges.end?null:<div className={styles.stripArrows}><button aria-label="이전 영상 쪽으로 이동" disabled={edges.start} onClick={()=>move(-1)}><SiteIcon/></button><button aria-label="다음 영상 쪽으로 이동" disabled={edges.end} onClick={()=>move(1)}><SiteIcon/></button></div>}</div><div ref={strip} className={styles.videoStrip}>{rows.map(row=>{const playing=selected?.id===row.id;return <button key={row.id} aria-pressed={playing} onClick={()=>setSelected(row)} className={styles.videoChoice}>
    {/* Fixed-host thumbnails; playback uses the direct iframe. */}
    {/* eslint-disable-next-line @next/next/no-img-element */}

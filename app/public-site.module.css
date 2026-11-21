@@ -137,7 +137,7 @@
 .timeGrid>div:nth-child(4n + 1){border-left:0;padding-left:0}
 @media(min-width:600px){.timeGrid>div:nth-child(4n + 1):nth-last-child(2),.timeGrid>div:nth-child(4n + 2):last-child{grid-column:span 2}.timeGrid>div:nth-child(4n + 1):last-child{grid-column:1 / -1}}
 .timeGrid span{font-size:9px;letter-spacing:.1em;color:#806a42}
-.timeGrid h3{font-size:17px;font-weight:500;margin:12px 0 8px}
+.timeGrid h3{font-size:17px;font-weight:500;margin:6px 0 8px}
 .timeGrid p{font-size:13px;color:var(--muted)}
 .prose{max-width:780px;margin:55px auto;line-height:2.1;font-size:16px}
 .prose h2{font-family:var(--font-display);font-size:32px;line-height:1.7;font-weight:500;letter-spacing:-.05em;margin-bottom:28px}
@@ -284,7 +284,7 @@ to{opacity:1}
 .site{background:white}
 .heroArtwork{display:none}
 }
-.videoCollection{--thumb:240px;padding:24px 0 36px;border-bottom:1px solid var(--line);min-width:0}
+.videoCollection{--thumb:240px;padding:24px 0 6px;border-bottom:1px solid var(--line);min-width:0}
 .videoCollectionHeading{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.videoCollectionHeading h3{font-size:17px;font-weight:500}
 /* Arrows: plain icons like the site's text links, shown only when the list is wider than the screen. */
 .stripArrows{display:flex;gap:4px}
@@ -370,8 +370,12 @@ to{opacity:1}
 /* 예배 page: the 교회 소개 column width, this week's passage above the video. */
 .worshipBody{max-width:1040px;margin:0 auto}
 .worshipBody>.worshipTimes{margin-top:56px}
-.worshipHead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px 24px;margin-bottom:18px}
+.worshipHead{display:flex;justify-content:space-between;align-items:center;gap:8px 24px;margin-bottom:10px}
 .worshipHead>h2{margin:0}
-.weeklyPassage{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:baseline;gap:4px 14px;margin:0 0 0 auto;font-size:15px;color:var(--ink);text-align:right}
-.weeklyPassage b{font-size:11px;font-weight:600;letter-spacing:.08em;color:#80642f}
+.worshipHead>a{display:flex;gap:10px;align-items:center;min-height:44px;margin-left:auto;white-space:nowrap;font-size:12px;color:var(--muted);transition:color .2s}
+.worshipHead>a svg{transition:transform .2s}
+.worshipHead>a:hover{color:#75592a}
+.worshipHead>a:hover svg{transform:translate(2px,-2px)}
+/* 함께 예배하는 시간: label sits close to the title, and each card's label close to its name. */
+.worshipBody .worshipTimes>.eyebrow{margin-bottom:10px}
 .srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
