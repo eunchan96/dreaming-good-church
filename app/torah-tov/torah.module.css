@@ -23,7 +23,7 @@
 .weekGrid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
 .weekGrid > li { border-bottom: 1px solid #ece5d8; }
 .weekGrid > li > button, .weekGrid > li > .weekEmpty { display: grid; place-items: center; width: 100%; min-height: 0; height: 46px; padding: 0; border: 0; border-radius: 0; background: transparent; font: inherit; color: #342b25; }
-.weekGrid i { font-style: normal; line-height: 1; white-space: nowrap; }
+.weekGrid i { font-family: var(--font-public-serif), serif; font-style: normal; line-height: 1; white-space: nowrap; }
 .weekGrid b { font-size: 16px; font-weight: 600; }
 .weekGrid u { margin-left: 2px; font-size: 11px; text-decoration: none; color: #8a7a62; }
 .weekGrid > li > button { cursor: pointer; transition: background .12s; }
@@ -31,10 +31,11 @@
 .weekGrid > li > button[aria-current] { background: #342b25; color: #fff; }
 .weekGrid > li > button[aria-current] u { color: #e8dcc4; }
 .weekGrid > li > .weekEmpty, .weekGrid > li > .weekEmpty u { color: #cfc5b2; }
-.finderSearch { display: block; width: 100%; height: 36px; margin: 0 0 4px; padding: 0 12px; border: 0; border-bottom: 1px solid #cdbd9b; border-radius: 0; background: transparent; color: #342b25; font: inherit; font-size: 13.5px; outline: 0 !important; box-shadow: none !important; }
+.finderSearchRow { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; padding: 0 4px; border-bottom: 1px solid #cdbd9b; color: #8a7a62; }
+.finderSearchRow:focus-within { border-bottom-color: #8d6d2f; color: #8d6d2f; }
+.finderSearch { display: block; flex: 1; min-width: 0; height: 36px; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; color: #342b25; font: inherit; font-size: 13.5px; outline: 0 !important; box-shadow: none !important; }
 .finderSearch::-webkit-search-cancel-button { display: none; }
 .finderSearch::placeholder { color: #9a8c76; }
-.finderSearch:focus, .finderSearch:focus-visible { border-bottom-color: #8d6d2f; outline: 0 !important; box-shadow: none !important; }
 .found { max-height: 322px; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
 .found li button { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; width: 100%; min-height: 0; padding: 12px 8px; border: 0; border-bottom: 1px solid #ece5d8; border-radius: 0; background: transparent; color: #342b25; font: inherit; font-size: 14.5px; text-align: left; cursor: pointer; }
 .found li button:hover { background: #f3eee4; }

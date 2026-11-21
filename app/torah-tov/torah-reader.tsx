@@ -59,7 +59,7 @@ export default function TorahReader() {
         {item.body.trim() ? <blockquote>{item.body}</blockquote> : null}
       </article>)}</div> : <p className={css.empty}>이 주차에는 토라&amp;토브가 없습니다.</p>}
       <div className={css.footRow}>
-        <button ref={toggle} type="button" className={css.findToggle} onClick={openFinder}>다른 주차 찾기<SiteIcon name="calendar" size={15} /></button>
+        <button ref={toggle} type="button" className={css.findToggle} onClick={openFinder}><SiteIcon name="calendar" size={15} />다른 주차 찾기</button>
         {current ? <Link className={css.more} href={`/bulletins/${current}`}>이 주보 전체 보기<SiteIcon size={16} /></Link> : null}
       </div>
     </section>
@@ -83,7 +83,7 @@ function FinderBody({ all, year, years, weeks, current, peek, onPeek, onYear, on
       <strong>{year}년</strong>
       <button type="button" className={bar.step} aria-label="다음 해" disabled={!newer} onClick={() => newer && onYear(newer)}><SiteIcon name="arrow" size={18} /></button>
     </div>
-    <input type="search" className={css.finderSearch} value={query} onChange={event => setQuery(event.target.value)} placeholder="주차·날짜·성경 본문 검색" aria-label="주차 검색" />
+    <div className={css.finderSearchRow}><SiteIcon name="search" size={16} /><input type="search" className={css.finderSearch} value={query} onChange={event => setQuery(event.target.value)} placeholder="주차·날짜·성경 본문 검색" aria-label="주차 검색" /></div>
     {needle ? (found.length ? <ul className={css.found}>{found.map(({ row, info }) => <li key={row.serviceDate}><button type="button" aria-current={row.serviceDate === current ? 'true' : undefined} onClick={() => onPick(row.serviceDate)}><span><strong>{info.label}</strong><em>{info.range}</em></span>{row.reference ? <small>{row.reference}</small> : null}</button></li>)}</ul> : <p className={css.foundEmpty}>찾는 주차가 없습니다.</p>) : <>
     <ol className={css.weekGrid}>{Array.from({ length: 56 }, (_, i) => {
       const number = i + 1, row = number <= total ? weeks.get(number) : undefined;
