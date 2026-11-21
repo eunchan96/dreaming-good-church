@@ -18,7 +18,25 @@ https://dreaming-good-church-git-codex-bulle-a36b08-eunchan96s-projects.vercel.a
 
 로컬 개발은 별도 `supabase/config.toml`의 localhost/127.0.0.1 포트3000/3001 계정 경로를 허용한다. 이 로컬 설정 전체를 원격에 push하지 않는다. 앞으로 정식 도메인이 생기면 승인된 Origin 목록과 원격 허용 주소를 함께 갱신한다.
 
-## 계정 설정 링크 만들기
+## 교회 사이트에서 관리자 초대하기
+
+서버 환경변수 `ADMIN_INVITER_USER_IDS`에 초대를 맡을 운영자의 Supabase Auth UID를 쉼표로 구분해 설정한다. UID는 [Supabase Authentication Users](https://supabase.com/dashboard/project/zefnxczgwpsmfcixonpb/auth/users)에서 찾을 수 있다. 각 계정은 `church_editors`에도 등록되어 있어야 하며, 목록이 비어 있으면 사이트에서 누구도 초대할 수 없다. 로컬은 `.env.local`에 넣고 서버를 재시작한다. `npm run dev:local`은 테스트용으로 `ADMIN_INVITER_TEST_DOMAIN=inviter.test`를 함께 넣어 `@inviter.test` 이메일 편집자도 초대할 수 있게 한다(로컬 Supabase일 때만 적용, e2e `tests/e2e/admin-invitation.spec.ts`). Vercel은 대상 환경에 변수를 등록한 뒤 배포에 반영한다.
+
+지정된 운영자는 사이트에 로그인한 뒤 화면 하단의 **관리자 초대**에서 이메일을 입력하고 **초대 링크 만들기 → 링크 복사**를 누른다. 담당자가 아직 초대를 확인하지 않았다면 같은 이메일로 새 링크를 만들 수 있다. 같은 창의 **현재 관리자** 목록에서 관리자별 상태(사용 중·초대 대기)를 보고, 초대 대기 계정은 **초대 취소**(계정과 링크까지 삭제), 사용 중 계정은 **권한 해제**(계정은 남기고 관리자 권한만 제거)할 수 있다. 본인과 초대 담당 운영자는 목록에서 해제할 수 없다. 새 링크가 이전 링크를 대체한다. 운영 환경의 링크는 발급 후 1시간 동안 유효하고, 이미 초대를 확인한 계정은 비밀번호 재설정 절차를 사용한다.
+
+## Supabase 대시보드에서 관리자 초대하기
+
+운영 Supabase 대시보드에서 `invite-church-editor` 함수를 실행해 일회용 링크를 만들 수 있다. 초대하는 운영자에게만 대시보드와 프로젝트 기본 Secret key 접근이 필요하다. 받는 사람은 교회 사이트에서 본인 비밀번호를 정한다.
+
+1. [운영 초대 함수](https://supabase.com/dashboard/project/zefnxczgwpsmfcixonpb/functions/invite-church-editor)에서 **Test**를 열고 메서드는 **POST**로 둔다.
+2. **Request Body**에 `{"email":"new-editor@example.com"}`을 넣고 실제 담당자 이메일로 바꾼다.
+3. **Headers**에서 **Add header** 옆 메뉴를 열고 **Add secret key**를 선택한다. 키 값을 직접 복사할 필요는 없다.
+4. **Send Request**를 누르고 `200` 응답의 `invite_url`만 복사해 담당자에게 개인 메시지로 전달한다. 함수가 초대 계정과 `church_editors` 권한을 함께 등록한다. 메일은 발송하지 않는다.
+5. 담당자가 링크를 열고 **계정 링크 확인**을 누른 뒤 비밀번호를 정한다. 이후에는 교회 사이트 관리자 화면에서 이메일과 비밀번호로 로그인한다.
+
+함수는 운영 프로젝트에 유지된다. 새 운영자를 추가할 때 같은 화면에서 새 이메일로 실행한다. 기존 계정의 비밀번호 재설정에는 아래 `recovery` 절차를 사용한다.
+
+## 터미널에서 계정 설정 링크 만들기
 
 초대가 필요한 새 운영자만 `invite`를 사용한다. 기존 운영자의 필요 없는 재초대나 비밀번호 초기화를 자동으로 실행하지 않는다. 아래 명령은 운영자가 실행하는 관리 도구이며 메일을 발송하지 않는다.
 

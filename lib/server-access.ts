@@ -10,14 +10,18 @@ export function publicClient(token?: string) {
     fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }),
   } });
 }
-export async function requireEditor(request: Request) {
+export async function getEditor(request: Request) {
   const token = request.headers.get("authorization")?.match(/^Bearer (.+)$/i)?.[1];
   if (!token) return null;
   const client = publicClient(token);
   const { data, error } = await client.auth.getUser(token);
   if (error || !data.user) return null;
   const member = await client.from("church_editors").select("user_id").eq("user_id", data.user.id).maybeSingle();
-  return !member.error && member.data ? client : null;
+  return !member.error && member.data ? { client, user: data.user } : null;
+}
+
+export async function requireEditor(request: Request) {
+  return (await getEditor(request))?.client ?? null;
 }
 /** Used only after requireEditor, for normalized file creation and unused-file deletion. */
 export function imageWriter() {
