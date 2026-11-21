@@ -9,8 +9,9 @@ import { defaultPage } from "../admin/bulletins/print-preview";
 import type { BulletinItem } from "@/lib/bulletins";
 import styles from "../admin/bulletins/print-preview.module.css";
 import reader from "./reader.module.css";
+import { themeOf } from "@/lib/bulletin-themes";
 
-export type PrintableBulletin = { id: string; service_date: string; issue_number: number; printItems: BulletinItem[]; formats?: PrintFormats };
+export type PrintableBulletin = { id: string; service_date: string; issue_number: number; printItems: BulletinItem[]; theme?: string; formats?: PrintFormats };
 const sides = [{ label: "바깥면", pages: [4, 1] }, { label: "안쪽면", pages: [2, 3] }];
 
 /** 관리자 인쇄 미리보기와 같은 시트를 화면 밖에 그리고, 준비되면 인쇄(PDF로 저장) 창을 연다. */
@@ -58,7 +59,7 @@ export default function PublicPrint({ bulletin, onDone, onError }: { bulletin: P
   return createPortal(<PrintEditorProvider key={bulletin.id} bulletinId={bulletin.id} editable={false} plain initialFormats={bulletin.formats ?? {}} onReplace={() => {}}>
     <div ref={root} className={`${styles.overlay} ${reader.printHost}`} aria-hidden="true">
       <div className={styles.stage}><div className={styles.canvas}><div className={styles.paper} style={{ zoom: 1 }}>{sides.map(side => <div key={side.label} className={styles.sheetWrap}>
-        <div className={styles.sheet} data-sheet>{side.pages.map(number => <section className={styles.panel} key={number} data-page={number}>
+        <div className={styles.sheet} data-sheet data-theme={themeOf(bulletin.theme).key}>{side.pages.map(number => <section className={styles.panel} key={number} data-page={number}>
           <div className={styles.panelBody} data-print-panel={number}><div data-print-content className={styles.panelContent}>
             <PaperBlocks items={items.filter(item => pageOf(item) === number)} meta={meta} memo={number === 3 ? <Memo item={memo} /> : undefined} />
           </div>{number === 4 ? <div className={styles.panelFooter} data-print-footer><ChurchInfo item={church} name={fields?.name || "꿈꾸는좋은교회"} address={fields?.address || CHURCH_ADDRESS} phone={fields?.phone || CHURCH_PHONE} /></div> : null}</div>

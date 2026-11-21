@@ -1,4 +1,5 @@
 'use client';
+import {themeOf} from '@/lib/bulletin-themes';
 import Image from 'next/image';
 import {Fragment,useContext,type ReactNode} from 'react';
 import type {BulletinItem,BlockContent} from '@/lib/bulletins';
@@ -207,7 +208,7 @@ export function useScheduledItems(items:BulletinItem[],addIfMissing:boolean){
  return mapped;
 }
 /** Read-only Word-style rendering for the admin detail / web preview — same blocks as print. */
-export function PaperView({items,meta,sectionIdPrefix,addSchedule=false}:{items:BulletinItem[];meta:PaperMeta;sectionIdPrefix?:string;addSchedule?:boolean}){
+export function PaperView({items,meta,sectionIdPrefix,addSchedule=false,theme}:{items:BulletinItem[];meta:PaperMeta;sectionIdPrefix?:string;addSchedule?:boolean;theme?:string}){
  const scheduled=useScheduledItems(items,addSchedule);
- return <div className={css.flow}><PaperBlocks items={scheduled} meta={meta} sectionIdPrefix={sectionIdPrefix}/></div>;
+ return <div className={css.flow} data-theme={themeOf(theme).key}><PaperBlocks items={scheduled} meta={meta} sectionIdPrefix={sectionIdPrefix}/></div>;
 }

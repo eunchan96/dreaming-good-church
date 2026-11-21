@@ -10,6 +10,7 @@ import {PaperBlocks,Memo,ChurchInfo,useScheduledItems} from "./paper";
 import type {BulletinItem} from "@/lib/bulletins";
 import {presentationItems,sectionFor,isPrayerGuide,displayTitle,isNewsItem} from "@/lib/bulletin-editor";
 import styles from "./print-preview.module.css";
+import { themeOf } from "@/lib/bulletin-themes";
 import AdminIcon from "../admin-icons";
 
 /** 헌금 내역 always prints on 4면, like the Word bulletin. */
@@ -135,7 +136,7 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
       <div ref={stage} className={styles.canvas}>
         <div className={styles.paper} role="document" aria-label="인쇄 주보" style={{ zoom: scale }}>{sides.map(side => <div key={side.label} className={styles.sheetWrap}>
           <p className={styles.sheetLabel}>{side.label}</p>
-          <div className={styles.sheet} data-sheet aria-label={side.label}>{side.pages.map(number => <section className={styles.panel} key={number} aria-label={`${number}면`} data-page={number} data-overflow={overflowPages.includes(number)}>
+          <div className={styles.sheet} data-sheet data-theme={themeOf(draft.theme).key} aria-label={side.label}>{side.pages.map(number => <section className={styles.panel} key={number} aria-label={`${number}면`} data-page={number} data-overflow={overflowPages.includes(number)}>
             <div className={styles.panelBody} data-print-panel={number}><div data-print-content className={styles.panelContent}>
               <PaperBlocks items={items.filter(item=>pageOf(item)===number)} meta={draft}
                 memo={number===3?<Memo item={draft.items.find(item=>item.title.trim()==="메모")}/>:undefined}

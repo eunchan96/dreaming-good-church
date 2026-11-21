@@ -22,8 +22,8 @@
 .cover { display: flex; flex-direction: column; min-height: 100%; gap: 1em; }
 .coverHead { display: flex; justify-content: space-between; align-items: flex-start; gap: 1em; }
 .coverLines .coverLine { font-weight: 700; font-size: 1.15em; line-height: 1.8; }
-.coverLines article:first-child .coverLine:first-child { color: #1f5fae; }
-.coverLines .coverLine:nth-child(2), .coverLines article + article .coverLine { color: #0b7d38; padding-left: .6em; }
+.coverLines article:first-child .coverLine:first-child { color: var(--t-blue, #1f5fae); }
+.coverLines .coverLine:nth-child(2), .coverLines article + article .coverLine { color: var(--t-green, #0b7d38); padding-left: .6em; }
 .coverMeta { text-align: right; color: #3d342b; line-height: 2; font-size: 1.05em; }
 .coverMeta p { margin: 0; }
 .coverImages { flex: 1; display: grid; place-items: center; min-height: 0; }
@@ -35,7 +35,7 @@
 .coverMark strong { font-family: var(--font-public-serif), serif; font-size: 2.2em; font-weight: 500; color: #3d342b; }
 
 /* Worship order (2면) */
-.orderTitle { display: flex; align-items: center; justify-content: center; gap: .6em; margin: 0 0 .7em !important; font-size: 1.9em !important; font-weight: 700 !important; letter-spacing: .38em; color: #647024; line-height: 1.4 !important; }
+.orderTitle { display: flex; align-items: center; justify-content: center; gap: .6em; margin: 0 0 .7em !important; font-size: 1.9em !important; font-weight: 700 !important; letter-spacing: .38em; color: var(--t-accent, #647024); line-height: 1.4 !important; }
 .orderTitle > span { color: #f2b632; font-size: .8em; letter-spacing: 0; }
 .order { display: grid; gap: .1em; }
 .orderIntro { text-align: center; color: #3d7424; margin-bottom: .35em; line-height: 1.6; }
@@ -49,14 +49,14 @@
 .leader > i:first-child:not(:last-child) { margin-right: 1em; }
 .leader > i:last-child:not(:first-child) { margin-left: 1em; }
 .orderWhat { flex: 0 1 auto; min-width: 0; text-align: center; white-space: nowrap; }
-.orderRow[data-emph=scripture] .orderWhat { color: #e0261b; font-size: 1.45em; }
-.orderRow[data-emph=sermon] .orderWhat { color: #0b7d38; font-size: 1.45em; white-space: normal; }
+.orderRow[data-emph=scripture] .orderWhat { color: var(--t-red, #e0261b); font-size: 1.45em; }
+.orderRow[data-emph=sermon] .orderWhat { color: var(--t-green, #0b7d38); font-size: 1.45em; white-space: normal; }
 .orderRow[data-emph] { min-height: 2.9em; }
 .orderFoot { text-align: center; color: #6b5f50; font-size: .88em; margin-top: .6em; }
 
 /* 예배 안내 */
 .schedule { display: grid; grid-template-columns: 1.4fr 1.25fr 1.05fr; font-size: .92em; gap: .1em; padding: .5em .6em; background: #e4e8cf; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.schedule > div { display: grid; align-content: center; gap: .15em; padding: .1em .6em; border-right: 1px solid #b9c08f; }
+.schedule > div { display: grid; align-content: center; gap: .15em; padding: .1em .6em; border-right: 1px solid var(--t-line, #b9c08f); }
 .schedule > div:last-child { border-right: 0; }
 .scheduleRow { display: flex; justify-content: space-between; align-items: baseline; gap: .5em; }
 .scheduleRow > :first-child { white-space: nowrap; flex: none; }
@@ -70,27 +70,27 @@
 .supportGrid > :not([data-role=staff]):last-child > .tinted { flex: 1; }
 .supportGrid [data-role=staff] .table td:first-child { width: 6.9em; }
 .supportGrid [data-role=staff] .table td, .supportGrid [data-role=staff] .table td > * { white-space: nowrap; }
-.tinted { padding: .35em .6em .5em; background: #e9ecd7; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.tinted { padding: .35em .6em .5em; background: var(--t-tint, #e9ecd7); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-.table td { padding: .2em .35em; border-bottom: 1px solid #ccd2ad; vertical-align: top; }
+.table td { padding: .2em .35em; border-bottom: 1px solid var(--t-line3, #ccd2ad); vertical-align: top; }
 .table tr:last-child td { border-bottom: 0; }
 .table td:first-child { width: 38%; color: #4a4036; }
 .dashList { white-space: pre-wrap; line-height: 1.8; }
 
 /* 토라&토브 */
 .torah { display: grid; }
-.torahRow { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); border-bottom: 1px solid #5d5348; }
+.torahRow { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); border-bottom: 1px solid var(--t-strong-line, #5d5348); }
 .torahRow:last-child { border-bottom: 0; }
-.torahHead { display: grid; align-content: center; justify-items: center; gap: .1em; padding: .35em; border-right: 1px solid #5d5348; text-align: center; }
-.torahHead > span { color: #0b7d38; }
+.torahHead { display: grid; align-content: center; justify-items: center; gap: .1em; padding: .35em; border-right: 1px solid var(--t-strong-line, #5d5348); text-align: center; }
+.torahHead > span { color: var(--t-green, #0b7d38); }
 .torahHead > span::before { content: '< '; }
 .torahHead > span::after { content: ' >'; }
-.reference { color: #e0261b; font-weight: 600; }
-.verse { padding: .35em .6em; line-height: 1.75; color: #8a6a12; white-space: pre-wrap; }
+.reference { color: var(--t-red, #e0261b); font-weight: 600; }
+.verse { padding: .35em .6em; line-height: 1.75; color: var(--t-gold-ink, #8a6a12); white-space: pre-wrap; }
 .subTitle { margin: .4em 0 .2em !important; font-size: 1.05em !important; font-weight: 700 !important; }
 
 /* 메모 */
-.memo { min-height: 9em; border: .25em solid #dfe3c7; padding: .5em; }
+.memo { min-height: 9em; border: .25em solid var(--t-memo, #dfe3c7); padding: .5em; }
 .memo p { margin: 0; white-space: pre-wrap; }
 
 /* 좋은 소식 */
@@ -102,20 +102,20 @@
 .prayer { width: auto; border-collapse: collapse; margin: 0 0 .15em; font-size: .92em; }
 .prayer th { padding: 0 .3em 0 0; text-align: left; font-weight: 400; color: #6b5f50; white-space: nowrap; }
 .prayer td { padding: 0 .35em; text-align: center; white-space: nowrap; }
-.prayer tr:first-child td { color: #1f5fae; }
+.prayer tr:first-child td { color: var(--t-blue, #1f5fae); }
 
 /* 헌금 내역 */
 .offering { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1em; align-items: start; }
 .offering[data-split=false] { grid-template-columns: minmax(0, 1fr); }
 .offering table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-.offering caption { text-align: left; color: #647024; font-weight: 600; padding: .1em 0 .2em; }
+.offering caption { text-align: left; color: var(--t-accent, #647024); font-weight: 600; padding: .1em 0 .2em; }
 .offering td { padding: .12em .3em; border-bottom: 1px dotted #c9c1b1; }
 .offering td:last-child { text-align: right; width: 45%; font-variant-numeric: tabular-nums; }
 .total { text-align: right; font-weight: 700; margin: .4em 0 0; }
 
 /* 교회 안내 */
 .church { margin-top: auto; padding-top: .6em; }
-.church h3 { position: relative; display: inline-block; margin: 0 0 .55em !important; padding: 0 1.1em .12em .3em; border-bottom: 1px solid #5d5348; font-size: 1.55em !important; font-weight: 600 !important; letter-spacing: .4em; color: #4b5320; }
+.church h3 { position: relative; display: inline-block; margin: 0 0 .55em !important; padding: 0 1.1em .12em .3em; border-bottom: 1px solid var(--t-strong-line, #5d5348); font-size: 1.55em !important; font-weight: 600 !important; letter-spacing: .4em; color: #4b5320; }
 .church h3 > i { position: absolute; right: -.15em; bottom: -.45em; color: #e0262b; font-style: normal; font-size: .75em; letter-spacing: 0; }
 .church p { margin: 0; line-height: 1.75; white-space: pre-wrap; }
 
@@ -149,7 +149,7 @@
 /* 다음 주 봉사위원: one column per duty */
 .volunteers { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
 .volunteers > div { display: grid; gap: .25em; padding: .1em .5em; text-align: center; }
-.volunteers > div + div { border-left: 1px solid #b9c08f; }
+.volunteers > div + div { border-left: 1px solid var(--t-line, #b9c08f); }
 .volunteerRole { color: #4a4036; }
 .volunteerWho { display: flex; justify-content: center; gap: .5em; }
 .volunteerWho > *, .volunteerRole { white-space: nowrap !important; }
@@ -161,9 +161,9 @@
 .torahHead { border-right-color: #cfc6b8; }
 
 /* 헌금 내역 */
-.offering caption { border-bottom: 1px solid #b9c08f; margin-bottom: .1em; }
+.offering caption { border-bottom: 1px solid var(--t-line, #b9c08f); margin-bottom: .1em; }
 .offering td { border-bottom: 1px dotted #d6cfc2; }
-.total { border-bottom: 1px solid #b9c08f; padding-bottom: .25em; }
+.total { border-bottom: 1px solid var(--t-line, #b9c08f); padding-bottom: .25em; }
 
 /* 메모 fills the rest of its page */
 .memoBlock { display: flex; flex-direction: column; flex: 1; min-height: 9em; }
@@ -181,17 +181,17 @@ small.churchLine { font-size: .88em; }
 
 /* 헌금 내역: shared names in one table (현장 | 온라인), the rest on the right */
 .offering:has(.offerPairs) { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
-.offerPairs th, .offerRest th { font-weight: 600; color: #647024; text-align: right; padding: .05em .3em .15em; border-bottom: 1px solid #b9c08f; }
+.offerPairs th, .offerRest th { font-weight: 600; color: var(--t-accent, #647024); text-align: right; padding: .05em .3em .15em; border-bottom: 1px solid var(--t-line, #b9c08f); }
 .offerPairs td:not(:first-child) { text-align: right; width: 30%; font-variant-numeric: tabular-nums; }
 .offerPairs td:first-child, .offerRest td:first-child { text-align: left; }
 .offering .offerPairs td:last-child { width: 30%; }
-.offerRest small { color: #647024; font-size: .85em; }
+.offerRest small { color: var(--t-accent, #647024); font-size: .85em; }
 
 /* 섬기는 이들: column rule only, 담임·협동 rows tinted like the Word template */
 .supportGrid [data-role=staff] .table td { border-bottom: 0; padding-block: .28em; }
-.supportGrid [data-role=staff] .table td:first-child { border-right: 1px solid #b9c08f; }
+.supportGrid [data-role=staff] .table td:first-child { border-right: 1px solid var(--t-line, #b9c08f); }
 .supportGrid [data-role=staff] .table td:last-child { padding-left: 1em; }
-.supportGrid [data-role=staff] .table tr[data-lead] td { background: #d8dec0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.supportGrid [data-role=staff] .table tr[data-lead] td { background: var(--t-lead, #d8dec0); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .supportGrid [data-role=staff] .tinted { padding: 0; }
 .supportGrid [data-role=staff] .table td { padding-inline: .6em; }
 
@@ -201,7 +201,7 @@ small.churchLine { font-size: .88em; }
 
 /* Word-style title wings */
 .orderTitle > .wing { width: 2.6em; height: auto; flex: none; }
-.orderTitle > span { color: #647024; font-size: 1em; letter-spacing: .38em; margin-right: -.38em; }
+.orderTitle > span { color: var(--t-accent, #647024); font-size: 1em; letter-spacing: .38em; margin-right: -.38em; }
 
 /* 예배 안내: two-line label, time on the right */
 .scheduleLabel { white-space: pre-line; line-height: 1.35; }
@@ -217,7 +217,7 @@ small.churchLine { font-size: .88em; }
   .flow .offering, .flow .offering:has(.offerPairs) { grid-template-columns: minmax(0, 1fr); gap: .8em; }
   .flow .offering td { white-space: nowrap; }
   .flow .schedule { grid-template-columns: minmax(0, 1fr); }
-  .flow .schedule > div { border-right: 0; border-bottom: 1px solid #b9c08f; padding: .4em .6em; }
+  .flow .schedule > div { border-right: 0; border-bottom: 1px solid var(--t-line, #b9c08f); padding: .4em .6em; }
   .flow .schedule > div:last-child { border-bottom: 0; }
   .flow .supportGrid [data-role=staff] .table td:first-child { width: 6.2em; }
   .flow .supportGrid [data-role=staff] .table td, .flow .supportGrid [data-role=staff] .table td > * { white-space: normal; }
@@ -231,7 +231,7 @@ small.churchLine { font-size: .88em; }
 .supportGrid [data-role=staff] .staffTable { table-layout: auto; }
 .supportGrid [data-role=staff] .staffTable td:first-child { width: auto; }
 .staffTable td { white-space: nowrap; }
-.staffTable td:nth-child(odd) { color: #4a4036; border-right: 1px solid #b9c08f; padding-right: .7em !important; }
+.staffTable td:nth-child(odd) { color: #4a4036; border-right: 1px solid var(--t-line, #b9c08f); padding-right: .7em !important; }
 .staffTable td:nth-child(even) { padding-left: .8em !important; padding-right: 1em !important; }
 .staffTable td[colspan] { border-right: 0; }
 .staffTable tr > td:last-child { border-right: 0; }
@@ -250,7 +250,7 @@ small.churchLine { font-size: .88em; }
 .orderRow { min-height: 2.15em; }
 .orderRow[data-emph] { min-height: 2.65em; }
 
-.staffTable td:nth-child(2):not([colspan]) { border-right: 1px solid #b9c08f; }
+.staffTable td:nth-child(2):not([colspan]) { border-right: 1px solid var(--t-line, #b9c08f); }
 .staffTable tr > td:last-child { border-right: 0 !important; }
 
 /* 예배 안내 columns: labels centred, times share one left edge */
@@ -282,7 +282,7 @@ small.churchLine { font-size: .88em; }
 .flow { container-type: inline-size; }
 @container (max-width: 560px) {
   .schedule { grid-template-columns: minmax(0, 1fr); }
-  .schedule > div { border-right: 0 !important; border-bottom: 1px solid #b9c08f; padding: .4em .6em; }
+  .schedule > div { border-right: 0 !important; border-bottom: 1px solid var(--t-line, #b9c08f); padding: .4em .6em; }
   .schedule > div:last-child { border-bottom: 0; }
 }
 
@@ -327,7 +327,7 @@ small.churchLine { font-size: .88em; }
 }
 
 /* 총계 sits under the divider line */
-.total { border-bottom: 0; padding-bottom: 0; border-top: 1px solid #b9c08f; padding-top: .3em; }
+.total { border-bottom: 0; padding-bottom: 0; border-top: 1px solid var(--t-line, #b9c08f); padding-top: .3em; }
 
 /* Two-column 예배 안내 for narrow web columns (hidden otherwise) */
 .scheduleNarrow { display: none; }
@@ -336,7 +336,7 @@ small.churchLine { font-size: .88em; }
   .flow .schedule { display: none !important; }
   .flow .scheduleNarrow { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: .5em .4em; background: #e4e8cf; }
   .flow .scheduleNarrow > div { display: grid; grid-template-columns: max-content max-content; justify-content: center; align-content: start; column-gap: .7em; row-gap: .3em; padding: .1em .4em; }
-  .flow .scheduleNarrow > div + div { border-left: 1px solid #b9c08f; }
+  .flow .scheduleNarrow > div + div { border-left: 1px solid var(--t-line, #b9c08f); }
   .flow .scheduleNarrow .scheduleLabel { white-space: nowrap; text-align: left; }
   .flow .orderIntro { text-align: center; }
   /* 섬기는 이들 rarely change: keep each line on one line */
@@ -379,9 +379,9 @@ small.churchLine { font-size: .88em; }
 /* 섬기는 이들: 구분선 위(담임·협동)는 상자 폭 전체가 어둡고, 아래는 밝게 — 따로 떠 있는 박스 모양 없이 */
 .supportGrid [data-role=staff] .tinted { padding: 0 0 .45em; }
 .supportGrid [data-role=staff] .table { border-collapse: collapse; }
-.supportGrid [data-role=staff] .table tr[data-lead] td { border-radius: 0 !important; background: #d8dec0; }
+.supportGrid [data-role=staff] .table tr[data-lead] td { border-radius: 0 !important; background: var(--t-lead, #d8dec0); }
 .supportGrid [data-role=staff] .table tr[data-lead]:first-child td { padding-top: .5em; }
-.supportGrid [data-role=staff] .table tr[data-lead]:has(+ tr:not([data-lead])) td { padding-bottom: .45em; border-bottom: 1px solid #b9c08f; }
+.supportGrid [data-role=staff] .table tr[data-lead]:has(+ tr:not([data-lead])) td { padding-bottom: .45em; border-bottom: 1px solid var(--t-line, #b9c08f); }
 .supportGrid [data-role=staff] .table tr:not([data-lead]):first-child td, .supportGrid [data-role=staff] .table tr[data-lead] + tr:not([data-lead]) td { padding-top: .45em; }
 /* 4면: 좋은 소식과 헌금 내역 사이 숨 쉴 틈 */
 .section[data-section="좋은 소식"] + .section[data-section="헌금 내역"] { margin-top: 1.6em; }
@@ -413,7 +413,7 @@ small.churchLine { font-size: .88em; }
 /* 예배 순서 점선: vector dots (prints crisp; the radial-gradient dots smeared in print) */
 .leader > i { height: .44em; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10'%3E%3Ccircle cx='5' cy='5' r='1.25' fill='%238f8476'/%3E%3C/svg%3E"); background-size: .44em .44em; background-repeat: repeat-x; background-position: left center; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 /* 온라인 건축헌금 줄은 기본 초록 (인쇄 서식 색을 고르면 그 색이 우선) */
-.accountBuilding { color: #0b7d38; }
+.accountBuilding { color: var(--t-green, #0b7d38); }
 /* 다음 주 봉사위원: 교회 청소 · 기도 인도 굵게 */
 .volunteerRole { font-weight: 700; }
 
@@ -423,13 +423,13 @@ small.churchLine { font-size: .88em; }
 .schedule > .scheduleColumn:nth-child(1) { background: #d9e0bb; }
 .schedule > .scheduleColumn:nth-child(2) { background: #e4e8cf; }
 .schedule > .scheduleColumn:nth-child(3) { background: #eef0e0; }
-.schedule > .scheduleColumn > .scheduleLabel { text-align: center !important; padding: 0 .5em; border-right: 1px solid #a9b27a; }
+.schedule > .scheduleColumn > .scheduleLabel { text-align: center !important; padding: 0 .5em; border-right: 1px solid var(--t-line2, #a9b27a); }
 .schedule > .scheduleColumn > .scheduleTime { text-align: center !important; padding: 0 .5em; }
 .flow .scheduleNarrow { padding: 0 !important; background: none !important; }
 .flow .scheduleNarrow > div { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; column-gap: 0 !important; padding: .45em .2em !important; border: 0 !important; }
 .flow .scheduleNarrow > div:nth-child(1) { background: #dfe5c4; }
 .flow .scheduleNarrow > div:nth-child(2) { background: #eaedd8; }
-.flow .scheduleNarrow > div > .scheduleLabel { text-align: center !important; padding: 0 .4em; border-right: 1px solid #a9b27a; }
+.flow .scheduleNarrow > div > .scheduleLabel { text-align: center !important; padding: 0 .4em; border-right: 1px solid var(--t-line2, #a9b27a); }
 .flow .scheduleNarrow > div > .scheduleTime { text-align: center; padding: 0 .4em; }
 .schedule > .scheduleColumn { row-gap: 0 !important; }
 .schedule > .scheduleColumn > :is(.scheduleLabel, .scheduleTime) { padding-top: .12em; padding-bottom: .12em; align-self: stretch; display: flex; align-items: center; justify-content: center; }
@@ -462,7 +462,7 @@ small.churchLine { font-size: .88em; }
 .supportGrid [data-role=staff] .table { table-layout: auto; width: auto; }
 .supportGrid [data-role=staff] .table td:first-child { width: 6.6em; padding-left: .75em; padding-right: .7em; }
 .supportGrid [data-role=staff] .table td:last-child { padding-left: .7em; padding-right: .7em; letter-spacing: -.02em; }
-.supportGrid [data-role=staff] .table td:first-child { border-right: 0 !important; background-image: linear-gradient(#b9c08f, #b9c08f) !important; background-size: 1px 100% !important; background-position: right top !important; background-repeat: no-repeat !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.supportGrid [data-role=staff] .table td:first-child { border-right: 0 !important; background-image: linear-gradient(var(--t-line, #b9c08f), var(--t-line, #b9c08f)) !important; background-size: 1px 100% !important; background-position: right top !important; background-repeat: no-repeat !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .supportGrid [data-role=staff] .table tr:first-child td:first-child { background-size: 1px calc(100% - .45em) !important; background-position: right bottom !important; }
 
 /* ── 2026-11-21 공개 주보(웹) 다듬기 — .flow 안에서만, 인쇄 시트는 그대로 ── */
@@ -470,12 +470,12 @@ small.churchLine { font-size: .88em; }
 .flow .supportGrid [data-role=staff] .table { width: 100%; }
 .flow .supportGrid [data-role=staff] .table td:first-child { background-image: none !important; border-right: 0 !important; }
 .flow .supportGrid [data-role=staff] .table td:last-child { position: relative; }
-.flow .supportGrid [data-role=staff] .table td:last-child::before { content: ""; position: absolute; left: 0; top: -1px; bottom: -1px; width: 1px; background: #b9c08f; }
+.flow .supportGrid [data-role=staff] .table td:last-child::before { content: ""; position: absolute; left: 0; top: -1px; bottom: -1px; width: 1px; background: var(--t-line, #b9c08f); }
 .flow .supportGrid [data-role=staff] .table tr:first-child td:last-child::before { top: .45em; }
 /* 예배 안내(좁은 칸): 두 열이 같은 행 칸을 쓰고(빈 칸 포함), 세로선은 열 전체를 한 줄로 */
 @container (max-width: 560px) {
   .flow .scheduleNarrow > div { position: relative; grid-template-rows: repeat(var(--rows, 3), 1fr); row-gap: 0 !important; align-content: stretch; padding-block: .45em !important; }
-  .flow .scheduleNarrow > div::before { content: ""; position: absolute; left: 50%; top: .5em; bottom: .5em; width: 1px; background: #a9b27a; }
+  .flow .scheduleNarrow > div::before { content: ""; position: absolute; left: 50%; top: .5em; bottom: .5em; width: 1px; background: var(--t-line2, #a9b27a); }
   .flow .scheduleNarrow > div > :is(.scheduleLabel, .scheduleTime) { display: flex; align-items: center; justify-content: center; padding-block: .2em; text-align: center; border-right: 0 !important; }
 }
 /* 넓은 웹 칸: 왼쪽(공지·봉사위원)과 오른쪽(섬기는 이들)을 1:1로 */
@@ -484,3 +484,73 @@ small.churchLine { font-size: .88em; }
 }
 /* 표지 사진은 읽는 폭에 맞춰 키우되 너무 커지지 않게 */
 .flow .cover .coverImages img { width: 100% !important; max-height: 480px !important; object-fit: contain; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   주보 테마 · 모던 (data-theme="modern*"): 웹(.flow)과 인쇄 시트(.sheet) 공통.
+   내용·배치·높이는 기본 테마와 같고, 띠·점선·색 상자를 선과 여백 중심으로 바꾼다.
+   색은 --m-* 팔레트 한 벌로 정하고, 기본 테마가 쓰던 --t-* 변수에 연결한다.
+   ══════════════════════════════════════════════════════════════════════════ */
+:global([data-theme="modern"]) { --m-accent: #2f5d4e; --m-soft: #f5f7f4; --m-lead: #e5eee9; --m-rule: #d3dad4; --m-rule2: #e0e5e0; --m-strong: #c2cbc4; --m-gold: #a5781f; }
+:global([data-theme="modern-navy"]) { --m-accent: #25476a; --m-soft: #f4f6f9; --m-lead: #e4ebf3; --m-rule: #d2dae4; --m-rule2: #e0e6ee; --m-strong: #c0cad7; --m-gold: #a87430; }
+:global([data-theme="modern-warm"]) { --m-accent: #9a4a32; --m-soft: #faf6f2; --m-lead: #f3e6de; --m-rule: #e4d8cf; --m-rule2: #eee5de; --m-strong: #d2c3b8; --m-gold: #a9761f; }
+:global([data-theme="modern-ink"]) { --m-accent: #2b2b2b; --m-soft: #f5f5f5; --m-lead: #e8e8e8; --m-rule: #d6d6d6; --m-rule2: #e4e4e4; --m-strong: #c4c4c4; --m-gold: #5f5f5f; }
+:global([data-theme^="modern"]) {
+  --m-ink: #26302b; --m-muted: #667069;
+  --t-accent: var(--m-accent); --t-line: var(--m-rule); --t-line2: var(--m-rule); --t-line3: var(--m-rule2); --t-tint: var(--m-soft); --t-lead: var(--m-lead);
+  --t-green: var(--m-accent); --t-red: var(--m-gold); --t-blue: var(--m-accent); --t-gold-ink: var(--m-ink); --t-strong-line: var(--m-strong); --t-memo: var(--m-rule);
+}
+[data-theme^="modern"] .section { color: var(--m-ink); }
+
+/* 제목: 색 띠 대신 왼쪽 강조선 + 아래 가는 선 */
+[data-theme^="modern"] .band { background: none; color: var(--m-ink); letter-spacing: .06em; font-size: 1.12em !important; padding: .1em 0 .4em .85em; border-bottom: 1px solid var(--m-rule); margin: 0 0 .75em !important; }
+[data-theme^="modern"] .band::before { content: ""; position: absolute; left: 0; top: .12em; bottom: .5em; width: .26em; border-radius: .1em; background: var(--m-accent); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+/* 2면 제목: 날개 그림 대신 왼쪽 정렬 제목과 굵은 선 */
+[data-theme^="modern"] .orderTitle { justify-content: flex-start; gap: 0; margin: 0 0 .5em !important; padding-bottom: .28em; border-bottom: 2px solid var(--m-accent); font-size: 1.6em !important; font-weight: 700 !important; letter-spacing: .01em; color: var(--m-accent); }
+[data-theme^="modern"] .orderTitle > img { display: none; }
+[data-theme^="modern"] .orderTitle > span { color: inherit; font-size: 1em; letter-spacing: .01em; margin-right: 0; }
+[data-theme^="modern"] .orderIntro { text-align: left; color: var(--m-muted); font-size: .95em; margin-bottom: .5em; }
+
+/* 예배 순서: 점선 대신 가는 줄, 이름(강조색) · 내용(왼쪽) · 담당(오른쪽) */
+[data-theme^="modern"] .order { gap: 0; }
+[data-theme^="modern"] .orderRow { border-bottom: 1px solid var(--m-rule2); column-gap: .5em; }
+[data-theme^="modern"] .orderRow:last-child { border-bottom: 0; }
+[data-theme^="modern"] .leader > i { display: none; }
+[data-theme^="modern"] .leader { justify-content: flex-start; }
+[data-theme^="modern"] .orderWhat { text-align: left; font-weight: 600; white-space: normal; }
+[data-theme^="modern"] .orderName { color: var(--m-accent); font-weight: 600; }
+[data-theme^="modern"] .orderWho { color: var(--m-muted); text-align: right; margin-left: 0; }
+[data-theme^="modern"] .orderRow[data-emph=scripture] .orderWhat { font-size: 1.22em; }
+[data-theme^="modern"] .orderRow[data-emph=sermon] .orderWhat { font-size: 1.28em; font-weight: 700; }
+[data-theme^="modern"] .spread > :first-child { position: static; opacity: 1; white-space: normal; }
+[data-theme^="modern"] .spreadText { display: none; }
+[data-theme^="modern"] .stand { color: var(--m-accent); }
+
+/* 색 상자 → 흰 바탕에 가는 테두리와 둥근 모서리 */
+[data-theme^="modern"] .tinted { border: 1px solid var(--m-rule2); border-radius: .45em; overflow: hidden; }
+[data-theme^="modern"] .schedule { background: var(--m-soft) !important; border: 1px solid var(--m-rule2); border-radius: .45em; overflow: hidden; }
+[data-theme^="modern"] .schedule > .scheduleColumn:nth-child(n) { background: transparent; }
+[data-theme^="modern"] .schedule > .scheduleColumn + .scheduleColumn { border-left: 1px solid var(--m-rule2) !important; }
+.flow[data-theme^="modern"] .scheduleNarrow { background: var(--m-soft) !important; border: 1px solid var(--m-rule2); border-radius: .45em; overflow: hidden; }
+.flow[data-theme^="modern"] .scheduleNarrow > div:nth-child(n) { background: transparent; }
+.flow[data-theme^="modern"] .scheduleNarrow > div + div { border-left: 1px solid var(--m-rule2) !important; }
+[data-theme^="modern"] .memo { border: 1px solid var(--m-rule2); border-radius: .45em; }
+[data-theme^="modern"] .volunteerRole { color: var(--m-accent); }
+
+/* 좋은 소식 · 헌금 · 토라&토브 · 교회 안내 · 표지 */
+[data-theme^="modern"] .news > li::before { color: var(--m-accent); font-weight: 600; }
+[data-theme^="modern"] .tag { color: var(--m-accent); font-weight: 600; }
+[data-theme^="modern"] .prose { color: var(--m-ink); }
+[data-theme^="modern"] .offering td { border-bottom: 1px solid var(--m-rule2); }
+[data-theme^="modern"] .offering caption, [data-theme^="modern"] .offering th { color: var(--m-muted); }
+[data-theme^="modern"] .total { border-top-color: var(--m-accent); }
+[data-theme^="modern"] .torahHead > span { color: var(--m-accent); font-weight: 600; }
+[data-theme^="modern"] .church h3 { color: var(--m-accent); letter-spacing: .14em; border-bottom-color: var(--m-accent); }
+[data-theme^="modern"] .coverLines .coverLine { font-size: 1.45em; line-height: 1.5; letter-spacing: -.01em; }
+[data-theme^="modern"] .coverLines .coverLine:nth-child(2), [data-theme^="modern"] .coverLines article + article .coverLine { color: var(--m-ink); padding-left: 0; }
+[data-theme^="modern"] .coverMeta { color: var(--m-muted); }
+[data-theme^="modern"] .coverMark small { color: var(--m-muted); }
+[data-theme^="modern"] .coverMark strong { color: var(--m-ink); }
+@container (max-width: 560px) {
+  [data-theme^="modern"] .orderTitle { font-size: 1.35em !important; }
+}

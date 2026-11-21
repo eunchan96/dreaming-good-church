@@ -153,3 +153,7 @@
   .footerBar > .actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
   .footerBar > .actions > *, .footerBar > .actions > * > button { width: 100%; }
 }
+
+/* 주보 테마 선택 줄 (날짜·호수 줄 아래) */
+.themeRow { display: flex; align-items: flex-start; gap: 10px 16px; flex-wrap: wrap; margin-top: 10px; }
+.themeLabel { flex: none; padding-top: 9px; font-size: 13px; font-weight: 500; color: var(--muted); }

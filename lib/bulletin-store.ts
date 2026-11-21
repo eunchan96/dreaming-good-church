@@ -4,7 +4,7 @@ import type { Bulletin, BulletinItem, BlockKind, BlockContent } from "./bulletin
 
 export type SavedBulletin = Bulletin & { revision: number };
 type ItemRow = Tables<"bulletin_items">;
-type BulletinRow = Pick<Tables<"bulletins">, "id" | "service_date" | "issue_number" | "status" | "revision"> & { bulletin_items?: ItemRow[] };
+type BulletinRow = Pick<Tables<"bulletins">, "id" | "service_date" | "issue_number" | "status" | "revision"> & { theme?: string; bulletin_items?: ItemRow[] };
 
 let browserClient: SupabaseClient<Database> | null = null;
 
@@ -22,7 +22,7 @@ export function fromRow(row: BulletinRow): SavedBulletin {
   if (row.status !== "draft" && row.status !== "published") throw new Error("Unknown bulletin status");
   return {
     id: row.id, serviceDate: row.service_date, issueNumber: row.issue_number,
-    status: row.status, revision: row.revision,
+    status: row.status, revision: row.revision, theme: row.theme ?? "classic",
     items: [...(row.bulletin_items ?? [])].sort((a, b) => a.position - b.position)
       .map((item): BulletinItem => ({
         id: item.id, printPage: item.print_page, title: item.title, body: item.body, webVisible: item.web_visible,
@@ -35,7 +35,7 @@ export function fromRow(row: BulletinRow): SavedBulletin {
 
 export async function loadBulletins(client: BrowserClient) {
   const { data, error } = await client.from("bulletins")
-    .select("id,service_date,issue_number,status,revision,bulletin_items(*)")
+    .select("id,service_date,issue_number,status,revision,theme,bulletin_items(*)")
     .order("service_date", { ascending: false }).limit(100);
   if (error) throw error;
   return data.map(fromRow);
@@ -44,7 +44,7 @@ export async function loadBulletins(client: BrowserClient) {
 export async function saveDraft(client: BrowserClient, draft: SavedBulletin) {
   const { data, error } = await client.rpc("save_bulletin_draft", {
     p_id: draft.id, p_service_date: draft.serviceDate, p_issue_number: draft.issueNumber,
-    p_revision: draft.revision, p_items: draft.items,
+    p_revision: draft.revision, p_items: draft.items, p_theme: draft.theme ?? "classic",
   });
   if (error) throw error;
   return { ...draft, revision: data.revision };

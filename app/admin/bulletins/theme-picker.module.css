@@ -1,0 +1,11 @@
+.picker { display: grid; gap: 6px; min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 12px 0 9px; border: 1px solid #ddd5c6; border-radius: 8px; background: #fffdf8; color: #4a3f33; font: inherit; font-size: 13px; cursor: pointer; transition: border-color .12s, background .12s; }
+.chip:hover:not(:disabled) { border-color: #b9a77f; }
+.chip[aria-checked="true"] { border-color: #2f2720; background: #2f2720; color: #fff; }
+.chip:disabled { opacity: .55; cursor: not-allowed; }
+.dots { display: inline-flex; }
+.dots i { width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 0 1.5px #fffdf8; }
+.dots i + i { margin-left: -5px; }
+.chip[aria-checked="true"] .dots i { box-shadow: 0 0 0 1.5px #2f2720; }
+.hint { margin: 0; font-size: 12px; color: #7a6c58; }
