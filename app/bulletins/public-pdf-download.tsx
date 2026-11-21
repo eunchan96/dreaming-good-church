@@ -1,22 +1,19 @@
 "use client";
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import styles from "./reader.module.css";
+import type { PrintableBulletin } from "./public-print";
 
-/** Small text link at the foot of the bulletin. */
-export default function PublicPdfDownload({ date }: { date: string }) {
-  const [busy, setBusy] = useState(false);
+// 인쇄용 시트(관리자 인쇄 미리보기와 같은 코드)는 누를 때만 내려받는다.
+const PublicPrint = dynamic(() => import("./public-print"), { ssr: false });
+
+/** 주보 맨 아래 작은 글자 링크: 인쇄 미리보기와 같은 모양을 PDF로 저장하는 창을 연다. */
+export default function PublicPdfDownload({ bulletin }: { bulletin: PrintableBulletin }) {
+  const [printing, setPrinting] = useState(false);
   const [message, setMessage] = useState("");
-  async function download() {
-    setBusy(true); setMessage("");
-    try {
-      const response = await fetch(`/api/bulletins/pdf?date=${encodeURIComponent(date)}`, { cache: "no-store" });
-      if (!response.ok) { const data = await response.json(); throw new Error(data.error); }
-      const url = URL.createObjectURL(await response.blob());
-      const link = document.createElement("a"); link.href = url; link.download = `bulletin-${date}.pdf`;
-      document.body.append(link); link.click(); link.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 60000);
-    } catch (error) { setMessage(error instanceof Error ? error.message : "PDF를 내려받지 못했습니다. 다시 시도해 주세요."); }
-    finally { setBusy(false); }
-  }
-  return <div className={styles.pdf}><button type="button" disabled={busy} onClick={download}>{busy ? "PDF 만드는 중…" : "PDF로 내려받기"}</button>{message ? <span role="status">{message}</span> : null}</div>;
+  return <div className={styles.pdf}>
+    <button type="button" disabled={printing} onClick={() => { setMessage(""); setPrinting(true); }}>{printing ? "PDF 준비 중…" : "PDF로 내려받기"}</button>
+    {message ? <span role="status">{message}</span> : null}
+    {printing ? <PublicPrint bulletin={bulletin} onDone={() => setPrinting(false)} onError={setMessage} /> : null}
+  </div>;
 }

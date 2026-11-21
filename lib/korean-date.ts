@@ -19,3 +19,19 @@ export function eventWhen(start: string, end?: string | null) {
   if (!end) return first;
   return end.slice(0, 10) === start.slice(0, 10) ? `${first} ~ ${clock(end)}` : `${first} ~ ${monthDayWeek(end)} ${clock(end)}`;
 }
+
+/** 주일 날짜 → 그 주의 주차와 다음 월~토 날짜. 2026-11-08 → { year: 2026, week: 45, label: "26-45주차", range: "11/9~11/14" } */
+export function torahWeek(value: string) {
+  const { y, m, d } = parts(value);
+  const DAY = 86400000, sunday = Date.UTC(y, m - 1, d);
+  const monIndex = (t: number) => (new Date(t).getUTCDay() + 6) % 7;
+  // ISO 8601: the Thursday of the Sunday's week decides the week-year and number.
+  const thursday = sunday + (3 - monIndex(sunday)) * DAY, year = new Date(thursday).getUTCFullYear();
+  const jan4 = Date.UTC(year, 0, 4), firstMonday = jan4 - monIndex(jan4) * DAY;
+  const week = Math.floor((thursday - firstMonday) / (7 * DAY)) + 1;
+  const md = (t: number) => `${new Date(t).getUTCMonth() + 1}/${new Date(t).getUTCDate()}`;
+  return { year, week, label: `${String(year).slice(2)}-${week}주차`, range: `${md(sunday + DAY)}~${md(sunday + 6 * DAY)}` };
+}
+
+/** ISO 주차 수(52 또는 53): 12월 28일이 속한 주가 그 해의 마지막 주차다. */
+export function weeksInYear(year: number) { return torahWeek(`${year}-12-28`).week; }

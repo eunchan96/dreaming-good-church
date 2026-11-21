@@ -13,7 +13,7 @@ import styles from "./print-preview.module.css";
 import AdminIcon from "../admin-icons";
 
 /** 헌금 내역 always prints on 4면, like the Word bulletin. */
-function defaultPage(item: SavedBulletin["items"][number]) {
+export function defaultPage(item: SavedBulletin["items"][number]) {
   if (item.kind === "offering") return 4;
   if (sectionFor(item)==="표지") return 1;
   if (isPrayerGuide(item)) return 4;
