@@ -1,45 +1,23 @@
-/* 토라&토브: date list (left) + the chosen week's entries */
-.layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 48px; align-items: start; margin-top: 8px; }
-.weeks { position: sticky; top: 112px; }
-.weeks h2 { margin: 0 0 10px; font-size: 13px; font-weight: 600; letter-spacing: .04em; color: #8d6d2f; }
-.weeks ul { display: grid; gap: 2px; max-height: calc(100dvh - 180px); margin: 0; padding: 0; overflow-y: auto; list-style: none; }
-.weeks button { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 2px 10px; width: 100%; padding: 11px 14px; border: 0; border-left: 2px solid transparent; border-radius: 0; background: transparent; color: #4a3f33; text-align: left; cursor: pointer; font: inherit; }
-.weeks button:hover { border-left-color: #cdbd9b; }
-.weeks button[aria-current] { border-left-color: #8d6d2f; color: #2f2720; }
-.weeks button[aria-current] small { color: #5d4930; }
-.weeks strong { font-size: 15px; font-weight: 600; }
-.weeks span { font-size: 12px; color: #6f604a; }
-.weeks small { grid-column: 1 / -1; overflow: hidden; font-size: 12.5px; color: #6b5a42; white-space: nowrap; text-overflow: ellipsis; }
-
+/* 토라&토브: 주보처럼 < 날짜 > 로 이동, 나의 묵상·토라&토브 항목 */
 .week { min-width: 0; scroll-margin-top: 90px; }
-.week > header { padding-bottom: 20px; min-height: 0; border-bottom: 1px solid #e3dbcd; }
-.week > header p { margin: 0 0 6px; font-size: 12px; font-weight: 600; letter-spacing: .06em; color: #8d6d2f; }
-.week > header h2 { margin: 0; font-family: var(--font-public-serif), serif; font-size: clamp(24px, 2.6vw, 32px); font-weight: 500; letter-spacing: -.03em; color: #2f2720; }
 .entries { display: grid; gap: 0; }
-.entries article { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 6px 32px; padding: 28px 0; border-bottom: 1px solid #ece5d8; }
-.entries h3 { grid-row: span 2; margin: 2px 0 0; font-size: 15px; font-weight: 600; color: #0b7d38; }
-.reference { margin: 0; font-size: 14px; font-weight: 600; color: #8d6d2f; }
-.entries blockquote { margin: 0; font-family: var(--font-public-serif), serif; font-size: 19px; line-height: 1.85; color: #342b25; white-space: pre-wrap; }
+.entries article { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 8px 32px; padding: 30px 0; border-bottom: 1px solid #ece5d8; }
+.entries article:first-child { padding-top: 6px; }
+.entries h3 { grid-row: span 2; margin: 0; font-family: var(--font-public-serif), serif; font-size: 21px; font-weight: 600; letter-spacing: -.02em; line-height: 1.4; color: #647024; }
+.reference { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: .01em; color: #8d6d2f; }
+.entries blockquote { margin: 0; font-family: var(--font-public-serif), serif; font-size: 19px; line-height: 1.9; color: #342b25; white-space: pre-wrap; }
 .empty { margin: 0; padding: 40px 0; color: #6b5a42; }
-.more { display: inline-flex; align-items: center; gap: 8px; margin-top: 24px; padding-bottom: 4px; border-bottom: 1px solid #b9a37a; color: #5d4930; font-size: 14px; text-decoration: none; }
-.more:hover { color: #2f2720; border-color: #5d4930; }
+.moreRow { display: flex; justify-content: flex-end; margin-top: 26px; }
+.more { display: inline-flex; align-items: center; gap: 8px; padding-bottom: 4px; border-bottom: 1px solid #b9a37a; color: #5d4930; font-size: 14px; text-decoration: none; transition: color .15s, border-color .15s; }
+.more:hover { color: #8d6d2f; border-color: #8d6d2f; }
+.more svg { transition: translate .15s; }
+.more:hover svg { translate: 4px 0; }
 .state { display: grid; justify-items: start; gap: 12px; padding: 28px; border-radius: 10px; background: #f3eee4; color: #5d4930; }
 .state p { margin: 0; }
 .loading { color: #6b5a42; }
 
 @media (max-width: 860px) {
-  .layout { grid-template-columns: minmax(0, 1fr); gap: 24px; }
-  .weeks { position: static; }
-  .weeks h2 { display: none; }
-  .weeks ul { display: flex; gap: 6px; max-height: none; padding: 0; overflow-x: auto; overflow-y: visible; scrollbar-width: none; }
-  .weeks ul::-webkit-scrollbar { display: none; }
-  .weeks li { flex: 0 0 auto; }
-  .weeks button { display: block; min-width: 0; min-height: 0; padding: 5px 10px; border: 1px solid #e3dbcd; border-radius: 3px; background: transparent; }
-  .weeks button strong { font-size: 12.5px; font-weight: 400; white-space: nowrap; }
-  .weeks button[aria-current] { border-color: #8d6d2f; background: transparent; }
-  .weeks button[aria-current] strong { font-weight: 600; }
-  .weeks span, .weeks small { display: none; }
-  .entries article { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 22px 0; }
-  .entries h3 { grid-row: auto; }
+  .entries article { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 24px 0; }
+  .entries h3 { grid-row: auto; font-size: 19px; }
   .entries blockquote { font-size: 17px; }
 }
