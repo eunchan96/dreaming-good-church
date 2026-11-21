@@ -67,7 +67,7 @@ export default function PublicBulletins({ initialDate }: { initialDate?: string 
         const content = await detail.json();
         if (controller.signal.aborted || currentRequest !== requestNumber) return;
         if (!detail.ok) throw new Error(content.error);
-        setBulletin({...content,items:presentationItems<PublicItem>(content.items).filter(item=>!printOnlyItem(item)),printItems:presentationItems<PublicItem>(content.items).map(item=>({webVisible:true,reviewOnCopy:false,needsReview:false,printPage:null,...item}) as BulletinItem)}); setMessage(""); setFailed(false);
+        setBulletin({...content,items:presentationItems<PublicItem>(content.items).filter(item=>!printOnlyItem(item)),printItems:presentationItems<PublicItem>(content.items).map(item=>({webVisible:true,reviewOnCopy:false,needsReview:false,printPage:(item as {print_page?:number|null}).print_page??null,...item}) as BulletinItem)}); setMessage(""); setFailed(false);
       } catch (error) {
         if (controller.signal.aborted || currentRequest !== requestNumber) return;
         setBulletin(null); setFailed(true); setMessage(error instanceof Error ? error.message : "주보를 불러오지 못했습니다.");
