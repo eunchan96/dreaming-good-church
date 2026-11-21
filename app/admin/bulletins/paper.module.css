@@ -469,7 +469,9 @@ small.churchLine { font-size: .88em; }
 /* 섬기는 이들: 어두운 줄은 상자 끝까지, 세로선은 합쳐진 표 테두리라 행 사이에서 끊기지 않음 */
 .flow .supportGrid [data-role=staff] .table { width: 100%; }
 .flow .supportGrid [data-role=staff] .table td:first-child { background-image: none !important; border-right: 0 !important; }
-.flow .supportGrid [data-role=staff] .table td:last-child { border-left: 1px solid #b9c08f; }
+.flow .supportGrid [data-role=staff] .table td:last-child { position: relative; }
+.flow .supportGrid [data-role=staff] .table td:last-child::before { content: ""; position: absolute; left: 0; top: -1px; bottom: -1px; width: 1px; background: #b9c08f; }
+.flow .supportGrid [data-role=staff] .table tr:first-child td:last-child::before { top: .45em; }
 /* 예배 안내(좁은 칸): 두 열이 같은 행 칸을 쓰고(빈 칸 포함), 세로선은 열 전체를 한 줄로 */
 @container (max-width: 560px) {
   .flow .scheduleNarrow > div { position: relative; grid-template-rows: repeat(var(--rows, 3), 1fr); row-gap: 0 !important; align-content: stretch; padding-block: .45em !important; }
