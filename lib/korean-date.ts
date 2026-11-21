@@ -32,3 +32,6 @@ export function torahWeek(value: string) {
   const md = (t: number) => `${new Date(t).getUTCMonth() + 1}/${new Date(t).getUTCDate()}`;
   return { year, week, label: `${String(year).slice(2)}-${week}주차`, range: `${md(sunday + DAY)}~${md(sunday + 6 * DAY)}` };
 }
+
+/** ISO 주차 수(52 또는 53): 12월 28일이 속한 주가 그 해의 마지막 주차다. */
+export function weeksInYear(year: number) { return torahWeek(`${year}-12-28`).week; }

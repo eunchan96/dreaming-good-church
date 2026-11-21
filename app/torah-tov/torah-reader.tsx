@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { longDate, torahWeek } from '@/lib/korean-date';
+import { torahWeek, weeksInYear } from '@/lib/korean-date';
 import { displayTitle } from '@/lib/bulletin-presentation';
 import SiteIcon from '../site-icon';
 import css from './torah.module.css';
@@ -11,15 +11,13 @@ type Entry = { id: string; title: string; body: string; content: { reference?: s
 type Week = { serviceDate: string; issueNumber: number; reference: string };
 type Data = { dates: Week[]; items: Entry[]; serviceDate: string | null; issueNumber: number | null };
 
-const squash = (value: string) => value.replace(/\s+/g, '').toLowerCase();
-
 /** 토라&토브 by week: ‹ 26-45주차 (11/9~11/14) › and a searchable list of other weeks at the bottom. */
 export default function TorahReader() {
   // ?date=YYYY-MM-DD opens that week (nothing date-dependent renders before data arrives).
   const [selected, setSelected] = useState<string | null>(() => { if (typeof window === 'undefined') return null; const date = new URLSearchParams(location.search).get('date'); return date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null; });
   const [data, setData] = useState<Data | null>(null), [failed, setFailed] = useState(false), [retry, setRetry] = useState(0);
-  const [open, setOpen] = useState(false), [query, setQuery] = useState('');
-  const panel = useRef<HTMLDivElement>(null), toggle = useRef<HTMLButtonElement>(null), search = useRef<HTMLInputElement>(null);
+  const [year, setYear] = useState<number | null>(null), [peek, setPeek] = useState<string | null>(null);
+  const dialog = useRef<HTMLDialogElement>(null), toggle = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     const controller = new AbortController();
     fetch(`/api/bulletin-sections?section=torah-tov${selected ? `&date=${selected}` : ''}`, { cache: 'no-store', signal: controller.signal })
@@ -27,22 +25,16 @@ export default function TorahReader() {
       .catch(() => { if (!controller.signal.aborted) setFailed(true); });
     return () => controller.abort();
   }, [selected, retry]);
-  // Close the 다른 주차 panel on outside click / Escape.
-  useEffect(() => {
-    if (!open) return;
-    search.current?.focus();
-    const away = (e: PointerEvent) => { if (!panel.current?.contains(e.target as Node) && !toggle.current?.contains(e.target as Node)) setOpen(false); };
-    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpen(false); toggle.current?.focus(); } };
-    document.addEventListener('pointerdown', away); document.addEventListener('keydown', key);
-    return () => { document.removeEventListener('pointerdown', away); document.removeEventListener('keydown', key); };
-  }, [open]);
-  const groups = useMemo(() => {
-    const needle = squash(query).replace(/주차$/, '');
-    const found = (data?.dates ?? []).map(week => ({ week, info: torahWeek(week.serviceDate) })).filter(({ week, info }) => !needle || squash(`${info.label} ${info.range} ${week.reference} ${week.serviceDate}`).includes(needle) || squash(`${info.week}주차`).includes(needle));
-    return found.reduce<{ label: string; rows: typeof found }[]>((all, row) => { const label = `${row.info.year}년`; const last = all.at(-1); if (last?.label === label) last.rows.push(row); else all.push({ label, rows: [row] }); return all; }, []);
-  }, [data, query]);
+  // 주차 번호 → 그 주차의 주보 (연도별). 데이터가 있는 주차만 누를 수 있다.
+  const byYear = useMemo(() => {
+    const map = new Map<number, Map<number, Week>>();
+    for (const row of data?.dates ?? []) { const { year: y, week } = torahWeek(row.serviceDate); if (!map.has(y)) map.set(y, new Map()); map.get(y)!.set(week, row); }
+    return map;
+  }, [data]);
+  const years = useMemo(() => [...byYear.keys()].sort((x, y) => y - x), [byYear]);
+  function openFinder() { setYear(data?.serviceDate ? torahWeek(data.serviceDate).year : years[0] ?? null); setPeek(null); dialog.current?.showModal(); }
   function choose(date: string, scroll = false) {
-    setSelected(date); setOpen(false); setQuery('');
+    setSelected(date); dialog.current?.close();
     const url = new URL(location.href); url.searchParams.set('date', date); history.replaceState(null, '', url);
     if (scroll) document.getElementById('torah-top')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
   }
@@ -66,15 +58,34 @@ export default function TorahReader() {
         {item.body.trim() ? <blockquote>{item.body}</blockquote> : null}
       </article>)}</div> : <p className={css.empty}>이 주차에는 토라&amp;토브가 없습니다.</p>}
       <div className={css.footRow}>
-        <div className={css.findWrap}>
-          <button ref={toggle} type="button" className={css.findToggle} aria-expanded={open} aria-controls="torah-find" onClick={() => setOpen(value => !value)}>다른 주차 찾기<SiteIcon name="chevron" size={16} style={{ transform: open ? 'rotate(180deg)' : undefined }} /></button>
-          {open ? <div ref={panel} id="torah-find" className={css.findPanel} role="region" aria-label="다른 주차 찾기">
-            <input ref={search} type="search" className={css.findInput} value={query} onChange={event => setQuery(event.target.value)} placeholder="주차·날짜·성경 본문 (예: 45, 11/9, 시편)" aria-label="주차 검색" />
-            <div className={css.findList}>{groups.length ? groups.map(group => <section key={group.label}><h3>{group.label}</h3><ul>{group.rows.map(({ week: row, info }) => <li key={row.serviceDate}><button type="button" aria-current={row.serviceDate === current ? 'true' : undefined} onClick={() => choose(row.serviceDate, true)}><span><strong>{info.label}</strong><em>{info.range}</em></span>{row.reference ? <small>{row.reference}</small> : null}</button></li>)}</ul></section>) : <p className={css.findEmpty}>찾는 주차가 없습니다.</p>}</div>
-          </div> : null}
-        </div>
+        <button ref={toggle} type="button" className={css.findToggle} onClick={openFinder}>다른 주차 찾기<SiteIcon name="chevron" size={16} /></button>
         {current ? <Link className={css.more} href={`/bulletins/${current}`}>이 주보 전체 보기<SiteIcon size={16} /></Link> : null}
       </div>
     </section>
+    <dialog ref={dialog} className={css.finder} aria-label="주차 선택" onClick={event => { if (event.target === dialog.current) dialog.current?.close(); }} onClose={() => { setPeek(null); toggle.current?.focus(); }}>
+      {year !== null ? <FinderBody year={year} years={years} weeks={byYear.get(year) ?? new Map()} current={current} peek={peek} onPeek={setPeek} onYear={setYear} onPick={date => choose(date, true)} onClose={() => dialog.current?.close()} /> : null}
+    </dialog>
+  </div>;
+}
+
+/** 한 해를 8×7 칸으로: 1주차부터 52(53)주차, 주보가 있는 주차만 누를 수 있다. */
+function FinderBody({ year, years, weeks, current, peek, onPeek, onYear, onPick, onClose }: { year: number; years: number[]; weeks: Map<number, Week>; current: string | null; peek: string | null; onPeek: (value: string | null) => void; onYear: (year: number) => void; onPick: (date: string) => void; onClose: () => void }) {
+  const total = weeksInYear(year), shown = (peek && [...weeks.values()].find(row => row.serviceDate === peek)) || null;
+  const older = years[years.indexOf(year) + 1], newer = years[years.indexOf(year) - 1];
+  return <div className={css.finderBody}>
+    <div className={css.finderHead}>
+      <button type="button" className={bar.step} aria-label="이전 해" disabled={!older} onClick={() => older && onYear(older)}><SiteIcon name="arrow" size={18} style={{ transform: 'scaleX(-1)' }} /></button>
+      <strong>{year}년</strong>
+      <button type="button" className={bar.step} aria-label="다음 해" disabled={!newer} onClick={() => newer && onYear(newer)}><SiteIcon name="arrow" size={18} /></button>
+    </div>
+    <ol className={css.weekGrid}>{Array.from({ length: 56 }, (_, i) => {
+      const number = i + 1, row = number <= total ? weeks.get(number) : undefined;
+      if (number > total) return <li key={number} aria-hidden="true" />;
+      return <li key={number}>{row
+        ? <button type="button" aria-current={row.serviceDate === current ? 'true' : undefined} onClick={() => onPick(row.serviceDate)} onMouseEnter={() => onPeek(row.serviceDate)} onFocus={() => onPeek(row.serviceDate)} onMouseLeave={() => onPeek(null)} onBlur={() => onPeek(null)}><b>{number}</b><span>주차</span></button>
+        : <span className={css.weekEmpty} aria-label={`${number}주차 없음`}><b>{number}</b><span>주차</span></span>}</li>;
+    })}</ol>
+    <p className={css.finderPeek} aria-live="polite">{shown ? <><strong>{torahWeek(shown.serviceDate).label}</strong><em>{torahWeek(shown.serviceDate).range}</em>{shown.reference ? <small>{shown.reference}</small> : null}</> : <span>주차를 누르면 그 주의 토라&amp;토브로 이동해요.</span>}</p>
+    <button type="button" className={css.finderClose} onClick={onClose}>닫기</button>
   </div>;
 }
