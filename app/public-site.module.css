@@ -284,8 +284,8 @@ to{opacity:1}
 .site{background:white}
 .heroArtwork{display:none}
 }
-.videoCollection{--thumb:240px;padding:80px 0 6px;min-width:0}
-.videoCollectionHeading{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px}.videoCollectionHeading .eyebrow{margin-bottom:10px}.videoCollectionHeading h3{font-family:var(--font-display);font-size:24px;font-weight:500;letter-spacing:-.05em;margin:0}
+.videoCollection{--thumb:240px;padding:20px 0 6px;min-width:0}
+.videoCaption>.stripArrows{align-self:flex-end;margin-bottom:-6px}
 /* Arrows: plain icons like the site's text links, shown only when the list is wider than the screen. */
 .stripArrows{display:flex;gap:4px}
 .stripArrows button{width:44px;height:44px;display:inline-grid;place-items:center;border:0;background:transparent;color:var(--ink);cursor:pointer;transition:color .2s,transform .2s,opacity .2s}
