@@ -598,3 +598,6 @@ small.churchLine { font-size: .88em; }
 [data-theme^="modern"] .supportGrid { grid-template-columns: minmax(0, 1fr) fit-content(72%); }
 [data-theme^="modern"] .supportGrid [data-role=staff] .table td:last-child { padding-right: 1.2em; }
 .flow[data-theme^="modern"] .supportGrid [data-role=staff] .table td:last-child { padding-right: 1.2em; }
+
+/* 웹 화면(.flow)만: 섬기는 이들 상자가 이름 길이에 맞게 늘어나 어두운 줄이 상자 밖으로 안 나가게 (인쇄 시트는 그대로) */
+.flow .supportGrid { grid-template-columns: minmax(0, 1fr) fit-content(76%); }
