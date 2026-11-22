@@ -516,14 +516,12 @@ small.churchLine { font-size: .88em; }
 [data-theme^="modern"] .orderRow { border-bottom: 1px solid var(--m-rule2); column-gap: .5em; }
 [data-theme^="modern"] .orderRow:last-child { border-bottom: 0; }
 [data-theme^="modern"] .leader > i { display: none; }
-[data-theme^="modern"] .leader { justify-content: flex-start; }
-[data-theme^="modern"] .orderWhat { text-align: left; font-weight: 600; white-space: normal; }
+[data-theme^="modern"] .leader { justify-content: center; }
+[data-theme^="modern"] .orderWhat { text-align: center; font-weight: 600; white-space: normal; }
 [data-theme^="modern"] .orderName { color: var(--m-accent); font-weight: 600; }
-[data-theme^="modern"] .orderWho { color: var(--m-muted); text-align: right; margin-left: 0; }
+[data-theme^="modern"] .orderWho { color: var(--m-muted); margin-left: 0; }
 [data-theme^="modern"] .orderRow[data-emph=scripture] .orderWhat { font-size: 1.22em; }
 [data-theme^="modern"] .orderRow[data-emph=sermon] .orderWhat { font-size: 1.28em; font-weight: 700; }
-[data-theme^="modern"] .spread > :first-child { position: static; opacity: 1; white-space: normal; }
-[data-theme^="modern"] .spreadText { display: none; }
 [data-theme^="modern"] .stand { color: var(--m-accent); }
 
 /* 색 상자 → 흰 바탕에 가는 테두리와 둥근 모서리 */
