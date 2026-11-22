@@ -564,3 +564,17 @@ small.churchLine { font-size: .88em; }
   .flow[data-theme^="modern"] .news > li > .tag { grid-column: 1; }
   .flow[data-theme^="modern"] .news > li > div { grid-column: 1; padding-left: 0; }
 }
+
+/* 모던 다듬기: 꺾쇠 제거, 토라&토브 선 색, 헌금 머리글, 웹 섹션 간격 */
+[data-theme^="modern"] .torahHead > span::before, [data-theme^="modern"] .torahHead > span::after,
+[data-theme^="modern"] .attribution::before, [data-theme^="modern"] .attribution::after { content: none; }
+[data-theme^="modern"] .attribution { color: var(--m-muted); }
+[data-theme^="modern"] .torah { border-top: 1px solid var(--m-rule); border-bottom: 1px solid var(--m-rule); }
+[data-theme^="modern"] .torahRow { border-bottom: 1px solid var(--m-rule2); }
+[data-theme^="modern"] .torahRow:last-child { border-bottom: 0; }
+[data-theme^="modern"] .torahHead { border-right: 1px solid var(--m-rule2); }
+[data-theme^="modern"] .reference { color: var(--m-gold); }
+[data-theme^="modern"] .verse { color: var(--m-ink); }
+[data-theme^="modern"] .offering th { color: var(--m-accent); font-weight: 600; }
+.flow[data-theme^="modern"] .section + .section { margin-top: 2em; }
+.flow[data-theme^="modern"] .band { margin-bottom: .95em !important; }
