@@ -578,3 +578,19 @@ small.churchLine { font-size: .88em; }
 [data-theme^="modern"] .offering th { color: var(--m-accent); font-weight: 600; }
 .flow[data-theme^="modern"] .section + .section { margin-top: 2em; }
 .flow[data-theme^="modern"] .band { margin-bottom: .95em !important; }
+
+/* 좁은 칸: 섬기는 이들 이름이 잘리지 않게 줄바꿈 허용 */
+@container (max-width: 560px) {
+  .flow .supportGrid [data-role=staff] .table td:last-child, .flow .supportGrid [data-role=staff] .table td:last-child > * { white-space: normal; letter-spacing: 0; overflow-wrap: anywhere; }
+  .flow .supportGrid [data-role=staff] .table { font-size: 1em; }
+}
+/* 모던 기도·안내: 표 대신 주차별 칸(날짜·기도·안내가 세로로), 줄바꿈 가능, 가는 세로선 */
+[data-theme^="modern"] .prayer { display: block; width: 100%; font-size: .95em; }
+[data-theme^="modern"] .prayer tbody { display: grid; grid-template-columns: auto repeat(var(--cols, 5), minmax(0, 1fr)); row-gap: .15em; }
+[data-theme^="modern"] .prayer tr { display: contents; }
+[data-theme^="modern"] .prayer th { padding: .1em .6em .1em 0; font-size: .85em; font-weight: 600; color: var(--m-muted); align-self: center; }
+[data-theme^="modern"] .prayer td { padding: .12em .35em; text-align: center; white-space: normal !important; overflow-wrap: anywhere; line-height: 1.35; border-left: 1px solid var(--m-rule2); color: var(--m-ink); }
+[data-theme^="modern"] .prayer td > * { white-space: normal !important; }
+[data-theme^="modern"] .prayer tr:first-child td { color: var(--m-accent); font-weight: 700; font-size: .92em; }
+[data-theme^="modern"] .prayer tr:last-child td { color: var(--m-muted); font-size: .92em; }
+.flow[data-theme^="modern"] .news > li[data-prayer] > div { overflow-x: visible; }

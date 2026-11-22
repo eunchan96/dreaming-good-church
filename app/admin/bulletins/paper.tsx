@@ -140,7 +140,7 @@ function Plain({item,tone='olive'}:{item:BulletinItem;tone?:Tone}){
 }
 function NewsEntry({item,account}:{item:BulletinItem;account:boolean}){
  const {rows,cell,text}=useEdit(item);
- return <div data-print-item={item.id}>{isPrayerGuide(item)?<table className={css.prayer} aria-label="기도･안내"><tbody>{['날짜','기도','안내'].map((label,col)=><tr key={label}><th scope="row">{col===0?<span className={css.srOnly}>{label}</span>:label}</th>{rows.map(({row,i})=><td key={i}><PrintText id={`${item.id}:row:${i}:${col}`} label={`기도･안내 ${i+1}열 ${label}`} value={row[col]??''} maxLength={500} onChange={v=>cell(i,col,v)}/></td>)}</tr>)}</tbody></table>:null}
+ return <div data-print-item={item.id}>{isPrayerGuide(item)?<table className={css.prayer} aria-label="기도･안내" style={{'--cols':rows.length} as React.CSSProperties}><tbody>{['날짜','기도','안내'].map((label,col)=><tr key={label}><th scope="row">{col===0?<span className={css.srOnly}>{label}</span>:label}</th>{rows.map(({row,i})=><td key={i}><PrintText id={`${item.id}:row:${i}:${col}`} label={`기도･안내 ${i+1}열 ${label}`} value={row[col]??''} maxLength={500} onChange={v=>cell(i,col,v)}/></td>)}</tr>)}</tbody></table>:null}
   {item.body&&account?(()=>{const lines=accountBody(item).split('\n');
    // One line per account so 온라인 건축헌금 can be green by default; edits rejoin the lines.
    return lines.map((line,n)=><PrintText key={n} className={/건축/.test(line)?css.accountBuilding:undefined} id={`${item.id}:body:${n}`} label={`${item.title} 내용 ${n+1}줄`} value={line} onChange={v=>text('body',lines.map((old,i)=>i===n?v:old).join('\n'))}/>);})()
