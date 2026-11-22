@@ -3,7 +3,7 @@ export type BulletinTheme = {
   key: string;
   name: string;
   description: string;
-  layout: "classic" | "modern";
+  layout: "classic" | "modern" | "card";
   /** 관리자 선택 칸에 보여 줄 대표 색 */
   swatch: [string, string];
 };
@@ -14,6 +14,8 @@ export const bulletinThemes: BulletinTheme[] = [
   { key: "modern-navy", name: "모던 · 바다", description: "같은 모던 모양, 짙은 남색 강조", layout: "modern", swatch: ["#25476a", "#b8863b"] },
   { key: "modern-warm", name: "모던 · 노을", description: "같은 모던 모양, 따뜻한 적갈색 강조", layout: "modern", swatch: ["#9a4a32", "#c79a4a"] },
   { key: "modern-ink", name: "모던 · 먹", description: "같은 모던 모양, 흑백 인쇄에 알맞은 먹색 강조", layout: "modern", swatch: ["#2b2b2b", "#8a8a8a"] },
+  { key: "card", name: "카드 · 청록", description: "제목 태그와 부드러운 카드, 줄무늬 예배 순서로 한눈에 읽히는 모양", layout: "card", swatch: ["#1f6f78", "#e0932b"] },
+  { key: "card-coral", name: "카드 · 코랄", description: "같은 카드 모양, 따뜻한 코랄 강조", layout: "card", swatch: ["#c8553d", "#2f6f73"] },
 ];
 
 export const defaultThemeKey = "classic";

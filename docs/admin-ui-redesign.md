@@ -3,6 +3,7 @@
 - 주보마다 테마(레이아웃+색)를 고른다. 키는 `bulletins.theme`(기본 classic)에 저장하고, 관리자 편집 화면 '주보 테마' 칩에서 초안일 때 바꾼다(app/admin/bulletins/theme-picker.tsx). 테마 목록은 lib/bulletin-themes.ts(기본, 모던 숲/바다/노을/먹).
 - 적용: 웹 주보(.flow[data-theme])·관리자 인쇄 미리보기·공개 PDF 시트(.sheet[data-theme])가 같은 CSS(app/admin/bulletins/paper.module.css 끝의 '모던 테마' 블록)를 쓴다. 지난 주보 복사·새 주보는 지난 주 테마를 이어받는다.
 - 모던 레이아웃: 색 띠 제목 → 왼쪽 강조선+가는 밑줄, 날개 제목 → 왼쪽 정렬 제목+굵은 선, 점선 예배 순서 → 가는 줄(이름 강조색·내용 왼쪽·담당 오른쪽), 색 상자 → 흰 바탕 가는 테두리+둥근 모서리. 내용·면 배치·높이는 기본과 같게 유지(인쇄 넘침 없음 확인).
+- 카드 레이아웃(card, card-coral): 제목은 색 알약 태그+가는 선, 2면 제목은 가운데+짧은 강조 막대, 예배 순서는 줄무늬 행과 성경봉독·말씀선포 강조 줄(색 바탕+왼쪽 막대), 예배 안내는 세 칸 분리 카드, 상자는 부드러운 카드. paper.module.css 끝 '카드 테마' 블록.
 - 색은 paper.module.css의 --t-* 변수(기본값 = 기존 색)와 --m-* 팔레트로 정한다. 절기 테마(성탄·부활 등)는 [data-theme="..."]에 --m-* 한 벌만 더하면 된다(아직 안 만듦).
 - DB: 마이그레이션 20261122120000_bulletin_theme.sql(theme 열, anon 읽기, save_bulletin_draft에 p_theme 선택 인수, copy_bulletin_draft가 테마 복사). 공개 API는 열이 없으면 theme 없이 읽는 대비가 있다.
 
