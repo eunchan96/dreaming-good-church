@@ -147,7 +147,7 @@ function NewsEntry({item,account}:{item:BulletinItem;account:boolean}){
   :item.body?<PrintText id={`${item.id}:body`} label={`${item.title} 내용`} value={item.body} onChange={v=>text('body',v)}/>:null}</div>;
 }
 function News({items}:{items:BulletinItem[]}){
- return <section className={css.block} data-print-group="news"><Band title="좋은 소식" tone="orange"/><ol className={css.news}>{newsGroups(items).map(group=><li key={group.title} data-prayer={group.entries.some(isPrayerGuide)||undefined}><span className={css.tag}>&lt;{group.title}&gt;</span><div>{group.entries.map(entry=><NewsEntry key={entry.id} item={entry} account={group.title==='헌금'}/>)}</div></li>)}</ol></section>;
+ return <section className={css.block} data-print-group="news"><Band title="좋은 소식" tone="orange"/><ol className={css.news}>{newsGroups(items).map(group=><li key={group.title} data-prayer={group.entries.some(isPrayerGuide)||undefined}><span className={css.tag}><span className={css.tagBr}>&lt;</span>{group.title}<span className={css.tagBr}>&gt;</span></span><div>{group.entries.map(entry=><NewsEntry key={entry.id} item={entry} account={group.title==='헌금'}/>)}</div></li>)}</ol></section>;
 }
 const offeringName=(value:string)=>value.replace(/^온라인\s*[\/·]\s*/,'').trim();
 /** Shared names (주일헌금·십일조…) share one row with 현장/온라인 columns; the rest sit on the right. */

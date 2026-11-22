@@ -536,8 +536,13 @@ small.churchLine { font-size: .88em; }
 [data-theme^="modern"] .volunteerRole { color: var(--m-accent); }
 
 /* 좋은 소식 · 헌금 · 토라&토브 · 교회 안내 · 표지 */
-[data-theme^="modern"] .news > li::before { color: var(--m-accent); font-weight: 600; }
-[data-theme^="modern"] .tag { color: var(--m-accent); font-weight: 600; }
+/* 좋은 소식: 번호·꺾쇠 없이 왼쪽 분류 이름 + 오른쪽 내용, 항목 사이 가는 줄 */
+[data-theme^="modern"] .news { padding: 0; gap: 0; }
+[data-theme^="modern"] .news > li { grid-template-columns: 5.6em minmax(0, 1fr); gap: .8em; padding: .28em 0; border-bottom: 1px solid var(--m-rule2); line-height: 1.55; }
+[data-theme^="modern"] .news > li:last-child { border-bottom: 0; }
+[data-theme^="modern"] .news > li::before { content: none; }
+[data-theme^="modern"] .tagBr { display: none; }
+[data-theme^="modern"] .tag { color: var(--m-accent); font-weight: 700; white-space: normal; line-height: 1.5; }
 [data-theme^="modern"] .prose { color: var(--m-ink); }
 [data-theme^="modern"] .offering td { border-bottom: 1px solid var(--m-rule2); }
 [data-theme^="modern"] .offering caption, [data-theme^="modern"] .offering th { color: var(--m-muted); }
@@ -621,3 +626,9 @@ small.churchLine { font-size: .88em; }
 [data-theme^="card"] .coverLines article:first-child .coverLine:first-child { color: var(--c-accent); }
 [data-theme^="card"] .coverMeta { color: var(--c-muted); }
 [data-theme^="card"] .coverMark small { color: var(--c-muted); }
+.tagBr { display: inline; }
+@container (max-width: 560px) {
+  .flow[data-theme^="modern"] .news > li { grid-template-columns: minmax(0, 1fr); gap: .1em; }
+  .flow[data-theme^="modern"] .news > li > .tag { grid-column: 1; }
+  .flow[data-theme^="modern"] .news > li > div { grid-column: 1; padding-left: 0; }
+}
