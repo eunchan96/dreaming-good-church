@@ -594,3 +594,9 @@ small.churchLine { font-size: .88em; }
 [data-theme^="modern"] .prayer tr:first-child td { color: var(--m-accent); font-weight: 700; font-size: .92em; }
 [data-theme^="modern"] .prayer tr:last-child td { color: var(--m-muted); font-size: .92em; }
 .flow[data-theme^="modern"] .news > li[data-prayer] > div { overflow-x: visible; }
+
+/* 섬기는 이들: 가장 긴 이름 오른쪽에 여백을 조금 더 */
+.supportGrid [data-role=staff] .table td:last-child { padding-right: 1.5em; }
+/* 모던 기도·안내: 세로선이 날짜·기도·안내 줄에서 끊기지 않게 줄 간격 대신 칸 안쪽 여백 */
+[data-theme^="modern"] .prayer tbody { row-gap: 0; }
+[data-theme^="modern"] .prayer td { padding-block: .22em; }
