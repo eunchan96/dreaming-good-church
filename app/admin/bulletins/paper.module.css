@@ -596,7 +596,13 @@ small.churchLine { font-size: .88em; }
 .flow[data-theme^="modern"] .news > li[data-prayer] > div { overflow-x: visible; }
 
 /* 섬기는 이들: 가장 긴 이름 오른쪽에 여백을 조금 더 */
-.supportGrid [data-role=staff] .table td:last-child { padding-right: 1.5em; }
+.supportGrid { grid-template-columns: minmax(0, 1fr) fit-content(76%); }
+.supportGrid [data-role=staff] .table td:last-child { padding-right: 1.3em; }
+.supportGrid [data-role=staff] .tinted { overflow: visible; }
 /* 모던 기도·안내: 세로선이 날짜·기도·안내 줄에서 끊기지 않게 줄 간격 대신 칸 안쪽 여백 */
 [data-theme^="modern"] .prayer tbody { row-gap: 0; }
 [data-theme^="modern"] .prayer td { padding-block: .22em; }
+@container (max-width: 560px) {
+  .flow .supportGrid [data-role=staff] .table td:last-child { padding-right: 1.2em; }
+  .flow .supportGrid [data-role=staff] .table td:first-child { padding-left: .8em; padding-right: .6em; width: 5.2em; }
+}
