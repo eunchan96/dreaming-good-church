@@ -579,11 +579,6 @@ small.churchLine { font-size: .88em; }
 .flow[data-theme^="modern"] .section + .section { margin-top: 2em; }
 .flow[data-theme^="modern"] .band { margin-bottom: .95em !important; }
 
-/* 좁은 칸: 섬기는 이들 이름이 잘리지 않게 줄바꿈 허용 */
-@container (max-width: 560px) {
-  .flow .supportGrid [data-role=staff] .table td:last-child, .flow .supportGrid [data-role=staff] .table td:last-child > * { white-space: normal; letter-spacing: 0; overflow-wrap: anywhere; }
-  .flow .supportGrid [data-role=staff] .table { font-size: 1em; }
-}
 /* 모던 기도·안내: 표 대신 주차별 칸(날짜·기도·안내가 세로로), 줄바꿈 가능, 가는 세로선 */
 [data-theme^="modern"] .prayer { display: block; width: 100%; font-size: .95em; }
 [data-theme^="modern"] .prayer tbody { display: grid; grid-template-columns: auto repeat(var(--cols, 5), minmax(0, 1fr)); row-gap: .15em; }
@@ -595,14 +590,11 @@ small.churchLine { font-size: .88em; }
 [data-theme^="modern"] .prayer tr:last-child td { color: var(--m-muted); font-size: .92em; }
 .flow[data-theme^="modern"] .news > li[data-prayer] > div { overflow-x: visible; }
 
-/* 섬기는 이들: 가장 긴 이름 오른쪽에 여백을 조금 더 */
-.supportGrid { grid-template-columns: minmax(0, 1fr) fit-content(76%); }
-.supportGrid [data-role=staff] .table td:last-child { padding-right: 1.3em; }
-.supportGrid [data-role=staff] .tinted { overflow: visible; }
 /* 모던 기도·안내: 세로선이 날짜·기도·안내 줄에서 끊기지 않게 줄 간격 대신 칸 안쪽 여백 */
 [data-theme^="modern"] .prayer tbody { row-gap: 0; }
 [data-theme^="modern"] .prayer td { padding-block: .22em; }
-@container (max-width: 560px) {
-  .flow .supportGrid [data-role=staff] .table td:last-child { padding-right: 1.2em; }
-  .flow .supportGrid [data-role=staff] .table td:first-child { padding-left: .8em; padding-right: .6em; width: 5.2em; }
-}
+
+/* 모던만: 섬기는 이들 가장 긴 이름 오른쪽 여백 (기본 테마는 그대로) */
+[data-theme^="modern"] .supportGrid { grid-template-columns: minmax(0, 1fr) fit-content(72%); }
+[data-theme^="modern"] .supportGrid [data-role=staff] .table td:last-child { padding-right: 1.2em; }
+.flow[data-theme^="modern"] .supportGrid [data-role=staff] .table td:last-child { padding-right: 1.2em; }
