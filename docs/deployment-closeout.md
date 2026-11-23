@@ -4,7 +4,7 @@
 
 ## 확인한 운영 상태
 
-- 기본 주소 https://dreaming-good-church.vercel.app, 정상 Production B=dpl_ASfp6HvCMXUz79hSuyEb6ssPwbAv / ff5cb98, 이전 정상A=EMpc. 배포/API·PC/모바일·실제 관리자·동일 소스 롤백 근거는 기존 문서에 있다.
+- 기본 주소 https://dreaming-towb-church.vercel.app, 정상 Production B=dpl_ASfp6HvCMXUz79hSuyEb6ssPwbAv / ff5cb98, 이전 정상A=EMpc. 배포/API·PC/모바일·실제 관리자·동일 소스 롤백 근거는 기존 문서에 있다.
 - 사용자가 Supabase Site URL을 기본 운영 주소로 전환했고 원격 읽기로 확인했다. 기존 localhost callback·고정 검수 account·운영 account redirect3개는 유지한다. 키/가입 정책/기타 Auth 설정을 변경한 것으로 기록하지 않는다.
 - 미게시 초안1개/26항목/게시0개, 공개 API/PDF 비노출 유지. 원문 정확성·실물 인쇄를 출시 설정 완료의 근거로 쓰지 않는다.
 - 통합 PR9는 develop 대상 Draft이며 main/develop은 아직 초기63d3c5e다. 이후 소스는 ff5cb98과 같고 문서만 추가했다. 사용자 미커밋 이슈 자동화 수정은 포함하지 않는다.

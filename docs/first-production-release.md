@@ -22,10 +22,10 @@
 
 ## 승인 요청 범위
 
-- 팀 eunchan96s-projects, 프로젝트 dreaming-good-church / prj_1EePlmXl4ZLPoUoYKFhK0OTls86X.
+- 팀 eunchan96s-projects, 프로젝트 dreaming-towb-church / prj_1EePlmXl4ZLPoUoYKFhK0OTls86X.
 - GitHub 저장소 ID1454034196의 **ff5cb986a57ce7184118f17825de695528ca0dbe**를 직접 지정해 Production 빌드한다. 문서만 추가한 통합 PR의 최신 브랜치 끝으로 자동 대체하지 않는다.
 - Node24, 함수 서울icn1, 기존 Production 변수3개와 원래 Supabase zefnxczgwpsmfcixonpb를 사용한다.
-- API target=production은 기본 도메인 https://dreaming-good-church.vercel.app 의 실제 전환을 수반하는 것으로 취급한다. 현재 API 도구에 skip-domain이 없으므로 비공개 사전 빌드라고 부르지 않는다.
+- API target=production은 기본 도메인 https://dreaming-towb-church.vercel.app 의 실제 전환을 수반하는 것으로 취급한다. 현재 API 도구에 skip-domain이 없으므로 비공개 사전 빌드라고 부르지 않는다.
 - 기존 보호 설정은 유지한다. 기본 도메인은 로그인 없는 요청도503으로 앱에 도달하므로 배포 후에도 공개 화면이 방문자에게 보일 수 있다. Preview 고정 주소는 유지한다.
 - DB 마이그레이션6개는 원격과 로컬 이름/버전이 일치했다. 새 DB·마이그레이션·자료 게시·키 변경·메일·초대/재설정 토큰 생성은 이 배포에 포함하지 않는다.
 - PR 병합과 Supabase Site URL 전환도 이번 승인 범위에서 제외한다. 운영 account redirect는 이미 등록되어 있다.
@@ -55,7 +55,7 @@
 | --- | --- |
 | 배포 | dpl_EMpcY533KjrfQ8M7LE43niidLKqb, READY, Production |
 | 고정 소스 | ff5cb986a57ce7184118f17825de695528ca0dbe |
-| 운영 주소 | https://dreaming-good-church.vercel.app |
+| 운영 주소 | https://dreaming-towb-church.vercel.app |
 | 고유 주소 | https://dreaming-good-church-f1uepymbi-eunchan96s-projects.vercel.app |
 | 실행 환경 | 프로젝트 Node24, 함수 서울icn1, 기존 Production 변수3개 |
 | DB | 원래 zefnxczgwpsmfcixonpb, 마이그레이션6개 유지 |

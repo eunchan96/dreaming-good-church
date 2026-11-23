@@ -75,7 +75,7 @@ DB 덤프는 Storage 파일 자체를 포함하지 않는다. Free 프로젝트�
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-restore.ps1
 ```
 
-고정 로컬 컨테이너 `supabase_db_dreaming-good-church`만 사용한다. 원격 주소나 복구 대상을 받는 옵션은 없다. `postgres` 원본은 읽기만 하고, `church_restore_` 뒤 무작위 32자리 이름의 별도 DB를 만들어 복구한 뒤 삭제한다. 개발 서버를 중지하거나 원본 로컬 DB를 초기화하지 않는다. 작업 중 로컬 편집이 있었다면 원본 비교가 실패하므로 편집을 멈추고 다시 실행한다.
+고정 로컬 컨테이너 `supabase_db_dreaming-towb-church`만 사용한다. 원격 주소나 복구 대상을 받는 옵션은 없다. `postgres` 원본은 읽기만 하고, `church_restore_` 뒤 무작위 32자리 이름의 별도 DB를 만들어 복구한 뒤 삭제한다. 개발 서버를 중지하거나 원본 로컬 DB를 초기화하지 않는다. 작업 중 로컬 편집이 있었다면 원본 비교가 실패하므로 편집을 멈추고 다시 실행한다.
 
 - public/private/auth/storage/extensions/supabase_migrations 범위를 custom-format 덤프로 복원했다. 기존 로컬 클러스터 역할을 사용했으며 새로운 클러스터 역할/암호 복구 연습은 아니다.
 - **47개 테이블 내용 해시·건수**, 정책 정의, 테이블/컬럼 권한, 소유권, 앱 함수와 마이그레이션 이력을 비교해 일치를 확인했다. ACL 나열 순서 차이는 정규화하여 실제 권한을 비교한다.
