@@ -3,45 +3,49 @@
 .heading > p { color: #506057; }
 .heading h1 { font-size: clamp(30px, 4vw, 44px); font-weight: 700; letter-spacing: -.04em; margin: 8px 0; }
 
-/* 소식·일정 cards */
-.list { display: grid; gap: 16px; }
-.card { min-width: 0; padding: 26px 30px; border: 1px solid #e6dccb; border-radius: 14px; background: #fffdf8; scroll-margin-top: 120px; }
-.card h2 { margin: 0 0 12px; font-size: 20px; font-weight: 600; line-height: 1.5; letter-spacing: -.02em; color: #2f2720; }
-.body { margin: 0; color: #4a3f33; white-space: pre-wrap; overflow-wrap: anywhere; }
-.meta { display: flex; flex-wrap: wrap; gap: 6px 24px; margin: 0 0 14px; padding: 0 0 14px; border-bottom: 1px solid #eee6d8; font-size: 14.5px; }
-.meta > div { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.meta dt { display: inline-flex; align-items: center; color: #8d6d2f; }
+/* 소식·일정: 박스 없이 가는 선으로 나눈 목록 (공개 사이트 기본 스타일) */
+.list { display: grid; margin-top: 4px; border-top: 1px solid #9f8d70; }
+.card { display: grid; grid-template-columns: 290px minmax(0, 1fr); grid-template-areas: "meta title" "meta body"; column-gap: 36px; align-items: start; min-width: 0; padding: 30px 0 32px; border-bottom: 1px solid #e3dbcd; background: none; scroll-margin-top: 120px; }
+.card:not(:has(.meta)) { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "body"; }
+.card h2 { grid-area: title; margin: 0 0 12px; font-family: var(--font-public-serif), serif; font-size: 22px; font-weight: 500; line-height: 1.5; letter-spacing: -.02em; color: #2f2720; }
+.body { grid-area: body; margin: 0; font-size: 15.5px; line-height: 1.95; color: #4a3f33; white-space: pre-wrap; overflow-wrap: anywhere; word-break: keep-all; }
+.meta { grid-area: meta; display: grid; gap: 10px; margin: 4px 0 0; padding: 0; border: 0; font-size: 14px; }
+.meta > div { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
+.meta dt { display: inline-flex; align-items: center; flex: none; padding-top: 3px; color: #8d6d2f; }
 .meta dt span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-.meta dd { margin: 0; color: #342b25; }
-.state { padding: 24px 28px; margin-bottom: 20px; border-radius: 12px; background: #f3eee4; color: #6e6254; }
+.meta dd { margin: 0; line-height: 1.6; color: #342b25; }
+.state { margin: 0 0 20px; padding: 4px 0 4px 16px; border-left: 2px solid #ac8c45; background: none; color: #6e5a3a; }
 .state p { margin: 0; }
-.state button { margin-top: 14px; }
+.state button { margin-top: 12px; padding: 0 0 3px; min-height: 0; border: 0; border-bottom: 1px solid #b9a37a; border-radius: 0; background: transparent; color: #4a3f33; font: inherit; font-size: 13.5px; cursor: pointer; }
 
-/* 목록/달력 toggle */
-.segmented { display: inline-flex; gap: 2px; margin: 4px 0 22px; padding: 3px; border: 1px solid #e3dbcd; border-radius: 999px; background: #f6f1e7; }
-.segmented button { min-height: 36px; padding: 0 18px; border: 0; border-radius: 999px; background: transparent; color: #6e6254; font: inherit; font-size: 14px; cursor: pointer; }
-.segmented button[aria-pressed=true] { background: #342b25; color: #fff; font-weight: 500; }
+/* 목록/달력 toggle: 밑줄 탭 */
+.segmented { display: inline-flex; gap: 26px; margin: 2px 0 26px; padding: 0; border: 0; border-radius: 0; background: none; }
+.segmented button { min-height: 0; padding: 0 0 6px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: #7a6c58; font: inherit; font-size: 15px; cursor: pointer; transition: color .15s, border-color .15s; }
+.segmented button:hover { color: #2f2720; }
+.segmented button[aria-pressed=true] { color: #2f2720; font-weight: 600; border-bottom-color: #9a7837; background: transparent; }
 
-/* 달력 */
-.monthBar { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; }
-.monthBar h2 { min-width: 120px; margin: 0; font-family: var(--font-public-serif), serif; font-size: 22px; font-weight: 500; text-align: center; color: #2f2720; }
-.monthStep { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 1px solid #e3dbcd; border-radius: 999px; background: #fffdf8; color: #5d4930; font-size: 20px; line-height: 1; cursor: pointer; }
-.monthStep:hover { border-color: #8d6d2f; }
-.today { margin-left: auto; min-height: 34px; padding: 0 14px; border: 1px solid #e3dbcd; border-radius: 999px; background: #fffdf8; color: #5d4930; font: inherit; font-size: 13px; cursor: pointer; }
-.calendarScroll { overflow-x: auto; margin: 0 0 16px; }
-.calendar { display: grid; grid-template-columns: repeat(7, minmax(40px, 1fr)); gap: 4px; min-width: 300px; }
-.calendar button { display: grid; align-content: start; justify-items: start; gap: 2px; min-height: 68px; padding: 8px; border: 1px solid #eee6d8; border-radius: 8px; background: #fffdf8; color: #4a3f33; font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
-.calendar button:hover { border-color: #c8b48c; }
-.calendar button[data-today] { border-color: #8d6d2f; font-weight: 600; }
-.calendar button[data-has] span { padding: 0 6px; border-radius: 999px; background: #f1e3bf; color: #6f5420; font-size: 11.5px; }
-.calendar button[aria-pressed=true] { border-color: #342b25; background: #342b25; color: #fff; }
-.calendar button[aria-pressed=true] span { background: #fff3; color: #fff; }
+/* 달력: 가는 선 격자 */
+.monthBar { display: flex; align-items: center; gap: 8px; margin: 0 0 14px; }
+.monthBar h2 { min-width: 140px; margin: 0; font-family: var(--font-public-serif), serif; font-size: 24px; font-weight: 500; text-align: center; color: #2f2720; }
+.monthStep { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 0; background: transparent; color: #5d4930; font-size: 22px; line-height: 1; cursor: pointer; transition: color .15s; }
+.monthStep:hover { color: #8d6d2f; }
+.today { margin-left: auto; min-height: 0; padding: 0 0 3px; border: 0; border-bottom: 1px solid #b9a37a; border-radius: 0; background: transparent; color: #4a3f33; font: inherit; font-size: 13px; cursor: pointer; transition: color .15s, border-color .15s; }
+.today:hover { color: #8d6d2f; border-color: #8d6d2f; }
+.calendarScroll { overflow-x: auto; margin: 0 0 18px; }
+.calendar { display: grid; grid-template-columns: repeat(7, minmax(40px, 1fr)); gap: 0; min-width: 300px; border-top: 1px solid #9f8d70; border-left: 1px solid #ece5d8; }
+.calendar button { display: grid; align-content: start; justify-items: start; gap: 2px; min-height: 78px; padding: 9px 10px; border: 0; border-right: 1px solid #ece5d8; border-bottom: 1px solid #ece5d8; border-radius: 0; background: transparent; color: #4a3f33; font: inherit; font-size: 14px; text-align: left; cursor: pointer; transition: background .12s; }
+.calendar button:hover { background: #f3eee4; }
+.calendar button[data-today] { box-shadow: inset 0 -2px 0 #9a7837; font-weight: 600; }
+.calendar button[data-has] span { padding: 0; background: none; color: #8d6d2f; font-size: 12px; font-weight: 600; }
+.calendar button[aria-pressed=true] { background: #342b25; color: #fff; }
+.calendar button[aria-pressed=true] span { background: none; color: #e8dcc4; }
 .calendar button span { display: block; min-height: 18px; font-size: 12px; }
-.weekday { padding: 6px 0; font-size: 12.5px; font-weight: 600; text-align: center; color: #6f604a; }
+.weekday { padding: 10px 0 8px; font-size: 12.5px; font-weight: 600; text-align: center; color: #6f604a; border-right: 1px solid #ece5d8; border-bottom: 1px solid #ece5d8; }
 .weekday:first-child { color: #b5523b; }
-.dayBar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 4px 0 12px; }
+.dayBar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 6px 0 14px; }
 .dayBar p { margin: 0; font-size: 15px; font-weight: 600; color: #342b25; }
-.dayBar button { min-height: 32px; padding: 0 12px; border: 1px solid #e3dbcd; border-radius: 999px; background: transparent; color: #5d4930; font: inherit; font-size: 13px; cursor: pointer; }
+.dayBar button { min-height: 0; padding: 0 0 3px; border: 0; border-bottom: 1px solid #b9a37a; border-radius: 0; background: transparent; color: #4a3f33; font: inherit; font-size: 13px; cursor: pointer; }
+.dayBar button:hover { color: #8d6d2f; border-color: #8d6d2f; }
 
 /* Older layout helpers still used by other pages */
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 20px 0; }
@@ -53,11 +57,11 @@
 
 @media (max-width: 767px) {
   .page { padding: 28px 20px 40px; }
-  .card { padding: 20px; border-radius: 12px; }
-  .card h2 { font-size: 18px; }
-  .meta { flex-direction: column; gap: 4px; font-size: 14px; }
+  .card, .card:not(:has(.meta)) { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "meta" "body"; padding: 24px 0 26px; }
+  .card h2 { font-size: 19px; margin-bottom: 10px; }
+  .meta { margin: 0 0 12px; gap: 6px; font-size: 14px; }
   .guide { grid-template-columns: minmax(0, 1fr); }
-  .calendar button { min-height: 54px; padding: 6px; }
+  .calendar button { min-height: 56px; padding: 6px; }
   .calendar button span { font-size: 0; min-height: 8px; }
   .calendar button[data-has] span { width: 6px; height: 6px; padding: 0; border-radius: 50%; background: #c08a2a; }
   .monthBar h2 { font-size: 19px; min-width: 0; }

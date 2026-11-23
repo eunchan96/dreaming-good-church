@@ -3,6 +3,7 @@ import { useState } from "react";
 import { koreanInput } from "@/lib/community";
 import { monthDayWeek } from "@/lib/korean-date";
 import styles from "./public-content.module.css";
+import SiteIcon from "./site-icon";
 
 type Event = { id: string; starts_at: string | null; ends_at: string | null };
 export default function EventCalendar({ events, children, onMonthChange }: { events: Event[]; children: (ids: Set<string> | null) => React.ReactNode; onMonthChange: (month: string | null) => void }) {
@@ -30,7 +31,7 @@ export default function EventCalendar({ events, children, onMonthChange }: { eve
   return <>
     <div className={styles.segmented} role="group" aria-label="일정 보기 방식"><button aria-pressed={view === "list"} onClick={() => { setView("list"); onMonthChange(null); }}>목록 보기</button><button aria-pressed={view === "calendar"} onClick={() => { const next = month || currentMonth(); setMonth(next); onMonthChange(next); setView("calendar"); }}>달력 보기</button></div>
     {view === "calendar" ? <section aria-label="월별 일정 달력">
-      <div className={styles.monthBar}><button className={styles.monthStep} aria-label="이전 달" onClick={() => move(-1)}>‹</button><h2 aria-live="polite">{year}년 {number}월</h2><button className={styles.monthStep} aria-label="다음 달" onClick={() => move(1)}>›</button><button className={styles.today} onClick={() => { const next = currentMonth(); setMonth(next); onMonthChange(next); setSelected(null); }}>이번 달</button></div>
+      <div className={styles.monthBar}><button className={styles.monthStep} aria-label="이전 달" onClick={() => move(-1)}><SiteIcon name="arrow" size={18} style={{ transform: "scaleX(-1)" }} /></button><h2 aria-live="polite">{year}년 {number}월</h2><button className={styles.monthStep} aria-label="다음 달" onClick={() => move(1)}><SiteIcon name="arrow" size={18} /></button><button className={styles.today} onClick={() => { const next = currentMonth(); setMonth(next); onMonthChange(next); setSelected(null); }}>이번 달</button></div>
       <div className={styles.calendarScroll}><div className={styles.calendar}>
         {["일", "월", "화", "수", "목", "금", "토"].map(day => <span className={styles.weekday} key={day}>{day}</span>)}
         {Array.from({ length: offset }, (_, index) => <span key={`blank-${index}`} />)}
