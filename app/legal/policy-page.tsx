@@ -24,7 +24,7 @@ const sections: Record<'privacy' | 'photo', Section[]> = {
     {
       "t": "확인하고 있는 사항",
       "p": [
-        "개인정보 보호 담당자와 요청 창구, 항목별 보유·삭제 기간, 서비스 위탁 및 국외 처리 내역을 확인하고 있습니다. 확인 전의 내용을 확정된 처리방침으로 안내하지 않습니다."
+        "항목별 보유·삭제 기간, 서비스 위탁 및 국외 처리 내역을 확인하고 있습니다. 확인 전의 내용을 확정된 처리방침으로 안내하지 않습니다."
       ]
     }
   ],
@@ -57,13 +57,21 @@ export default function PolicyPage({ type }: { type: 'privacy' | 'photo' }) {
   return <PublicShell><main id="public-content" tabIndex={-1} className={styles.subpage}>
     <header className={styles.pageHeading}><p className={styles.eyebrow}>{privacy ? 'PRIVACY' : 'PHOTO POLICY'}</p><h1>{privacy ? '개인정보처리방침' : '사진 게시정책'}</h1><p>홈페이지 이용과 소중한 기록을 위한 안내입니다.</p></header>
     <div className={css.layout}>
-      <nav className={css.index} aria-label="이 페이지의 항목"><h2>목차</h2><ol>{list.map((section, i) => <li key={section.t}><a href={`#policy-${i + 1}`}>{section.t}</a></li>)}</ol></nav>
+      <nav className={css.index} aria-label="이 페이지의 항목"><h2>목차</h2><ol>{list.map((section, i) => <li key={section.t}><a href={`#policy-${i + 1}`}>{section.t}</a></li>)}{privacy ? <li><a href="#policy-officer">개인정보 보호책임자</a></li> : null}</ol></nav>
       <article className={css.article}>
         <p className={css.notice}><strong>정책 확인 중</strong>아래는 현재 홈페이지의 이용 안내와 정책 검토 항목입니다. 담당자·처리 기준을 확인한 뒤 정식 정책과 시행일을 안내하겠습니다.</p>
         {list.map((section, i) => <section key={section.t} id={`policy-${i + 1}`} className={css.section}>
           <h2><span>{String(i + 1).padStart(2, '0')}</span>{section.t}</h2>
           {section.p.map((text, n) => <p key={n}>{text}</p>)}
         </section>)}
+        {privacy ? <section id="policy-officer" className={css.section}>
+          <h2><span>{String(list.length + 1).padStart(2, '0')}</span>개인정보 보호책임자</h2>
+          <dl className={css.officer}>
+            <div><dt>책임자</dt><dd>방은찬</dd></div>
+            <div><dt>연락처</dt><dd><a href="mailto:dreaming.towb.church@gmail.com">dreaming.towb.church@gmail.com</a></dd></div>
+          </dl>
+          <p>개인정보의 열람·정정·삭제 요청과 문의는 위 이메일로 보내 주세요. 요청하시는 분과 대상(해당 페이지 주소)을 함께 적어 주시면 확인에 도움이 됩니다.</p>
+        </section> : null}
         <Link href="/church/directions" className={css.contact}>교회 연락처·오시는 길<SiteIcon size={16} /></Link>
       </article>
     </div>

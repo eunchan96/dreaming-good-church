@@ -30,3 +30,10 @@
   .section h2 { font-size: 20px; gap: 10px; }
   .section p { font-size: 15px; line-height: 1.9; }
 }
+
+.officer { margin: 0 0 16px; padding: 0; display: grid; gap: 0; border-top: 1px solid #cdbd9b; }
+.officer > div { display: grid; grid-template-columns: 6em minmax(0, 1fr); gap: 12px; padding: 12px 4px; border-bottom: 1px solid #ece5d8; }
+.officer dt { font-size: 13.5px; font-weight: 600; color: #8d6d2f; }
+.officer dd { margin: 0; font-size: 15.5px; color: #2f2720; overflow-wrap: anywhere; }
+.officer a { color: #2f2720; text-decoration: none; border-bottom: 1px solid #b9a37a; transition: color .15s, border-color .15s; }
+.officer a:hover { color: #8d6d2f; border-color: #8d6d2f; }
