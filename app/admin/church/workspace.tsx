@@ -24,6 +24,8 @@ const defaultInfo:Record<string,string>={...churchCopyDefaults,name:'꿈꾸는�
 
 const effectiveField=(field:ChurchField):ChurchField=>({...field,body:field.body.trim()?field.body:defaultInfo[field.key]||field.body});
 
+// 잠깐 떠서 사라지는 성공 안내(플로팅). 오류·안내는 화면에 그대로 남긴다.
+const toastMessages=['이미지를 올렸습니다. 주보 편집 화면에서 선택해 넣을 수 있습니다.','이미지를 삭제했습니다.','이미지 정보를 저장했습니다.'];
 export default function ChurchWorkspace() {
   const [client] = useState(makeBrowserClient);
   const [allowed, setAllowed] = useState(false), [reload, setReload] = useState(0), [view, setView] = useState<'info'|'images'>(()=>typeof window!=='undefined'&&new URLSearchParams(window.location.search).get('view')==='images'?'images':'info');
@@ -38,7 +40,7 @@ export default function ChurchWorkspace() {
   useEffect(()=>{const success=Object.entries(pageMessages).filter(([,value])=>value==='저장했습니다. 공개 안내에 반영됩니다.'||value==='현재 저장된 설정을 불러왔습니다.');if(!success.length)return;const timer=setTimeout(()=>setPageMessages(current=>Object.fromEntries(Object.entries(current).filter(([key,value])=>!success.some(([oldKey,oldValue])=>key===oldKey&&value===oldValue)))),3500);return()=>clearTimeout(timer);},[pageMessages]);
   const [title, setTitle] = useState(""), [alt, setAlt] = useState(""), [file, setFile] = useState<File | null>(null);
   const owner = useRef<string | null>(null), loaded = useRef(false), fileInput = useRef<HTMLInputElement>(null);
-  useEffect(()=>{if(!allowed||!['이미지를 올렸습니다. 주보 편집 화면에서 선택해 넣을 수 있습니다.','이미지를 삭제했습니다.'].includes(message))return;const timer=setTimeout(()=>setMessage(current=>current===message?'':current),3500);return()=>clearTimeout(timer);},[allowed,message]);
+  useEffect(()=>{if(!allowed||!toastMessages.includes(message))return;const timer=setTimeout(()=>setMessage(current=>current===message?'':current),3500);return()=>clearTimeout(timer);},[allowed,message]);
   useEffect(() => {
     if (!client) return;
     let active = true;
@@ -139,7 +141,7 @@ export default function ChurchWorkspace() {
   async function reloadCategory(c:typeof categories[number]){if(categoryDirty(c)&&!await confirm({title:`${c.title}의 수정 내용을 버릴까요?`,message:'저장된 내용을 불러옵니다.',confirmLabel:'불러오기',tone:'danger'}))return;if(c.id==='greeting'&&portraitDirty)setPortrait(savedPortrait);if(c.fields.length)await reloadInfo(c.fields);for(const key of c.groups)if(groupDirty(key))await reloadGroup(key,true);}
   const intro=<ManagementHeading id="church-heading" eyebrow="HOMEPAGE CONTENT" title="홈페이지 관리"/>;
   return <><AdminShell active="church" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} pages={homeTabs(view==='images'?'images':'church',view==='images'?[{id:'church-images',label:'이미지 보관함'}]:categories.map(c=>({id:`church-section-${c.id}`,label:c.title})),{canLeave:mayLeave,onSelect:tab=>{if(tab==='home')return false;setView(tab==='images'?'images':'info');history.replaceState(null,'',tab==='images'?'/admin/church?view=images':'/admin/church');return true;}})}><main id="admin-content" aria-labelledby="church-heading" tabIndex={-1} className={`${styles.page} ${ui.surface} ${church.surface}`}>
-    {allowed&&message?<p data-page-message role="status" className={`${styles.message} ${ui.feedback}`}>{message}</p>:null}{!allowed ? <ReauthPanel message={message} hasDraft={unsaved} onRetry={()=>{setMessage('로그인 상태를 확인하고 있습니다…');setReload(n=>n+1);}}/> : <>
+    {allowed&&message?<p data-page-message role="status" className={toastMessages.includes(message)?styles.toast:`${styles.message} ${ui.feedback}`}>{message}</p>:null}{!allowed ? <ReauthPanel message={message} hasDraft={unsaved} onRetry={()=>{setMessage('로그인 상태를 확인하고 있습니다…');setReload(n=>n+1);}}/> : <>
       {view==='info'?<>{infoMessage?<p role="status" className={`${ui.feedback} ${church.feedback}`}>{infoMessage}</p>:null}
       {categories.map(c=><section key={c.id} id={`church-section-${c.id}`} tabIndex={-1} aria-label={c.title} className={church.section}>
         <SectionHeading title={c.title} dirty={categoryDirty(c)} busy={busy} onSave={()=>void saveCategory(c)} onReload={()=>void reloadCategory(c)} saveLabel={`${c.title} 저장`} reloadLabel={`${c.title} 다시 불러오기`}/>
