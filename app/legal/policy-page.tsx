@@ -67,7 +67,6 @@ export default function PolicyPage({ type }: { type: 'privacy' | 'photo' }) {
   return <PublicShell><main id="public-content" tabIndex={-1} className={styles.subpage}>
     <header className={styles.pageHeading}><p className={styles.eyebrow}>{privacy ? 'PRIVACY' : 'PHOTO POLICY'}</p><h1>{privacy ? '개인정보처리방침' : '사진 게시정책'}</h1><p>홈페이지 이용과 소중한 기록을 위한 안내입니다.</p></header>
     <div className={css.layout}>
-      <nav className={css.index} aria-label="이 페이지의 항목"><h2>목차</h2><ol>{list.map((section, i) => <li key={section.t}><a href={`#policy-${i + 1}`}>{section.t}</a></li>)}<li><a href={`#policy-${last}`}>{privacy ? '개인정보 보호책임자' : '문의'}</a></li></ol></nav>
       <article className={css.article}>
         <p className={css.notice}><strong>시행일 {EFFECTIVE}</strong>꿈꾸는좋은교회 홈페이지에 적용됩니다. 내용이 바뀌면 이 페이지에 시행일과 함께 안내합니다.</p>
         {list.map((section, i) => <section key={section.t} id={`policy-${i + 1}`} className={css.section}>

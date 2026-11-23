@@ -1,0 +1,32 @@
+/* 앱 추가 화면: 교회 소개와 같은 1040px 칸, 선으로 나눈 칸과 밑줄 글자 버튼 */
+.page { max-width: 1040px; margin: 54px auto 0; display: grid; gap: 64px; }
+.block { min-width: 0; }
+.label { margin: 0 0 10px; font-size: 12px; font-weight: 600; letter-spacing: .14em; color: #8d6d2f; }
+.block h2 { margin: 0 0 24px; font-family: var(--font-public-serif), serif; font-size: 28px; font-weight: 500; letter-spacing: -.03em; color: #2f2720; }
+.lead { max-width: 720px; margin: 0 0 22px; font-size: 15.5px; line-height: 1.95; color: #4a3f33; word-break: keep-all; }
+.devices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 6px 0 0; padding: 0; list-style: none; border-top: 1px solid #9f8d70; }
+.devices li { padding: 26px 24px 28px; border-bottom: 1px solid #e3dbcd; }
+.devices li + li { border-left: 1px solid #e3dbcd; }
+.devices li:first-child { padding-left: 0; }
+.devices small { display: block; margin-bottom: 8px; font-size: 11px; font-weight: 600; letter-spacing: .12em; color: #8d6d2f; }
+.devices strong { display: block; margin-bottom: 10px; font-size: 18px; font-weight: 600; letter-spacing: -.02em; color: #2f2720; }
+.devices p { margin: 0; font-size: 14.5px; line-height: 1.85; color: #5d5348; word-break: keep-all; }
+.notes { margin-top: 18px; }
+.notes p { margin: 0 0 4px; font-size: 13px; line-height: 1.85; color: #7a6c58; }
+.state { margin: 0 0 18px; font-size: 15px; color: #4a3f33; }
+.actions { display: flex; flex-wrap: wrap; gap: 6px 30px; align-items: center; }
+.block .action { display: inline-flex; align-items: center; gap: 8px; min-height: 0; padding: 0 0 4px; margin: 0 0 18px; border: 0; border-bottom: 1px solid #b9a37a; border-radius: 0; background: transparent; color: #4a3f33; font: inherit; font-size: 14px; line-height: 1.7; text-decoration: none; cursor: pointer; position: relative; transition: color .15s, border-color .15s; }
+.action::after { content: ""; position: absolute; inset: -10px -6px -6px; }
+.action:hover:not(:disabled) { color: #8d6d2f; border-color: #8d6d2f; }
+.action svg { transition: translate .15s; }
+.action:hover:not(:disabled) svg { translate: 4px 0; }
+.action:disabled { opacity: .5; cursor: default; }
+.status { min-height: 1.4em; margin: 0; font-size: 13.5px; line-height: 1.8; color: #6e5a3a; }
+@media (max-width: 760px) {
+  .page { margin-top: 32px; gap: 46px; }
+  .block h2 { font-size: 23px; margin-bottom: 18px; }
+  .devices { grid-template-columns: minmax(0, 1fr); }
+  .devices li, .devices li:first-child { padding: 20px 0 22px; }
+  .devices li + li { border-left: 0; }
+  .actions { gap: 4px 22px; }
+}

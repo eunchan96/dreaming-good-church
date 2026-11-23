@@ -1,3 +1,8 @@
+## 2026-11-23 앱 추가 화면
+
+- /install: 교회 소개와 같은 1040px 칸. 위에 INSTALL·'홈 화면에 추가 · 설치 안내', 아이폰·안드로이드·PC 세 칸(선으로 나눈 칸, 모바일은 세로), 작은 안내 두 줄. 아래에 OFFLINE·'오프라인 저장'과 밑줄 글자 버튼 세 개(저장·지우기·저장한 내용 보기). 설치 가능한 브라우저에서는 '좋은교회 앱 설치' 밑줄 버튼이 위에 나온다. 문구·버튼 이름·동작은 그대로(app/install-guide.tsx, app/offline-controls.tsx, app/install.module.css).
+- 개인정보처리방침·사진 게시정책의 목차는 뺐다(본문만 가운데).
+
 ## 2026-11-23 개인정보처리방침·사진 게시정책 확정 내용
 
 - 책임자 방은찬, 연락처 dreaming.towb.church@gmail.com, 시행일 2026-11-23(app/legal/policy-page.tsx의 EFFECTIVE).

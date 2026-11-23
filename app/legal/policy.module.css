@@ -1,12 +1,12 @@
 /* 개인정보처리방침·사진 게시정책: 왼쪽 목차 + 읽기 좋은 본문 (교회 소개와 같은 1040px 칸) */
-.layout { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 56px; max-width: 1040px; margin: 44px auto 0; align-items: start; }
+.layout { max-width: 1040px; margin: 44px auto 0; }
 .index { position: sticky; top: 104px; }
 .index h2 { margin: 0 0 10px; font-size: 13px; font-weight: 600; letter-spacing: .04em; color: #8d6d2f; }
 .index ol { margin: 0; padding: 0; list-style: none; counter-reset: idx; }
 .index li { counter-increment: idx; }
 .index a { display: block; padding: 9px 12px; border-left: 2px solid #ece5d8; color: #5d4930; font-size: 14px; line-height: 1.5; text-decoration: none; }
 .index a:hover { border-left-color: #8d6d2f; color: #2f2720; }
-.article { min-width: 0; max-width: 720px; padding-bottom: 20px; }
+.article { min-width: 0; max-width: 720px; margin: 0 auto; padding-bottom: 20px; }
 .notice { margin: 0 0 8px; padding: 2px 0 2px 16px; border-left: 2px solid #ac8c45; font-size: 13.5px; line-height: 1.85; color: #6e5a3a; }
 .notice strong { display: block; margin-bottom: 2px; color: #4a3b22; font-weight: 600; }
 .section { padding: 34px 0 6px; scroll-margin-top: 100px; }
