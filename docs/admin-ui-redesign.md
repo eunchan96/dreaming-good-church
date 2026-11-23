@@ -1,7 +1,7 @@
 ## 2026-11-23 실제 로고 적용
 
 - 받은 로고(1254px, 투명 배경)를 정리해 `public/brand/`에 보관: church-logo.png(그림자 있음, 기본), church-logo-flat.png(그림자 없음, 보조). 배경 제거 찌꺼기·검은 가장자리를 지웠다. 화면용으로 줄인 church-logo-192.png(헤더·푸터·관리자), church-logo-flat-640.png(상단 배너)를 쓴다.
-- 헤더·푸터·관리자 상단 로고(ChurchBrand)는 church-logo-192.png, 하위 페이지 상단 배너 장식(.pageHeading::after)은 그림자 없는 로고를 연하게(opacity .2) 비스듬히 깐다. 주보 표지·앱 아이콘은 아직 예전 church-mark.svg를 쓴다.
+- 헤더·푸터·관리자 상단 로고(ChurchBrand)는 church-logo-140.png(최적화 없이 그대로 — Next 이미지 최적화가 작게 줄여 흐려져서), 주보 표지 로고는 church-logo-192.png, 하위 페이지 상단 배너 장식(.pageHeading::after)은 사이트 색(베이지·금빛·연한 분홍)으로 다시 칠한 church-logo-banner-640.png를 쓴다. 앱 아이콘(public/icons)·favicon.ico도 새 로고로 다시 만들었다(배경 #fbfaf7).
 
 ## 2026-11-22 주보 테마 (브랜치 feat/bulletin-theme)
 
