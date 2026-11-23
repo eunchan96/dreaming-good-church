@@ -199,17 +199,22 @@ export default function BulletinWorkspace() {
     setBusy(false);
   }
 
+  // 확인 창이 떠 있는 동안 자동 저장이 revision을 올릴 수 있으므로, 확인 뒤에는 최신 값을 다시 읽는다.
+  const live=useRef({draft,dirty});useEffect(()=>{live.current={draft,dirty};});
   async function changePublication(publish:boolean){
     if(!client||!draft||busy||inFlight.current)return;
     const prepared={...draft,items:draft.items.map(confirmItem)};
     if(publish&&publicationIssues(prepared).length){setMessage(publicationIssues(prepared).join(' '));return;}
     if(!await confirm(publish?{title:'주보를 웹에 게시할까요?',message:'게시하면 공개 주보에 바로 나타납니다.',confirmLabel:'게시'}:{title:'게시를 취소하고 초안으로 돌릴까요?',message:'공개 주보에서 제외됩니다.',confirmLabel:'게시 취소',tone:'danger'}))return;
+    // 확인 창이 떠 있던 사이 자동 저장이 돌았다면 끝나고 화면에 반영될 때까지 기다린다.
+    await new Promise(resolve=>setTimeout(resolve,0));for(let n=0;inFlight.current&&n<100;n++)await new Promise(resolve=>setTimeout(resolve,50));await new Promise(resolve=>setTimeout(resolve,0));
+    const fresh=live.current,base=fresh.draft;if(!base)return;
     setBusy(true);setMessage('');const savedVersion=version.current;
     try{
       const {data:{user},error:authError}=await client.auth.getUser();if(authError)throw authError;if(!user||user.id!==editorId.current){setSession('login');throw new Error('로그인이 만료되었습니다. 다시 로그인해 주세요.');}
-      let current=draft;
-      if(publish&&(dirty||draft.revision===0||draft.items.some(item=>item.needsReview))){
-        current=await saveDraft(client,prepared);setDraft(existing=>existing?.id===current.id?{...existing,revision:current.revision,items:version.current===savedVersion?current.items:existing.items}:existing);
+      let current=base;
+      if(publish&&(fresh.dirty||base.revision===0||base.items.some(item=>item.needsReview))){
+        current=await saveDraft(client,{...base,items:base.items.map(confirmItem)});setDraft(existing=>existing?.id===current.id?{...existing,revision:current.revision,items:version.current===savedVersion?current.items:existing.items}:existing);
         setDirty(version.current!==savedVersion);setSavePaused(false);setRows(existing=>[current,...existing.filter(row=>row.id!==current.id)].sort((a,b)=>b.serviceDate.localeCompare(a.serviceDate)));
         if(version.current!==savedVersion){setMessage('추가 입력을 저장한 뒤 다시 게시해 주세요.');return;}
       }

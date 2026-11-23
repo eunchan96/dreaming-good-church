@@ -11,8 +11,8 @@ export default function EventCalendar({ events, children, onMonthChange, loading
   const [selected, setSelected] = useState<string | null>(null);
   const currentMonth = () => koreanInput(new Date().toISOString()).slice(0, 7);
   // 시계는 화면이 열린 뒤에만 읽는다(미리 그리는 중에는 읽지 않음).
-  useEffect(() => { const first = currentMonth(); setMonth(first); onMonthChange(first); // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEffect(() => { const first = currentMonth(); setMonth(first); onMonthChange(first); // eslint-disable-line react-hooks/set-state-in-effect
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const today = month ? koreanInput(new Date().toISOString()).slice(0, 10) : "";
   const year = Number(month.slice(0, 4)), number = Number(month.slice(5));
   const days = month ? new Date(Date.UTC(year, number, 0)).getUTCDate() : 0;
