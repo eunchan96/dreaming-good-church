@@ -2,7 +2,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { createClient } from 'npm:@supabase/supabase-js@2.119.0';
 
 const encoder = new TextEncoder();
-const accountUrl = 'https://dreaming-good-church.vercel.app/admin/account';
+const accountUrl = 'https://dreaming-towb-church.vercel.app/admin/account';
 const headers = { 'Cache-Control': 'no-store' };
 
 function matchesKey(provided, expected) {
