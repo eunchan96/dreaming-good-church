@@ -6,6 +6,7 @@ import {printOnlyItem,presentationItems,bulletinSections,sectionFor,renderedItem
 import type { BulletinItem } from "@/lib/bulletins";
 import { longDate, monthDay, yearMonth } from "@/lib/korean-date";
 import SiteIcon from "../site-icon";
+import { Skel, SkelLines, SkelRegion } from "../skeleton";
 import styles from "./reader.module.css";
 import PublicPdfDownload from "./public-pdf-download";
 import NewsNavigation from '../news-navigation';
@@ -135,7 +136,8 @@ export default function PublicBulletins({ initialDate }: { initialDate?: string 
       <div className={styles.issueTitle}>{bulletin ? <><strong>{longDate(bulletin.service_date)}</strong></> : <strong>{failed ? "주보" : " "}</strong>}</div>
       <button type="button" className={styles.step} aria-label="다음 주보" title="다음 주보" disabled={!newer} onClick={() => newer && select(newer)}><SiteIcon name="arrow" size={18} /></button>
     </div>
-    {message ? <p role="status" className={styles.message}>{message}</p> : null}
+    {message && !message.includes("불러오고 있습니다") ? <p role="status" className={styles.message}>{message}</p> : null}
+    {message && message.includes("불러오고 있습니다") ? <SkelRegion label="주보를 불러오는 중" className={styles.reading}><span className={styles.contents} aria-hidden="true" /><div className={styles.paper}><Skel w="56%" h={30} style={{ margin: '4px auto 26px' }} /><SkelLines n={4} h={18} gap={14} /><Skel h={34} style={{ margin: '34px 0 16px' }} /><SkelLines n={3} h={16} gap={12} /><Skel h={34} style={{ margin: '34px 0 16px' }} /><SkelLines n={4} h={16} gap={12} last="40%" /></div></SkelRegion> : null}
     {failed ? <button type="button" className={styles.retry} onClick={() => setRetry(value => value + 1)}>다시 불러오기</button> : null}
     {bulletin ? <div className={styles.reading}>
       <nav aria-label="주보 구역 바로가기" className={styles.contents}><h2>목차</h2><ul>{bulletinSections.flatMap((section, index) => (section === '예배 안내' || renderedItems(bulletin.items).some(item => sectionFor(item) === section)) ? [<li key={section}><a href={`#bulletin-section-${index}`} onClick={event => jump(event, index)}>{section}</a></li>] : [])}</ul></nav>

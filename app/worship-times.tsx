@@ -1,4 +1,5 @@
 'use client';
+import { Skel, SkelRegion } from "./skeleton";
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { worshipTypes, additionalWorshipTimes, type WorshipType } from '@/lib/site-content';
@@ -21,6 +22,6 @@ export default function WorshipTimes({ weekly = false, additional = false }: { w
     return () => { controller.abort(); clearInterval(timer); window.removeEventListener('focus',load); };
   }, [weekly,retry]);
   const times = additional ? [...worshipTypes,...additionalWorshipTimes] : worshipTypes;
-  if(settingsStatus!=='ready')return <section className={styles.worshipTimes} aria-labelledby="worship-times-title"><p className={styles.eyebrow}>GATHER IN WORSHIP</p><h2 id="worship-times-title">함께 예배하는 시간</h2><p role="status">{settingsStatus==='loading'?'예배시간을 불러오고 있습니다.':'예배시간을 불러오지 못했습니다.'}</p>{settingsStatus==='error'?<button onClick={retrySettings}>예배시간 다시 불러오기</button>:null}</section>;
+  if(settingsStatus!=='ready')return <section className={styles.worshipTimes} aria-labelledby="worship-times-title"><p className={styles.eyebrow}>GATHER IN WORSHIP</p><h2 id="worship-times-title">함께 예배하는 시간</h2>{settingsStatus==='loading'?<SkelRegion label="예배시간을 불러오는 중"><div className={styles.timeGrid}>{[0,1,2,3].map(i=><div key={i}><Skel w="50%" h={12} /><Skel w="70%" h={20} style={{marginTop:10}} /><Skel w="60%" h={14} style={{marginTop:10}} /></div>)}</div></SkelRegion>:<p role="status">예배시간을 불러오지 못했습니다.</p>}{settingsStatus==='error'?<button onClick={retrySettings}>예배시간 다시 불러오기</button>:null}</section>;
   return <section className={styles.worshipTimes} aria-labelledby="worship-times-title"><p className={styles.eyebrow}>GATHER IN WORSHIP</p><h2 id="worship-times-title">함께 예배하는 시간</h2><div className={styles.timeGrid}>{times.map(w => <div key={w.key}><span>{w.english}</span><h3>{w.name}</h3><p>{formatWorshipTime(settings.worship_times.find(row=>row.key===w.key)!)}</p>{weekly && data?.readings[w.key as WorshipType] ? <p className={styles.weeklyReading}><b>이번 주 말씀</b>{data.readings[w.key as WorshipType]}</p> : null}</div>)}</div>{weekly && failed ? <p role="status" className={styles.readingsNote}>이번 주 말씀을 불러오지 못했습니다. <button onClick={() => setRetry(x => x + 1)}>다시 불러오기</button></p> : weekly && data?.serviceDate && Object.keys(data.readings).length ? <p className={styles.readingsNote}>{data.serviceDate} 공개 주보 기준 · <Link href={`/bulletins/${data.serviceDate}`}>주보 보기</Link></p> : null}</section>;
 }
