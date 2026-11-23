@@ -10,7 +10,7 @@ import styles from './public-site.module.css';
 import { rememberInstallPrompt, clearInstallPrompt } from '@/lib/install-prompt';
 import ChurchContentProvider,{useChurchContent,publicChurchField} from './church-content';
 export function ChurchBrand() {
-  return <><Image src="/brand/church-mark.svg" width={46} height={46} alt="" /><span className={styles.brandText}><span>꿈꾸는</span><strong>좋은교회</strong></span></>;
+  return <><Image src="/brand/church-logo-192.png" width={46} height={46} alt="" /><span className={styles.brandText}><span>꿈꾸는</span><strong>좋은교회</strong></span></>;
 }
 export default function PublicShell({ children }: { children: ReactNode }) {
   return <ChurchContentProvider><ShellContent>{children}</ShellContent></ChurchContentProvider>;

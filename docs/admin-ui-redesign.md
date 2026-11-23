@@ -1,3 +1,8 @@
+## 2026-11-23 실제 로고 적용
+
+- 받은 로고(1254px, 투명 배경)를 정리해 `public/brand/`에 보관: church-logo.png(그림자 있음, 기본), church-logo-flat.png(그림자 없음, 보조). 배경 제거 찌꺼기·검은 가장자리를 지웠다. 화면용으로 줄인 church-logo-192.png(헤더·푸터·관리자), church-logo-flat-640.png(상단 배너)를 쓴다.
+- 헤더·푸터·관리자 상단 로고(ChurchBrand)는 church-logo-192.png, 하위 페이지 상단 배너 장식(.pageHeading::after)은 그림자 없는 로고를 연하게(opacity .2) 비스듬히 깐다. 주보 표지·앱 아이콘은 아직 예전 church-mark.svg를 쓴다.
+
 ## 2026-11-22 주보 테마 (브랜치 feat/bulletin-theme)
 
 - 주보마다 테마(레이아웃+색)를 고른다. 키는 `bulletins.theme`(기본 classic)에 저장하고, 관리자 편집 화면 '주보 테마' 칩에서 초안일 때 바꾼다(app/admin/bulletins/theme-picker.tsx). 테마 목록은 lib/bulletin-themes.ts(기본, 모던 숲/바다/노을/먹).
