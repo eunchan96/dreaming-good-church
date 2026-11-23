@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { validateBundle, sha256, MAX_FILE_BYTES } from './backup-archive.mjs';
 import { capture, PROJECT_REF } from './backup-source.mjs';
 
-const SOURCE='supabase_db_dreaming-good-church';
+const SOURCE='supabase_db_dreaming-towb-church';
 const ADMIN='supabase_admin';
 const LABEL='church.restore-drill';
 const KEYS={bulletins:'id',bulletin_items:'id',community_entries:'id',church_info:'key',bulletin_images:'id',church_editors:'user_id'};
