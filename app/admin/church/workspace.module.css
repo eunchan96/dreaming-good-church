@@ -33,6 +33,3 @@
 .photoNote { margin: 0; font-size: 13px; color: #6b5a42; line-height: 1.6; }
 .labelWithHint { display: grid; gap: 3px; align-content: start; }
 
-.toast{position:fixed;left:50%;bottom:28px;z-index:60;transform:translateX(-50%);max-width:min(440px,calc(100vw - 32px));margin:0;padding:12px 20px;border-radius:10px;background:#2f2720;color:#fff;font-size:14px;line-height:1.5;text-align:center;box-shadow:0 10px 30px #2f272040;pointer-events:none;animation:toast-life 3.5s ease forwards}
-@keyframes toast-life{0%{opacity:0;transform:translate(-50%,8px)}8%{opacity:1;transform:translate(-50%,0)}78%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,0)}}
-@media (prefers-reduced-motion:reduce){.toast{animation:toast-fade 3.5s linear forwards}@keyframes toast-fade{0%,80%{opacity:1}100%{opacity:0}}}

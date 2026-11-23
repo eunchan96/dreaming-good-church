@@ -1,6 +1,7 @@
 'use client';
 
 import {useEffect,useRef,useState} from 'react';
+import StatusMessage from '../status-message';
 import Image from 'next/image';
 import {makeBrowserClient,errorMessage} from '@/lib/bulletin-store';
 import {worshipTypes,YOUTUBE_CHANNEL} from '@/lib/site-content';
@@ -92,7 +93,7 @@ export default function WorshipWorkspace(){
  const pages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE)),current=Math.min(page,pages),shown=filtered.slice((current-1)*PAGE_SIZE,current*PAGE_SIZE);
  const intro=<ManagementHeading id="worship-heading" eyebrow="WORSHIP & WORD" title="예배 영상 관리"/>;
  return <><AdminShell active="worship" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} pages={[{id:'library',label:'영상 목록',active:view==='library',onSelect:openLibrary,sections:[{id:'video-library',label:'목록·검색'}]},{id:'calendar',label:'캘린더',active:view==='calendar',onSelect:openCalendar,sections:[]},...(view==='editor'?[{id:'editor',label:entry&&entry.revision>0?'영상 수정':'영상 등록',active:true,onSelect:()=>{},sections:[{id:'video-details',label:'영상 정보'},{id:'video-publication',label:'저장'}]}]:[])]}><main id="admin-content" aria-labelledby="worship-heading" tabIndex={-1} className={`${styles.page} ${ui.surface}`}>
-  {allowed&&message?<p role="status" className={`${styles.message} ${ui.feedback}`}>{message}</p>:null}
+  {allowed?<StatusMessage message={message} className={`${styles.message} ${ui.feedback}`} onDone={()=>setMessage('')}/>:null}
   {!allowed?<ReauthPanel message={message} hasDraft={dirty} onRetry={()=>{setMessage('로그인 상태를 확인하고 있습니다…');setReload(n=>n+1);}}/>:<>
    {view==='library'?<section id="video-library" tabIndex={-1} className={`${ui.flat} ${video.noRule}`}><div className={ui.heading}><h2>영상 목록</h2><div className={video.actions}><a href={YOUTUBE_CHANNEL} target="_blank" rel="noreferrer" className={`${btn.btn} ${btn.ghost}`} aria-label="교회 YouTube 채널"><SiteIcon name="youtube" size={18}/><span>YouTube</span></a><button type="button" className={`${btn.btn} ${btn.primary}`} disabled={busy} onClick={openEditor}><AdminIcon name="plus" size={15}/>영상 등록</button></div></div>
    <div className={`${btn.chips} ${video.filter}`} role="group" aria-label="예배 종류 필터">{[{key:'all',name:'모든 예배'},...worshipTypes].map(row=><button key={row.key} aria-pressed={filter===row.key} onClick={()=>{setFilter(row.key);setPage(1);}}>{row.name}</button>)}</div>

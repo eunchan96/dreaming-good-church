@@ -1,5 +1,6 @@
 "use client";
 import ManagementHeading from '../management-heading';
+import StatusMessage from '../status-message';
 
 import { useEffect, useRef, useState } from "react";
 import { makeBrowserClient } from "@/lib/bulletin-store";
@@ -114,11 +115,11 @@ export default function CommunityWorkspace() {
         {entry.sensitive?<p className={ui.hint}>민감정보가 포함되면 별도 메뉴에 공개되지 않습니다.</p>:null}
         <div className={ui.periodControl}><label className={styles.check}><input type="checkbox" checked={showPeriod} onChange={e=>{setShowPeriod(e.target.checked);if(!e.target.checked)change({publish_from:null,publish_until:null});}}/>게시 기간 지정</label></div>{showPeriod?<div className={ui.periodFields}><div className={ui.fieldRow}><label htmlFor="community-from">게시 기간 시작</label><DatePicker id="community-from" label="게시 기간 시작" time optional value={koreanInput(entry.publish_from)} onChange={value=>change({publish_from:fromKoreanInput(value)})}/></div><div className={ui.fieldRow}><label htmlFor="community-until">게시 기간 종료</label><DatePicker id="community-until" label="게시 기간 종료" time optional value={koreanInput(entry.publish_until)} onChange={value=>change({publish_until:fromKoreanInput(value)})}/></div></div>:null}
         <div className={ui.saveActions}><SaveButton className={btn.btn} disabled={!dirty&&entry.status==='draft'} onClick={()=>void save('draft')}>임시 저장</SaveButton><SaveButton className={`${btn.btn} ${btn.primary}`} disabled={!dirty&&entry.status==='published'} onClick={()=>void save('published')}>저장</SaveButton></div>
-        {message?<p role="status" className={ui.feedback}>{message}</p>:null}
+        <StatusMessage message={message} className={ui.feedback} onDone={()=>setMessage('')}/>
         <div className={ui.extraActions}><button type="button" className={`${btn.btn} ${btn.small}`} onClick={async()=>{if(await mayLeave()){const copy={...structuredClone(entry),id:crypto.randomUUID(),status:'draft' as const,revision:0};if(entry.kind==='event'){copy.starts_at=entry.starts_at?new Date(Date.parse(entry.starts_at)+7*86400000).toISOString():null;copy.ends_at=entry.ends_at?new Date(Date.parse(entry.ends_at)+7*86400000).toISOString():null;}copy.publish_from=null;copy.publish_until=null;setShowPeriod(false);setEntry(copy);setDirty(true);setMessage('복사본을 만들었습니다. 날짜와 게시 기간을 확인한 뒤 저장해 주세요.');}}}>{entry.kind==='event'?'다음 주 일정으로 복사':'새 공지 초안으로 복사'}</button><SaveButton disabled={busy||loading||entry.revision===0||(!dirty&&entry.status==='archived')} disabledHint={busy||loading?'처리 중입니다.':entry.revision===0?'먼저 소식을 저장해 주세요.':'이미 공개 목록에서 내려간 상태입니다.'} className={ui.danger} onClick={async()=>{if(await confirm({title:'보관하고 별도 메뉴에서 내릴까요?',message:'기존 주보는 유지됩니다.',confirmLabel:'내리기',tone:'danger'}))void save('archived');}}>공개 목록에서 내리기</SaveButton></div>
         </section>
       </fieldset>:null}
-      {!entry&&message?<p role="status" className={ui.feedback}>{message}</p>:null}
+      {!entry?<StatusMessage message={message} className={ui.feedback} onDone={()=>setMessage('')}/>:null}
     </>:<ReauthPanel message={message} hasDraft={dirty} onRetry={()=>{setMessage('로그인 상태를 확인하고 있습니다…');setReload(value=>value+1);}}/>}
   </main></AdminShell>{confirmDialog}</>;
 }

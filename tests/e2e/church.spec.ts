@@ -40,7 +40,7 @@ test("edit church info, upload normalized private image, attach/publish and prot
     await manager.getByRole("button", { name: "인사말 저장", exact: true }).click(); await expect(manager.getByRole("status").filter({ hasText: "저장했습니다" })).toBeVisible();
     await manager.getByRole("button", { name: "오시는 길 저장", exact: true }).click(); await expect(manager.getByRole("button", { name: "오시는 길 저장", exact: true })).toBeDisabled();
 
-    const publicInfo = await page.request.get("/api/church"); expect(await publicInfo.text()).toContain("010-5678-1234");
+    await expect.poll(async () => (await page.request.get("/api/church")).text(), { timeout: 15000 }).toContain("010-5678-1234");const publicInfo = await page.request.get("/api/church");
     const publicName=(await publicInfo.json()).fields.find((f:{key:string})=>f.key==='name');expect(publicName.body).toBe('검증용 교회 안내');
     const reader=await context.newPage();await reader.goto('/church');await expect(reader.getByRole('main').getByText('검증용 교회 안내',{exact:true})).toBeVisible();
     const pixels = await sharp({ create: { width: 3000, height: 1500, channels: 3, background: "#008040" } }).png().toBuffer();

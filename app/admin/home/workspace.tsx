@@ -1,5 +1,6 @@
 'use client';
 import Select from '../select';
+import StatusMessage from '../status-message';
 import ManagementHeading from '../management-heading';
 import {useEffect,useRef,useState} from 'react';
 import {makeBrowserClient,errorMessage} from '@/lib/bulletin-store';
@@ -73,7 +74,7 @@ export default function HomeWorkspace(){
   {!allowed?<ReauthPanel message={message} hasDraft={unsaved} onRetry={()=>{setMessage("로그인 상태를 확인하고 있습니다…");setReload(n=>n+1);}}/>:<>
    <section id="home-preview" tabIndex={-1} className={ui.previewSection} aria-label="미리보기"><div className={ui.sectionHeading}><h2>미리보기</h2><div className={ui.deviceSwitch}>{[[1280,'PC'],[390,'모바일']].map(([value,label])=><button key={value} aria-pressed={width===value} onClick={()=>setWidth(Number(value))}>{label}</button>)}</div></div><div ref={previewBox} className={`${styles.homePreviewBox} ${ui.previewBox}`} style={{height:previewHeight*scale}}><iframe ref={frame} title="홈페이지 첫 화면 미리보기" src="/admin/home/preview" onLoad={sendPreview} style={{width,height:previewHeight,left:'50%',marginLeft:-width*scale/2,transform:`scale(${scale})`}}/></div>
     <div className={ui.publishActions}><SaveButton disabled={busy||!dirty||!!file} disabledHint={busy?'처리 중입니다.':file?'선택한 파일을 먼저 올리거나 선택을 취소해 주세요.':'현재 최신 상태입니다.'} className={`${btn.btn} ${btn.primary}`} onClick={()=>void save()}>이렇게 반영하기</SaveButton><SaveButton className={btn.btn} disabled={busy||!unsaved} disabledHint={busy?'처리 중입니다.':'불러올 변경 사항이 없습니다.'} onClick={()=>void restore()}>이전 설정 불러오기</SaveButton></div>
-    {message?<p role="status" className={ui.feedback}>{message}</p>:null}
+    <StatusMessage message={message} className={ui.feedback} onDone={()=>setMessage('')}/>
    </section>
    <fieldset disabled={busy} className={styles.fields}><section id="home-copy" tabIndex={-1} className={ui.section} aria-label="첫 화면 문구"><div className={ui.sectionHeading}><h2>첫 화면 문구</h2><SaveButton className={`${btn.btn} ${btn.primary}`} disabled={busy||!dirty||!!file} disabledHint={busy?"처리 중입니다.":file?"선택한 파일을 먼저 올리거나 선택을 취소해 주세요.":"현재 최신 상태입니다."} onClick={()=>void save()}>저장</SaveButton></div>
     <div className={ui.textRow} role="group" aria-labelledby="title-label"><div className={ui.rowLabel}><label id="title-label" htmlFor="home-title_line1">제목</label></div><div className={ui.inputPair}>{textInput('title_line1','첫째 줄')}{textInput('title_line2','둘째 줄')}</div></div>

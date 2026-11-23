@@ -1,5 +1,6 @@
 "use client";
 import {bulletinSections,initialBulletinItems,printOnlyItem,sectionFor,presentationItems,renderedItems,type BulletinSection} from '@/lib/bulletin-editor';
+import StatusMessage from '../status-message';
 import SaveButton from '../save-button';
 import polish from './editor.module.css';
 import {DatePicker} from '../calendar';
@@ -279,7 +280,7 @@ export default function BulletinWorkspace() {
       <div className={styles.authLayout}><section className={styles.authStory}><span className={styles.eyebrow}>WELCOME TO CHURCH WORKSPACE</span><h1>함께 준비하는 예배,<br /><em>함께 나누는 소식.</em></h1><p>교회의 한 주를 차분히 준비하는 공간입니다.<br />주보와 소식, 교회 안내를 이곳에서 관리하세요.</p><a className={styles.authHome} href="/" target="_blank" rel="noreferrer">교회 홈페이지 보기<span aria-hidden="true">↗</span></a></section><form action={login} className={`${styles.card} ${styles.login}`}><h2>관리자 로그인</h2><p>등록된 편집 계정으로 로그인해 주세요.</p><label>이메일<input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} required disabled={locked} /></label><PasswordField label="비밀번호" name="password" autoComplete="current-password" required disabled={locked} /><p role="status" aria-live="polite" className={styles.message}>{message}</p><button className={styles.primary} disabled={locked}>{busy ? "확인 중…" : "로그인"}</button><p className={styles.loginHint}>초대받은 운영자만 사용할 수 있습니다.<br />비밀번호를 잊으셨다면 계정 관리 담당자에게 재설정 링크를 요청해 주세요.</p></form></div>
     : session === "denied" ? <><p role="status" aria-live="polite" className={view_.message}>{message}</p><section className={styles.card}><h2>편집 권한이 필요합니다</h2><p>로그인한 계정이 교회 편집자로 등록되지 않았습니다. 관리자에게 등록을 요청해 주세요.</p></section></>
     : <>
-      <p role="status" aria-live="polite" className={view_.message}>{message}</p>
+      <StatusMessage message={message} className={view_.message} attrs={{'aria-live':'polite'}} onDone={()=>setMessage('')}/>
 
       {view==='library'?<section aria-labelledby="bulletin-library-title" id="bulletin-library" tabIndex={-1}>
         <div className={view_.cardHead}><h2 id="bulletin-library-title">주보 목록</h2><div className={view_.headActions}><input type="search" className={view_.search} aria-label="주보 검색" placeholder="날짜 또는 호수로 검색" value={query} onChange={e=>setQuery(e.target.value)}/><button type="button" className={`${view_.btn} ${view_.primary}`} disabled={locked} onClick={createNew}>+ 새 주보 작성</button></div></div>
