@@ -1,3 +1,10 @@
+## 2026-11-23 개인정보처리방침·사진 게시정책 확정 내용
+
+- 책임자 방은찬, 연락처 dreaming.towb.church@gmail.com, 시행일 2026-11-23(app/legal/policy-page.tsx의 EFFECTIVE).
+- 보유·삭제: 관리자 권한 해제·초대 취소 시 계정 정보 즉시 삭제(app/api/admin/invitations DELETE가 이제 로그인한 계정도 auth 사용자까지 삭제 — 이전에는 로그인 기록이 있는 계정은 남았다), 운영 백업은 최근 12개월분만 보관.
+- **운영 규칙(수동)**: 백업은 자동 삭제가 없다. 12개월이 지난 PC·Google Drive 백업은 사람이 지워야 처리방침과 일치한다(scripts/backup.mjs는 보관 기간을 관리하지 않음).
+- 요청 처리: 열람·정정·삭제·사진 내림 요청은 접수 후 10일 이내. 사진: 식별되는 사람은 사전 동의, 아동·청소년은 보호자 동의, 단체 사진은 사전 안내 후 원치 않는 분 제외.
+
 ## 2026-11-23 관리자 확인 창
 
 - 브라우저 기본 confirm()은 모양을 바꿀 수 없어 사이트 모양의 확인 창 `useConfirm()`을 만들었다(app/admin/confirm-dialog.tsx). `const [confirm, dialog] = useConfirm()` → `await confirm({title,message,confirmLabel,tone})`, dialog를 화면에 한 번 그린다. Esc·바깥 클릭=취소, 위험 동작은 tone:'danger'(빨간 버튼).

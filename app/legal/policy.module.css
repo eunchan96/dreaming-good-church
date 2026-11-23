@@ -37,3 +37,7 @@
 .officer dd { margin: 0; font-size: 15.5px; color: #2f2720; overflow-wrap: anywhere; }
 .officer a { color: #2f2720; text-decoration: none; border-bottom: 1px solid #b9a37a; transition: color .15s, border-color .15s; }
 .officer a:hover { color: #8d6d2f; border-color: #8d6d2f; }
+@media (max-width: 560px) {
+  .officer > div { grid-template-columns: 4.2em minmax(0, 1fr); gap: 8px; }
+  .officer dd { font-size: 14px; }
+}

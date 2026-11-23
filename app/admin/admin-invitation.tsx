@@ -143,7 +143,7 @@ function InvitationDialog({ inviterId, disabled }: { inviterId: string; disabled
     const pending = editor.status === 'pending';
     const ok = await confirm(pending
       ? { title: `${editor.email} 초대를 취소할까요?`, message: '보낸 초대 링크도 더 이상 쓸 수 없습니다.', confirmLabel: '초대 취소', tone: 'danger' }
-      : { title: `${editor.email}의 관리자 권한을 해제할까요?`, message: '이 계정으로는 더 이상 관리자 화면을 쓸 수 없습니다.', confirmLabel: '권한 해제', tone: 'danger' });
+      : { title: `${editor.email}의 관리자 권한을 해제할까요?`, message: '이 계정으로는 더 이상 관리자 화면을 쓸 수 없고, 계정 정보도 함께 삭제되어 되돌릴 수 없습니다.', confirmLabel: '권한 해제', tone: 'danger' });
     if (!ok) return;
     void run(async () => {
       try {
