@@ -6,7 +6,7 @@ import styles from "./public-content.module.css";
 import SiteIcon from "./site-icon";
 
 type Event = { id: string; starts_at: string | null; ends_at: string | null };
-export default function EventCalendar({ events, children, onMonthChange }: { events: Event[]; children: (ids: Set<string> | null) => React.ReactNode; onMonthChange: (month: string | null) => void }) {
+export default function EventCalendar({ events, children, onMonthChange, loading = false }: { loading?: boolean; events: Event[]; children: (ids: Set<string> | null) => React.ReactNode; onMonthChange: (month: string | null) => void }) {
   const [month, setMonth] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
   const currentMonth = () => koreanInput(new Date().toISOString()).slice(0, 7);
@@ -34,15 +34,16 @@ export default function EventCalendar({ events, children, onMonthChange }: { eve
       <div className={styles.monthBar}><button className={styles.monthStep} aria-label="이전 달" onClick={() => move(-1)}><SiteIcon name="arrow" size={18} style={{ transform: "scaleX(-1)" }} /></button><h2 aria-live="polite">{year}년 {number}월</h2><button className={styles.monthStep} aria-label="다음 달" onClick={() => move(1)}><SiteIcon name="arrow" size={18} /></button><button className={styles.today} onClick={() => { const next = currentMonth(); setMonth(next); onMonthChange(next); setSelected(null); }}>이번 달</button></div>
       <div className={styles.calendarScroll}><div className={styles.calendar}>
         {["일", "월", "화", "수", "목", "금", "토"].map(day => <span className={styles.weekday} key={day}>{day}</span>)}
-        {Array.from({ length: offset }, (_, index) => <span key={`blank-${index}`} />)}
+        {Array.from({ length: offset }, (_, index) => <span className={styles.blank} aria-hidden="true" key={`blank-${index}`} />)}
         {Array.from({ length: days }, (_, index) => {
           const day = `${month}-${String(index + 1).padStart(2, "0")}`;
           const count = events.filter(event => onDay(event, day)).length;
           return <button key={day} aria-label={`${day} 일정 ${count}개`} aria-pressed={selected === day} data-today={day === today || undefined} data-has={count > 0 || undefined} onClick={() => setSelected(day)}>{index + 1}<span>{count ? `${count}개` : ""}</span></button>;
         })}
+        {Array.from({ length: (7 - ((offset + days) % 7)) % 7 }, (_, index) => <span className={styles.blank} aria-hidden="true" key={`tail-${index}`} />)}
       </div></div>
       <div className={styles.dayBar}><p role="status">{selected ? `${monthDayWeek(selected)} 일정` : "이 달의 일정"}</p>{selected ? <button onClick={() => setSelected(null)}>이 달 전체 보기</button> : null}</div>
-      {!shown?.size ? <p className={styles.state}>표시할 공개 일정이 없습니다.</p> : null}
+      {!loading && !shown?.size ? <p className={styles.state}>표시할 공개 일정이 없습니다.</p> : null}
     </section> : null}
     {children(shown)}
   </>;
