@@ -2,7 +2,6 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import SiteIcon from "./site-icon";
 import css from "./install.module.css";
-import OfflineControls from "./offline-controls";
 import { getInstallPrompt, clearInstallPrompt, subscribeInstallPrompt, serverInstallPrompt } from '@/lib/install-prompt';
 
 export default function InstallGuide() {
@@ -41,11 +40,10 @@ export default function InstallGuide() {
         </ul>
         <div className={css.notes}>
           <p>설치 메뉴는 브라우저와 기기에 따라 다릅니다. 최신 콘텐츠를 보려면 인터넷 연결이 필요합니다.</p>
-          <p>홈 화면 설치와 오프라인 저장은 HTTPS 보안 연결에서 이용할 수 있습니다.</p>
+          <p>홈 화면 설치는 HTTPS 보안 연결에서 이용할 수 있습니다.</p>
         </div>
       </>}
       <p role="status" className={css.status}>{message}</p>
     </section>
-    <OfflineControls />
   </div>;
 }
