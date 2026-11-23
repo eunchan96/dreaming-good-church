@@ -1,3 +1,8 @@
+## 2026-11-23 관리자 확인 창
+
+- 브라우저 기본 confirm()은 모양을 바꿀 수 없어 사이트 모양의 확인 창 `useConfirm()`을 만들었다(app/admin/confirm-dialog.tsx). `const [confirm, dialog] = useConfirm()` → `await confirm({title,message,confirmLabel,tone})`, dialog를 화면에 한 번 그린다. Esc·바깥 클릭=취소, 위험 동작은 tone:'danger'(빨간 버튼).
+- 적용: 예배 영상 '공개 저장'만 우선 교체(app/admin/worship/workspace.tsx). 나머지 confirm() 18곳(주보 게시, 이미지 삭제, 변경 버리기 등)은 아직 기본 창이다. e2e 두 곳은 창의 '공개 저장' 버튼을 누르도록 고쳤으나 서비스 키가 없어 실행은 못 했다.
+
 ## 2026-11-23 실제 로고 적용
 
 - 받은 로고(1254px, 투명 배경)를 정리해 `public/brand/`에 보관: church-logo.png(그림자 있음, 기본), church-logo-flat.png(그림자 없음, 보조). 배경 제거 찌꺼기·검은 가장자리를 지웠다. 화면용으로 줄인 church-logo-192.png(헤더·푸터·관리자), church-logo-flat-640.png(상단 배너)를 쓴다.

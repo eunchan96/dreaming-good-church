@@ -7,6 +7,7 @@ import {worshipTypes,YOUTUBE_CHANNEL} from '@/lib/site-content';
 import {youtubeId,type WorshipEntry} from '@/lib/worship-library';
 import SiteIcon from '@/app/site-icon';
 import SaveButton from '../save-button';
+import {useConfirm} from '../confirm-dialog';
 import {DatePicker} from '../calendar';
 import DateRange from './date-range';
 import VideoCalendar from './video-calendar';
@@ -26,6 +27,7 @@ type Client=NonNullable<ReturnType<typeof makeBrowserClient>>;
 /** Loads every video (newest first) in 1000-row batches; the list is paged on screen. */
 async function loadVideos(client:Client){const all:WorshipEntry[]=[];for(let from=0;;from+=1000){const r=await client.from('worship_videos').select('*').order('service_date',{ascending:false}).order('id',{ascending:false}).range(from,from+999);if(r.error)return {data:null,error:r.error};all.push(...r.data);if(r.data.length<1000)return {data:all,error:null};}}
 export default function WorshipWorkspace(){
+ const [confirm,confirmDialog]=useConfirm();
  const [client]=useState(makeBrowserClient),[allowed,setAllowed]=useState(false),[busy,setBusy]=useState(false);
  const [rows,setRows]=useState<WorshipEntry[]>([]),[entry,setEntry]=useState<Draft|null>(null),[link,setLink]=useState('');
  const [dirty,setDirty]=useState(false),[message,setMessage]=useState('로그인을 확인하고 있습니다…'),[reload,setReload]=useState(0),[page,setPage]=useState(1);
@@ -52,7 +54,7 @@ export default function WorshipWorkspace(){
  async function save(status:WorshipEntry['status']){
   if(!client||!allowed||!entry||busy)return;const videoId=youtubeId(link);
   if(!videoId||!entry.title.trim()||!entry.service_date){setMessage('예배 날짜·제목·올바른 YouTube 영상 링크를 입력해 주세요.');return;}
-  if(status==='published'&&!window.confirm('이 영상 정보를 공개 저장할까요? 대표로 지정하면 기존 대표 영상이 바뀝니다.'))return;
+  if(status==='published'&&!await confirm({title:'이 영상 정보를 공개 저장할까요?',message:entry.featured?'대표로 지정하면 기존 대표 영상이 바뀝니다.':'공개 목록에 바로 나타납니다.',confirmLabel:'공개 저장'}))return;
   if(status==='archived'&&!window.confirm('공개 목록에서 내릴까요? 영상 정보는 남습니다.'))return;
   if(status==='draft'&&entry.status==='published'&&!window.confirm('공개를 취소하고 임시 저장할까요?'))return;
   titleEdited.current=true;setBusy(true);setMessage('');try{
@@ -89,7 +91,7 @@ export default function WorshipWorkspace(){
  const filtered=rows.filter(row=>(filter==='all'||row.service_type===filter)&&(!dates.start||row.service_date>=dates.start)&&(!dates.end||row.service_date<=dates.end)&&`${row.title} ${row.service_date}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
  const pages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE)),current=Math.min(page,pages),shown=filtered.slice((current-1)*PAGE_SIZE,current*PAGE_SIZE);
  const intro=<ManagementHeading id="worship-heading" eyebrow="WORSHIP & WORD" title="예배 영상 관리"/>;
- return <AdminShell active="worship" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} pages={[{id:'library',label:'영상 목록',active:view==='library',onSelect:openLibrary,sections:[{id:'video-library',label:'목록·검색'}]},{id:'calendar',label:'캘린더',active:view==='calendar',onSelect:openCalendar,sections:[]},...(view==='editor'?[{id:'editor',label:entry&&entry.revision>0?'영상 수정':'영상 등록',active:true,onSelect:()=>{},sections:[{id:'video-details',label:'영상 정보'},{id:'video-publication',label:'저장'}]}]:[])]}><main id="admin-content" aria-labelledby="worship-heading" tabIndex={-1} className={`${styles.page} ${ui.surface}`}>
+ return <><AdminShell active="worship" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} pages={[{id:'library',label:'영상 목록',active:view==='library',onSelect:openLibrary,sections:[{id:'video-library',label:'목록·검색'}]},{id:'calendar',label:'캘린더',active:view==='calendar',onSelect:openCalendar,sections:[]},...(view==='editor'?[{id:'editor',label:entry&&entry.revision>0?'영상 수정':'영상 등록',active:true,onSelect:()=>{},sections:[{id:'video-details',label:'영상 정보'},{id:'video-publication',label:'저장'}]}]:[])]}><main id="admin-content" aria-labelledby="worship-heading" tabIndex={-1} className={`${styles.page} ${ui.surface}`}>
   {allowed&&message?<p role="status" className={`${styles.message} ${ui.feedback}`}>{message}</p>:null}
   {!allowed?<ReauthPanel message={message} hasDraft={dirty} onRetry={()=>{setMessage('로그인 상태를 확인하고 있습니다…');setReload(n=>n+1);}}/>:<>
    {view==='library'?<section id="video-library" tabIndex={-1} className={`${ui.flat} ${video.noRule}`}><div className={ui.heading}><h2>영상 목록</h2><div className={video.actions}><a href={YOUTUBE_CHANNEL} target="_blank" rel="noreferrer" className={`${btn.btn} ${btn.ghost}`} aria-label="교회 YouTube 채널"><SiteIcon name="youtube" size={18}/><span>YouTube</span></a><button type="button" className={`${btn.btn} ${btn.primary}`} disabled={busy} onClick={openEditor}><AdminIcon name="plus" size={15}/>영상 등록</button></div></div>
@@ -107,5 +109,5 @@ export default function WorshipWorkspace(){
     <section id="video-publication" aria-label="영상 저장" tabIndex={-1} className={ui.flat}><label className={styles.check}><input type="checkbox" checked={entry.featured} onChange={e=>change({featured:e.target.checked})}/>이 예배의 대표 영상으로 지정</label><div className={video.save}><SaveButton disabled={busy||!dirty&&entry.status==='draft'} onClick={()=>void save('draft')}>임시 저장</SaveButton><SaveButton disabled={busy||!dirty&&entry.status==='published'} className={styles.primary} onClick={()=>void save('published')}>저장</SaveButton>{entry.revision>0&&entry.status==='published'?<button className={ui.quiet} onClick={()=>void save('archived')}>공개 목록에서 내리기</button>:null}</div></section>
    </fieldset>:null}
   </>}
- </main></AdminShell>;
+ </main></AdminShell>{confirmDialog}</>;
 }
