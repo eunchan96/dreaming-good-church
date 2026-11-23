@@ -21,9 +21,9 @@ type Tone='orange'|'gold'|'yellow'|'olive'|'green'|'lime';
 const strip=(value:string)=>value.replace(/^\s*↑\s*/,'');
 
 /** Word-style 균등 배치: shows characters spread across the cell; the real text appears while editing. */
-function Spread({value,className,children}:{value:string;className:string;children:ReactNode}){
- const chars=[...value.replace(/\s+/g,'')];
- return <span className={`${css.spread} ${className}`}>{children}<span className={css.spreadText} aria-hidden="true">{chars.map((c,i)=><span key={i}>{c}</span>)}</span></span>;
+function Spread({value,className,children,id}:{value:string;className:string;children:ReactNode;id?:string}){
+ const chars=[...value.replace(/\s+/g,'')],aligned=useContext(PrintContext).formats[id??'']?.align;
+ return <span className={`${css.spread} ${className}`} data-aligned={aligned||undefined}>{children}<span className={css.spreadText} aria-hidden="true">{chars.map((c,i)=><span key={i}>{c}</span>)}</span></span>;
 }
 
 export function Band({title,tone}:{title:string;tone:Tone}){return <h3 className={css.band} data-tone={tone}><span>{title}</span></h3>;}
@@ -68,9 +68,9 @@ function Order({item}:{item:BulletinItem}){
    ?<PrintText key={i} className={css.orderIntro} id={`${item.id}:row:${i}:0`} label={`${item.title} ${i+1}행 내용`} value={row[0]} maxLength={500} onChange={value=>cell(i,0,value)}/>
    :<div key={i} className={css.orderRow} data-order-row data-emph={/^성경봉독$/.test(rowIdentity(row[0]))?'scripture':/^말씀선포$/.test(rowIdentity(row[0]))?'sermon':undefined}>
      <span className={css.stand}>{/^\s*↑/.test(row[0])?'↑':''}</span>
-     <Spread className={css.orderName} value={strip(row[0])}><PrintText id={`${item.id}:row:${i}:0`} label={`${item.title} ${i+1}행 1열`} value={strip(row[0])} maxLength={500} onChange={value=>cell(i,0,(/^\s*↑/.test(row[0])?'↑ ':'')+value)}/></Spread>
+     <Spread className={css.orderName} id={`${item.id}:row:${i}:0`} value={strip(row[0])}><PrintText id={`${item.id}:row:${i}:0`} label={`${item.title} ${i+1}행 1열`} value={strip(row[0])} maxLength={500} onChange={value=>cell(i,0,(/^\s*↑/.test(row[0])?'↑ ':'')+value)}/></Spread>
      <span className={css.leader}><i/>{row[1]?<><PrintText className={css.orderWhat} id={`${item.id}:row:${i}:1`} label={`${item.title} ${i+1}행 2열`} value={row[1]} maxLength={500} onChange={value=>cell(i,1,value)}/><i/></>:null}</span>
-     <Spread className={css.orderWho} value={row[2]??''}><PrintText id={`${item.id}:row:${i}:2`} label={`${item.title} ${i+1}행 3열`} value={row[2]??''} maxLength={500} onChange={value=>cell(i,2,value)}/></Spread>
+     <Spread className={css.orderWho} id={`${item.id}:row:${i}:2`} value={row[2]??''}><PrintText id={`${item.id}:row:${i}:2`} label={`${item.title} ${i+1}행 3열`} value={row[2]??''} maxLength={500} onChange={value=>cell(i,2,value)}/></Spread>
    </div>)}</div>
   {content.footer?<PrintText className={css.orderFoot} id={`${item.id}:footer`} label="일어서서 안내" value={content.footer} maxLength={1000} onChange={value=>field('footer',value)}/>:null}
  </Scope>;
