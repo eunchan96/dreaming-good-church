@@ -6,6 +6,7 @@ import type {BulletinImage} from '@/lib/church';
 import {checkImageFile,folderNames,listImages,uploadImage} from '@/lib/image-upload';
 import AdminIcon from './admin-icons';
 import css from './image-chooser.module.css';
+import {Skel,SkelRegion} from '../skeleton';
 
 type Props={onClose:()=>void;onPick:(images:BulletinImage[])=>void;attached?:string[]};
 
@@ -45,7 +46,7 @@ export default function ImageChooser({onClose,onPick,attached=[]}:Props){
    <section className={css.library} aria-labelledby="image-chooser-library">
     <div className={css.libraryHead}><h3 id="image-chooser-library">보관함에서 고르기 {images?<span>{images.length}</span>:null}</h3>{images?.length?<label className={css.search}><AdminIcon name="search" size={16}/><input type="search" aria-label="보관함 이미지 검색" placeholder="이름으로 찾기" value={query} onChange={e=>setQuery(e.target.value)}/></label>:null}</div>
     {folders.length?<div className={css.folders} role="group" aria-label="폴더"><button type="button" aria-pressed={folder===null} onClick={()=>setFolder(null)}>전체</button>{folders.map(name=><button key={name} type="button" aria-pressed={folder===name} onClick={()=>setFolder(name)}>{name}</button>)}</div>:null}
-    {images===null?<p className={css.empty}>불러오는 중…</p>:shown.length?<ul className={css.grid}>{shown.map(image=>{const used=attached.includes(image.id);return <li key={image.id}><button type="button" disabled={used||!!uploading} aria-label={used?`${image.title} (이미 추가됨)`:`${image.title} 추가`} onClick={()=>{onPick([image]);onClose();}}><span className={css.thumb}><BulletinImageView id={image.id} alt="" editor fallback={<AdminIcon name="image" size={22}/>}/>{used?<em>추가됨</em>:null}</span><span className={css.name}>{image.title}</span></button></li>;})}</ul>:<p className={css.empty}>{images.length?'찾는 이미지가 없습니다.':'아직 보관된 이미지가 없습니다. 위에서 올려 주세요.'}</p>}
+    {images===null?<SkelRegion label="이미지를 불러오는 중" className={css.grid}>{Array.from({length:8},(_,i)=><div key={i} className={css.skelItem}><Skel h={0} className={css.skelThumb}/><Skel w="70%" h={11}/></div>)}</SkelRegion>:shown.length?<ul className={css.grid}>{shown.map(image=>{const used=attached.includes(image.id);return <li key={image.id}><button type="button" disabled={used||!!uploading} aria-label={used?`${image.title} (이미 추가됨)`:`${image.title} 추가`} onClick={()=>{onPick([image]);onClose();}}><span className={css.thumb}><BulletinImageView id={image.id} alt="" editor fallback={<AdminIcon name="image" size={22}/>}/>{used?<em>추가됨</em>:null}</span><span className={css.name}>{image.title}</span></button></li>;})}</ul>:<p className={css.empty}>{images.length?'찾는 이미지가 없습니다.':'아직 보관된 이미지가 없습니다. 위에서 올려 주세요.'}</p>}
    </section>
   </div>
  </dialog>;
