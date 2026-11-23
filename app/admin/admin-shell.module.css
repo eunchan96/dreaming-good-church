@@ -105,8 +105,11 @@
     display: none; position: absolute; top: 100%; left: 0; right: 0; height: auto;
     flex-direction: column; align-items: stretch; gap: 0; padding: 8px 20px 16px;
     background: var(--bg); border-bottom: 1px solid var(--line); box-shadow: 0 12px 24px #342b2512;
+    opacity: 0; transform: translateY(-10px);
   }
-  .managementNav[data-open=true] { display: flex; }
+  .managementNav[data-motion] { transition: opacity .22s ease, transform .32s cubic-bezier(.22,.8,.3,1), display .32s allow-discrete; }
+  .managementNav[data-open=true] { display: flex; opacity: 1; transform: none; }
+  @starting-style { .managementNav[data-open=true] { opacity: 0; transform: translateY(-10px); } }
   .managementNav > a { min-height: 50px; padding: 0 4px; font-size: 16px; border-bottom: 1px solid var(--line); }
   .managementNav a::after { display: none; }
   .titleBar { padding: 24px 20px 0; }
@@ -156,3 +159,5 @@
 @media (hover: none) { .tabItem[data-menu=true]:hover > .tocMenu { display: none; } .tabItem[data-open=true] > .tocMenu { display: block; } }
 
 .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) { .managementNav { transition: none; } }
