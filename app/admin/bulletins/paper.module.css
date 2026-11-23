@@ -601,3 +601,17 @@ small.churchLine { font-size: .88em; }
 
 /* 웹 화면(.flow)만: 섬기는 이들 상자가 이름 길이에 맞게 늘어나 어두운 줄이 상자 밖으로 안 나가게 (인쇄 시트는 그대로) */
 .flow .supportGrid { grid-template-columns: minmax(0, 1fr) fit-content(76%); }
+
+/* 예배 순서: 이름(오른쪽) 열이 가장 긴 이름에 맞춰 함께 넓어지고 모든 줄이 같은 열 선을 쓴다(내용 열이 줄어듦) */
+.order { grid-template-columns: 1.2em minmax(6.2em, max-content) minmax(0, 1fr) minmax(6.2em, max-content); column-gap: .3em; }
+.order > .orderIntro, .order > .orderFoot { grid-column: 1 / -1; }
+.order > .orderRow { grid-column: 1 / -1; grid-template-columns: subgrid; }
+[data-theme^="modern"] .order { column-gap: .5em; }
+@container (max-width: 560px) {
+  .flow .order { grid-template-columns: minmax(0, 1fr); }
+  .flow .order > .orderRow { grid-template-columns: 1em minmax(0, 1fr) auto; }
+}
+@media (max-width: 640px) {
+  .flow .order { grid-template-columns: minmax(0, 1fr); }
+  .flow .order > .orderRow { grid-template-columns: 1em 5.4em minmax(0, 1fr) 4.6em; }
+}
