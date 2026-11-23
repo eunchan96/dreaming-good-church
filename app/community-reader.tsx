@@ -14,7 +14,7 @@ export default function CommunityReader({kind}:{kind:"notice"|"event"}){
   const [calendarMonth, setCalendarMonth] = useState<string | null>(null);
   useEffect(()=>{
     const controller=new AbortController();let sequence=0;
-    async function refresh(){const current=++sequence;try{const response=await fetch(`/api/community?kind=${kind}${calendarMonth ? `&month=${calendarMonth}` : ""}`,{cache:"no-store",signal:controller.signal});const data=await response.json();if(controller.signal.aborted||current!==sequence)return;if(!response.ok)throw new Error(data.error);setRows(data.entries);setFailed(false);setMessage(data.truncated?"일정이 많아 처음 100개를 표시합니다.":data.entries.length?"":"현재 공개된 내용이 없습니다.");}catch{if(controller.signal.aborted||current!==sequence)return;setRows([]);setFailed(true);setMessage("소식을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");}}
+    async function refresh(){if(kind==="event"&&!calendarMonth)return;const current=++sequence;try{const response=await fetch(`/api/community?kind=${kind}${calendarMonth ? `&month=${calendarMonth}` : ""}`,{cache:"no-store",signal:controller.signal});const data=await response.json();if(controller.signal.aborted||current!==sequence)return;if(!response.ok)throw new Error(data.error);setRows(data.entries);setFailed(false);setMessage(data.truncated?"일정이 많아 처음 100개를 표시합니다.":data.entries.length||kind==="event"?"":"현재 공개된 내용이 없습니다.");}catch{if(controller.signal.aborted||current!==sequence)return;setRows([]);setFailed(true);setMessage("소식을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");}}
     void refresh();const timer=window.setInterval(refresh,15000);window.addEventListener("focus",refresh);
     return()=>{controller.abort();window.clearInterval(timer);window.removeEventListener("focus",refresh);};
   },[kind,retry,calendarMonth]);

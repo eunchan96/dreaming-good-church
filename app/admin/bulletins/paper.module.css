@@ -604,8 +604,7 @@ small.churchLine { font-size: .88em; }
 
 /* 예배 순서: 이름·담당 열은 기본 6.2em을 지키고, 그 줄의 글자가 더 길 때만 그 줄에서 늘어난다 */
 .orderRow { grid-template-columns: 1.2em minmax(6.2em, max-content) minmax(0, 1fr) minmax(6.2em, max-content); }
-@container (max-width: 560px) { .flow .orderRow, .flow .orderRow[data-emph] { grid-template-columns: 1em minmax(0, 1fr) auto; } }
-@media (max-width: 640px) { .flow .orderRow { grid-template-columns: 1em 5.4em minmax(0, 1fr) 4.6em; } }
+@container (max-width: 560px) { .flow .orderRow, .flow .orderRow[data-emph] { grid-template-columns: 1em minmax(0, 1fr) auto; } .flow .orderWho { justify-self: end; text-align: right; } }
 /* 인쇄 서식 도구에서 정렬(왼쪽·가운데·오른쪽)을 고른 칸은 배분 정렬 대신 그 정렬로 보인다 */
 .spread[data-aligned] > :first-child { position: static; opacity: 1; white-space: normal; }
 .spread[data-aligned] > .spreadText { display: none; }
