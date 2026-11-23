@@ -98,19 +98,39 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
     }
     if(moved){onPagesChange(next);setMessage('내용을 보존하며 지면 배치를 정리했습니다.');}else setMessage('이동할 여유 지면이 없습니다. 글자 크기나 면 배치를 조절해 주세요.');
   }
-  async function print() {
-    if(settingsStatus!=="ready"){setMessage("교회 예배시간을 불러온 뒤 인쇄해 주세요.");return;}
+  /** 인쇄·Word 공통 확인: 예배시간, 사진, 글꼴, 넘침. 문제가 있으면 안내하고 false. */
+  async function ready() {
+    if(settingsStatus!=="ready"){setMessage("교회 예배시간을 불러온 뒤 다시 눌러 주세요.");return false;}
     // Only photos count here (decorative wings/map are <img> too); each must have finished loading.
     const photos = Array.from(root.current?.querySelectorAll<HTMLImageElement>("img[data-asset-id]") ?? []);
     const expected = new Set(items.filter(item => item.kind === "image" && item.content?.assetId&&!item.content.disabled).map(item=>item.content!.assetId)).size;
-    if (new Set(photos.map(photo=>photo.dataset.assetId)).size < expected) { setMessage("사진을 아직 불러오는 중입니다. 사진이 표시된 뒤 다시 눌러 주세요."); return; }
+    if (new Set(photos.map(photo=>photo.dataset.assetId)).size < expected) { setMessage("사진을 아직 불러오는 중입니다. 사진이 표시된 뒤 다시 눌러 주세요."); return false; }
     const all = Array.from(root.current?.querySelectorAll<HTMLImageElement>("img") ?? []);
     all.forEach(image => { image.loading = "eager"; });
-    try { await Promise.all(all.map(image => image.decode())); await document.fonts.ready;
-      const overflow = checkOverflow(); setOverflowPages(overflow);
-      if (overflow.length) { setMessage(`${overflow.join("·")}면의 내용이 넘칩니다. 면 배치를 바꾸거나 편집 화면에서 내용을 줄여 주세요.`); return; }
-      setMessage(""); const title = document.title; document.title = `${draft.serviceDate.slice(2).replaceAll("-", "")} 주일 주보`; const restore = () => { document.title = title; window.removeEventListener("afterprint", restore); }; window.addEventListener("afterprint", restore); window.print(); window.setTimeout(restore, 1000); }
-    catch { setMessage("이미지를 확인하지 못했습니다. 연결을 확인하고 다시 시도해 주세요."); }
+    try { await Promise.all(all.map(image => image.decode())); await document.fonts.ready; }
+    catch { setMessage("이미지를 확인하지 못했습니다. 연결을 확인하고 다시 시도해 주세요."); return false; }
+    const overflow = checkOverflow(); setOverflowPages(overflow);
+    if (overflow.length) { setMessage(`${overflow.join("·")}면의 내용이 넘칩니다. 면 배치를 바꾸거나 편집 화면에서 내용을 줄여 주세요.`); return false; }
+    return true;
+  }
+  const fileTitle = `${draft.serviceDate.slice(2).replaceAll("-", "")} 주일 주보`;
+  async function print() {
+    if (!await ready()) return;
+    setMessage(""); const title = document.title; document.title = fileTitle; const restore = () => { document.title = title; window.removeEventListener("afterprint", restore); }; window.addEventListener("afterprint", restore); window.print(); window.setTimeout(restore, 1000);
+  }
+  const [exporting, setExporting] = useState(false);
+  async function downloadWord() {
+    if (exporting || !root.current || !await ready()) return;
+    setExporting(true); setMessage("Word 파일을 만드는 중입니다…");
+    try {
+      const { measurePanels, buildDocx } = await import("./word-export");
+      const blob = await buildDocx(measurePanels(root.current), fileTitle);
+      const url = URL.createObjectURL(blob), link = document.createElement("a");
+      link.href = url; link.download = `${fileTitle}.docx`; document.body.appendChild(link); link.click(); link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 10000);
+      setMessage("Word 파일을 내려받았습니다. 글꼴은 맑은 고딕으로 열립니다.");
+    } catch { setMessage("Word 파일을 만들지 못했습니다. 잠시 뒤 다시 시도해 주세요."); }
+    finally { setExporting(false); }
   }
   const pageOf = (item: BulletinItem) => item.kind === "offering" ? 4 : (pages[item.id] ?? defaultPage(item));
   const sides = [{ label: "바깥면", pages: [4, 1] }, { label: "안쪽면", pages: [2, 3] }];
@@ -126,6 +146,7 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
         {editable && overflowPages.length ? <button type="button" className={styles.tool} onClick={arrange}>지면 자동 정리</button> : null}
         <button type="button" className={styles.tool} aria-pressed={panel} aria-controls={panel?'print-layout-panel':undefined} onClick={() => setPanel(!panel)}>면 배치</button>
         {draft.status!=="draft"&&onEdit?<button type="button" className={styles.tool} title="게시를 취소하고 초안으로 돌린 뒤 수정합니다." onClick={onEdit}>수정</button>:null}
+        <button type="button" className={styles.tool} disabled={exporting} aria-busy={exporting||undefined} title="A4 가로 2단 Word(.docx) 파일로 내려받습니다." onClick={() => void downloadWord()}>Word로 내려받기</button>
         <button type="button" className={`${styles.tool} ${styles.primaryTool}`} onClick={() => void print()}>인쇄</button>
       </div>
     </header>
