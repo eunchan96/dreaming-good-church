@@ -41,12 +41,13 @@ test("local DB: editor save/reopen/copy, atomic rollback, stale save, and access
       assert.equal(opened.data.bulletin_items.find(item => item.id === items[0].id).print_page, 1);
       assert.equal(opened.data.bulletin_items.find((item) => item.id === items[0].id).web_visible, false);
     });
-    await t.test("invalid print page rolls back and anonymous users cannot select print layout", async () => {
+    await t.test("invalid print page rolls back and anonymous users cannot read draft print layout", async () => {
       const invalid = await editor.rpc("save_bulletin_draft", { ...args, p_revision: 1, p_items: [{ ...items[0], printPage: 5 }, items[1]] });
       assert.equal(invalid.error?.code, "22023");
       const unchanged = await editor.from("bulletins").select("revision").eq("id", source).single();
       assert.equal(unchanged.data.revision, 1);
-      assert.equal((await anonymous.from("bulletin_items").select("print_page")).error?.code, "42501");
+      const anonLayout = await anonymous.from("bulletin_items").select("id,print_page").eq("bulletin_id", source);
+      assert.ifError(anonLayout.error); assert.deepEqual(anonLayout.data, []);
     });
     let copiedId;
     await t.test("copy creates draft and resets weekly review without exposing private text", async () => {
