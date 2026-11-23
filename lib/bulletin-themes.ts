@@ -14,6 +14,8 @@ export const bulletinThemes: BulletinTheme[] = [
   { key: "modern-navy", name: "모던 · 바다", description: "같은 모던 모양, 짙은 남색 강조", layout: "modern", swatch: ["#25476a", "#b8863b"] },
   { key: "modern-warm", name: "모던 · 노을", description: "같은 모던 모양, 따뜻한 적갈색 강조", layout: "modern", swatch: ["#9a4a32", "#c79a4a"] },
   { key: "modern-ink", name: "모던 · 먹", description: "같은 모던 모양, 흑백 인쇄에 알맞은 먹색 강조", layout: "modern", swatch: ["#2b2b2b", "#8a8a8a"] },
+  { key: "modern-christmas", name: "절기 · 성탄", description: "모던 모양에 짙은 초록과 붉은 포인트, 제목 아래 겹줄 장식(성탄절·대림절)", layout: "modern", swatch: ["#1f4d36", "#a8322d"] },
+  { key: "modern-easter", name: "절기 · 부활", description: "모던 모양에 차분한 보라와 금색 포인트, 제목 아래 겹줄 장식(부활절·사순절)", layout: "modern", swatch: ["#5b4a8a", "#b08a1f"] },
 ];
 
 export const defaultThemeKey = "classic";

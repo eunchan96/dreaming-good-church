@@ -494,6 +494,8 @@ small.churchLine { font-size: .88em; }
 :global([data-theme="modern-navy"]) { --m-accent: #25476a; --m-soft: #f4f6f9; --m-lead: #e4ebf3; --m-rule: #d2dae4; --m-rule2: #e0e6ee; --m-strong: #c0cad7; --m-gold: #a87430; }
 :global([data-theme="modern-warm"]) { --m-accent: #9a4a32; --m-soft: #faf6f2; --m-lead: #f3e6de; --m-rule: #e4d8cf; --m-rule2: #eee5de; --m-strong: #d2c3b8; --m-gold: #a9761f; }
 :global([data-theme="modern-ink"]) { --m-accent: #2b2b2b; --m-soft: #f5f5f5; --m-lead: #e8e8e8; --m-rule: #d6d6d6; --m-rule2: #e4e4e4; --m-strong: #c4c4c4; --m-gold: #5f5f5f; }
+:global([data-theme="modern-christmas"]) { --m-accent: #1f4d36; --m-soft: #f4f7f4; --m-lead: #e2ece5; --m-rule: #cfdad2; --m-rule2: #dfe7e1; --m-strong: #b9c8bd; --m-gold: #a8322d; }
+:global([data-theme="modern-easter"]) { --m-accent: #5b4a8a; --m-soft: #f7f5fa; --m-lead: #ebe6f3; --m-rule: #dad4e6; --m-rule2: #e6e1ee; --m-strong: #c8bfda; --m-gold: #9a7414; }
 :global([data-theme^="modern"]) {
   --m-ink: #26302b; --m-muted: #667069;
   --t-accent: var(--m-accent); --t-line: var(--m-rule); --t-line2: var(--m-rule); --t-line3: var(--m-rule2); --t-tint: var(--m-soft); --t-lead: var(--m-lead);
@@ -508,6 +510,10 @@ small.churchLine { font-size: .88em; }
 /* 2면 제목: 날개 그림 대신 왼쪽 정렬 제목과 굵은 선 */
 [data-theme^="modern"] .orderTitle { justify-content: flex-start; gap: 0; margin: 0 0 .5em !important; padding-bottom: .28em; border-bottom: 2px solid var(--m-accent); font-size: 1.6em !important; font-weight: 700 !important; letter-spacing: .01em; color: var(--m-accent); }
 [data-theme^="modern"] .orderTitle > img { display: none; }
+/* 절기 테마 장식: 제목 아래 겹줄(색이 없어도 두 줄로 보인다) */
+:global([data-theme="modern-christmas"]) .orderTitle, :global([data-theme="modern-easter"]) .orderTitle { border-bottom: 4px double var(--m-accent); }
+:global([data-theme="modern-christmas"]) .band::before, :global([data-theme="modern-easter"]) .band::before { background: var(--m-gold); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+:global([data-theme="modern-christmas"]) .band, :global([data-theme="modern-easter"]) .band { border-bottom: 3px double var(--m-strong); }
 [data-theme^="modern"] .orderTitle > span { color: inherit; font-size: 1em; letter-spacing: .01em; margin-right: 0; }
 [data-theme^="modern"] .orderIntro { text-align: left; color: var(--m-muted); font-size: .95em; margin-bottom: .5em; }
 
