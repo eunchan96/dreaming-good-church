@@ -1,0 +1,6 @@
+/* 흐릿한 자리 표시(스켈레톤): 부드러운 베이지 막대가 은은하게 반짝인다 */
+.skel { display: block; max-width: 100%; border-radius: 5px; background: linear-gradient(90deg, #ece5d6 0%, #f5f0e4 45%, #ece5d6 90%); background-size: 220% 100%; filter: blur(.6px); opacity: .9; animation: shimmer 1.5s ease-in-out infinite; }
+.lines { display: grid; width: 100%; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@keyframes shimmer { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+@media (prefers-reduced-motion: reduce) { .skel { animation: none; } }

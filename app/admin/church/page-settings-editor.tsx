@@ -1,5 +1,6 @@
 'use client';
 import {defaultPageSettings,settingLabels,timeLabels,validPageSetting,type ChurchPageSettings,type SettingKey} from '@/lib/church-page-settings';
+import StatusMessage from '../status-message';
 import TimePicker from '../time-picker';
 import SectionHeading from './section-heading';
 import church from './workspace.module.css';
@@ -8,7 +9,7 @@ import styles from '../bulletins/workspace.module.css';
 export default function PageSettingsEditor({value,saved,busy,messages,onChange,onSave,onReload}:{value:ChurchPageSettings;saved:ChurchPageSettings;busy:boolean;messages:Partial<Record<SettingKey,string>>;onChange:(key:SettingKey,payload:ChurchPageSettings[SettingKey])=>void;onSave:(key:SettingKey)=>void;onReload:(key:SettingKey)=>void}){
  return <fieldset disabled={busy} className={styles.fields}>{(Object.keys(defaultPageSettings) as SettingKey[]).map(key=>{const dirty=JSON.stringify(value[key])!==JSON.stringify(saved[key]);return <section key={key} id={`page-setting-${key}`} tabIndex={-1} aria-label={`${settingLabels[key]} 설정`} className={`${church.section} ${ui.formRows}`}><SectionHeading title={settingLabels[key]} dirty={dirty} busy={busy} onSave={()=>onSave(key)} onReload={()=>onReload(key)} saveLabel={`${settingLabels[key]} 설정 저장`} reloadLabel={`${settingLabels[key]} 다시 불러오기`}/>
   <SettingFields settingKey={key} value={value} onChange={onChange}/>
-  {messages[key]?<p role="status" className={`${styles.message} ${ui.feedback}`}>{messages[key]}</p>:null}</section>;})}</fieldset>;
+  <StatusMessage message={messages[key]??''} className={`${styles.message} ${ui.feedback}`}/></section>;})}</fieldset>;
 }
 
 /** One settings group's inputs without its heading (used inside the 교회 소개 categories). */

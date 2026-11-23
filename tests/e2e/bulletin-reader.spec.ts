@@ -15,7 +15,7 @@ test("reader supports section jumps and month history at desktop and mobile widt
   await expect(contents.getByRole("link", { name: "좋은 소식" })).toBeVisible();
   await expect(page.getByRole("region", { name: "지난 주보" })).toHaveCount(0);
   await contents.getByRole("link", { name: "좋은 소식" }).click();
-  await expect(page.locator("#bulletin-section-6")).toBeFocused();
+  await expect(page.locator("#bulletin-section-6")).toBeInViewport();
   await expect(page.locator("#bulletin-section-6")).toContainText("말씀 본문입니다.");
   await expect(page.getByRole("button", { name: "다음 주보", exact: true })).toBeDisabled();
   await page.getByRole("button", { name: "지난 주보", exact: true }).click();

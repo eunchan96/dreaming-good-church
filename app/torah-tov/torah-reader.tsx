@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { torahWeek, weeksInYear } from '@/lib/korean-date';
 import SiteIcon from '../site-icon';
 import css from './torah.module.css';
+import { Skel, SkelLines, SkelRegion } from '../skeleton';
 import bar from '../bulletins/reader.module.css';
 
 type Entry = { id: string; title: string; body: string; content: { reference?: string } | null };
@@ -39,7 +40,7 @@ export default function TorahReader() {
     if (scroll) document.getElementById('torah-top')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
   }
   if (failed) return <div className={css.state}><p role="status">주보의 공개 안내를 불러오지 못했습니다.</p><button type="button" onClick={() => setRetry(n => n + 1)}>다시 불러오기</button></div>;
-  if (!data) return <p role="status" className={css.loading}>토라&amp;토브를 불러오고 있습니다…</p>;
+  if (!data) return <SkelRegion label="토라&토브를 불러오는 중"><div className={bar.issueBar}><span /><div className={css.weekTitle}><Skel w={240} h={26} /></div><span /></div><div className={css.entries}><article style={{ display: 'grid', justifyItems: 'center', gap: 16 }}><Skel w={120} h={16} /><div style={{ width: 'min(620px, 100%)' }}><SkelLines n={3} h={20} gap={14} last="48%" /></div></article></div></SkelRegion>;
   if (!data.dates.length) return <div className={css.state}><p>아직 공개된 토라&amp;토브가 없습니다.</p></div>;
   const current = data.serviceDate;
   const week = current ? torahWeek(current) : null;

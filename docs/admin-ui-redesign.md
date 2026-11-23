@@ -1,3 +1,51 @@
+## 2026-11-23 로딩 자리 표시·푸터 위치
+
+- '불러오고 있습니다' 글자 대신 흐릿한 자리 표시(app/skeleton.tsx의 Skel·SkelLines·SkelRegion, 베이지 막대가 은은히 반짝임, 움직임 줄이기 설정이면 정지)로 바꿨다. 적용: 교회 소식·일정 목록, 토라&토브, 주보, 교회 소개 오시는 길, 예배시간 표, 홈 이번 주 카드. '더 보기' 버튼의 '불러오는 중…'은 버튼 문구라 그대로. 오류·빈 상태 안내는 글자 그대로 유지.
+- 공개 페이지 래퍼(.site)를 세로 flex + min-height 100dvh로, main을 flex:1 로 바꿔 내용이 적어도 푸터가 화면 맨 아래에 머문다(교회 소식 빈 화면 등).
+- 오시는 길 대중교통 줄 사이 간격을 줄였다(칸 위아래 6px, 모바일 5px).
+
+## 2026-11-23 일정 달력만·주보 담당 정렬·앱 아이콘 크기
+
+- 교회 일정은 목록/달력 전환 없이 달력만 보인다(열면 이번 달, 아래에 선택한 날 또는 그 달의 일정). 일정 화면의 '현재 공개된 내용이 없습니다' 안내는 뺐다(소식은 유지). 달력은 첫 화면에서 현재 월을 서버에 요청한다. e2e(calendar, public-content)를 달력 기준으로 고쳤다.
+- 주보 모바일(좁은 칸) 예배 순서의 담당 글자는 모든 줄 오른쪽 정렬. 원인: 추가해 둔 ≤640px 열 규칙이 좁은 칸 규칙을 덮어 일부 줄만 왼쪽에 붙었다.
+- 앱 아이콘: 로고 비율을 키웠다(일반 88%, maskable 78%, apple-touch 88%). 이미 설치한 기기는 아이콘이 바뀌는 데 시간이 걸린다.
+
+## 2026-11-23 교회 소식·교회 일정
+
+- 박스 카드를 가는 선으로 나눈 목록으로(공개 사이트 기본 스타일): 위 진한 선, 항목 사이 연한 선. 교회 일정은 왼쪽에 일시·장소(아이콘), 오른쪽에 세리프 제목·본문(모바일은 세로). 교회 소식은 한 열.
+- 목록/달력 전환은 알약 대신 밑줄 탭, 달력은 둥근 칸 대신 선 격자(오늘은 금색 밑줄, 선택은 진한 칸), 월 이동은 화살표 아이콘, '이번 달'·'이 달 전체 보기'는 밑줄 글자 링크. (app/public-content.module.css, app/event-calendar.tsx)
+
+## 2026-11-23 앱 추가 화면
+
+- /install: 교회 소개와 같은 1040px 칸. 위에 INSTALL·'홈 화면에 추가 · 설치 안내', 아이폰·안드로이드·PC 세 칸(선으로 나눈 칸, 모바일은 세로), 작은 안내 두 줄. 아래에 OFFLINE·'오프라인 저장'과 밑줄 글자 버튼 세 개(저장·지우기·저장한 내용 보기). 설치 가능한 브라우저에서는 '좋은교회 앱 설치' 밑줄 버튼이 위에 나온다. 문구·버튼 이름·동작은 그대로(app/install-guide.tsx, app/offline-controls.tsx, app/install.module.css).
+- 개인정보처리방침·사진 게시정책의 목차는 뺐다(본문만 가운데).
+
+## 2026-11-23 개인정보처리방침·사진 게시정책 확정 내용
+
+- 책임자 방은찬, 연락처 dreaming.towb.church@gmail.com, 시행일 2026-11-23(app/legal/policy-page.tsx의 EFFECTIVE).
+- 보유·삭제: 관리자 권한 해제·초대 취소 시 계정 정보 즉시 삭제(app/api/admin/invitations DELETE가 이제 로그인한 계정도 auth 사용자까지 삭제 — 이전에는 로그인 기록이 있는 계정은 남았다), 운영 백업은 최근 12개월분만 보관.
+- **운영 규칙(수동)**: 백업은 자동 삭제가 없다. 12개월이 지난 PC·Google Drive 백업은 사람이 지워야 처리방침과 일치한다(scripts/backup.mjs는 보관 기간을 관리하지 않음).
+- 요청 처리: 열람·정정·삭제·사진 내림 요청은 접수 후 10일 이내. 사진: 식별되는 사람은 사전 동의, 아동·청소년은 보호자 동의, 단체 사진은 사전 안내 후 원치 않는 분 제외.
+
+## 2026-11-23 관리자 확인 창
+
+- 브라우저 기본 confirm()은 모양을 바꿀 수 없어 사이트 모양의 확인 창 `useConfirm()`을 만들었다(app/admin/confirm-dialog.tsx). `const [confirm, dialog] = useConfirm()` → `await confirm({title,message,confirmLabel,tone})`, dialog를 화면에 한 번 그린다. Esc·바깥 클릭=취소, 위험 동작은 tone:'danger'(빨간 버튼).
+- 적용: 관리자의 모든 confirm()을 교체했다(영상·주보·교회 정보·소식·홈·관리자 초대). 저장하지 않은 변경 확인(mayLeave)은 Promise를 돌려주므로 호출부는 `await mayLeave()`, AdminShell의 canLeave·homeTabs도 비동기를 받는다(링크 클릭은 막았다가 확인 후 router.push). 새 확인이 필요하면 useConfirm()을 쓴다.
+- e2e: 기본 confirm을 누르던 page.once('dialog')는 tests/e2e/confirm.ts의 acceptConfirm/dismissConfirm(addLocatorHandler로 창의 data-confirm-ok/cancel 버튼 클릭)으로 바꿨다. 서비스 키가 없어 e2e 전체는 못 돌렸다.
+
+## 2026-11-23 실제 로고 적용
+
+- 받은 로고(1254px, 투명 배경)를 정리해 `public/brand/`에 보관: church-logo.png(그림자 있음, 기본), church-logo-flat.png(그림자 없음, 보조). 배경 제거 찌꺼기·검은 가장자리를 지웠다. 화면용으로 줄인 church-logo-192.png(헤더·푸터·관리자), church-logo-flat-640.png(상단 배너)를 쓴다.
+- 헤더·푸터·관리자 상단 로고(ChurchBrand)는 church-logo-140.png(최적화 없이 그대로 — Next 이미지 최적화가 작게 줄여 흐려져서), 주보 표지 로고는 church-logo-192.png, 하위 페이지 상단 배너 장식(.pageHeading::after)은 사이트 색(베이지·금빛·연한 분홍)으로 다시 칠한 church-logo-banner-640.png를 쓴다. 앱 아이콘(public/icons)·favicon.ico도 새 로고로 다시 만들었다(배경 #fbfaf7).
+
+## 2026-11-22 주보 테마 (브랜치 feat/bulletin-theme)
+
+- 주보마다 테마(레이아웃+색)를 고른다. 키는 `bulletins.theme`(기본 classic)에 저장하고, 관리자 편집 화면 '주보 테마' 칩에서 초안일 때 바꾼다(app/admin/bulletins/theme-picker.tsx). 테마 목록은 lib/bulletin-themes.ts(기본, 모던 숲/바다/노을/먹).
+- 적용: 웹 주보(.flow[data-theme])·관리자 인쇄 미리보기·공개 PDF 시트(.sheet[data-theme])가 같은 CSS(app/admin/bulletins/paper.module.css 끝의 '모던 테마' 블록)를 쓴다. 지난 주보 복사·새 주보는 지난 주 테마를 이어받는다.
+- 모던 레이아웃: 색 띠 제목 → 왼쪽 강조선+가는 밑줄, 날개 제목 → 왼쪽 정렬 제목+굵은 선, 점선 예배 순서 → 가는 줄(이름 강조색·내용 왼쪽·담당 오른쪽), 색 상자 → 흰 바탕 가는 테두리+둥근 모서리. 내용·면 배치·높이는 기본과 같게 유지(인쇄 넘침 없음 확인).
+- 색은 paper.module.css의 --t-* 변수(기본값 = 기존 색)와 --m-* 팔레트로 정한다. 절기 테마(성탄·부활 등)는 [data-theme="..."]에 --m-* 한 벌만 더하면 된다(아직 안 만듦).
+- DB: 마이그레이션 20261122120000_bulletin_theme.sql(theme 열, anon 읽기, save_bulletin_draft에 p_theme 선택 인수, copy_bulletin_draft가 테마 복사). 공개 API는 열이 없으면 theme 없이 읽는 대비가 있다.
+
 ## 2026-11-22 소식 탭 순서·토라&토브 (브랜치 feat/public-bulletins-ui)
 
 - 소식 탭 순서: 주보 → 교회 소식 → 교회 일정 → 토라&토브. 상단 메뉴 '소식'을 누르면 주보로 간다(lib/site-content.ts).

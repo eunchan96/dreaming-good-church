@@ -1,5 +1,6 @@
 "use client";
 import {bulletinSections,initialBulletinItems,printOnlyItem,sectionFor,presentationItems,renderedItems,type BulletinSection} from '@/lib/bulletin-editor';
+import StatusMessage from '../status-message';
 import SaveButton from '../save-button';
 import polish from './editor.module.css';
 import {DatePicker} from '../calendar';
@@ -10,6 +11,8 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 import { confirmItem, createBulletin, copyBulletin, createItem, editItem, publicationIssues, type BulletinItem } from "@/lib/bulletins";
 import { errorMessage, loadBulletins, makeBrowserClient, saveDraft, type SavedBulletin } from "@/lib/bulletin-store";
 import {PaperView} from "./paper";
+import ThemePicker from "./theme-picker";
+import {useConfirm} from '../confirm-dialog';
 import {PrintEditorProvider} from "./print-editor";
 import ChurchContentProvider from '@/app/church-content';
 import CommunityLinks from "./community-links";
@@ -40,6 +43,7 @@ function nextSunday() {
 }
 
 export default function BulletinWorkspace() {
+  const [confirm,confirmDialog]=useConfirm();
   const [client] = useState(makeBrowserClient);
   const [session, setSession] = useState<"loading" | "login" | "editor" | "denied">("loading");
   // Signed out (or never signed in): drop the remembered sign-in hint so the menu and tabs hide with the login form.
@@ -117,9 +121,9 @@ export default function BulletinWorkspace() {
     return () => window.removeEventListener("beforeunload", guard);
   }, [dirty]);
 
-  function mayLeave() { return !(dirty||view==='settings'&&(visibilityDraft!==showVisibility||connectionsDraft!==showConnections)) || window.confirm("저장하지 않은 변경 사항이 있습니다. 변경 내용을 버릴까요?"); }
-  function open(row: SavedBulletin) {
-    if (!mayLeave()) return;
+  function mayLeave() { return !(dirty||view==='settings'&&(visibilityDraft!==showVisibility||connectionsDraft!==showConnections)) || confirm({title:'저장하지 않은 변경 사항이 있습니다',message:'변경 내용을 버릴까요?',confirmLabel:'버리기',tone:'danger'}); }
+  async function open(row: SavedBulletin) {
+    if (!(await mayLeave())) return;
     setGroups(Object.fromEntries(row.items.map(item=>[item.id,sectionFor(item)])));setView("detail"); setDraft(structuredClone(row)); setDirty(false); setSavePaused(false); setMessage(""); setPreview(false);
 
   }
@@ -178,7 +182,7 @@ export default function BulletinWorkspace() {
 
   async function importPrevious(){
     if(!client||!draft||draft.revision!==0||busy||inFlight.current)return;
-    if(JSON.stringify(draft.items)!==initialItems.current&&!window.confirm('작성 중인 내용을 지난 주 정보로 바꿀까요? 날짜와 호수는 유지됩니다.'))return;
+    if(JSON.stringify(draft.items)!==initialItems.current&&!await confirm({title:'작성 중인 내용을 지난 주 정보로 바꿀까요?',message:'날짜와 호수는 유지됩니다.',confirmLabel:'바꾸기'}))return;
     setBusy(true);setMessage('');
     try{const fresh=await loadBulletins(client);setRows(fresh);const source=fresh.filter(row=>row.serviceDate<draft.serviceDate).sort((a,b)=>b.serviceDate.localeCompare(a.serviceDate))[0];
       if(!source){setMessage('가져올 지난 주 주보가 없습니다.');return;}
@@ -188,7 +192,7 @@ export default function BulletinWorkspace() {
   }
 
   async function logout() {
-    if (!client || !mayLeave()) return;
+    if (!client || !(await mayLeave())) return;
     setBusy(true);
     const { error } = await client.auth.signOut({ scope: "local" });
     if (error) setMessage("로그아웃하지 못했습니다. 다시 시도해 주세요.");
@@ -196,17 +200,22 @@ export default function BulletinWorkspace() {
     setBusy(false);
   }
 
+  // 확인 창이 떠 있는 동안 자동 저장이 revision을 올릴 수 있으므로, 확인 뒤에는 최신 값을 다시 읽는다.
+  const live=useRef({draft,dirty});useEffect(()=>{live.current={draft,dirty};});
   async function changePublication(publish:boolean){
     if(!client||!draft||busy||inFlight.current)return;
     const prepared={...draft,items:draft.items.map(confirmItem)};
     if(publish&&publicationIssues(prepared).length){setMessage(publicationIssues(prepared).join(' '));return;}
-    if(!window.confirm(publish?'주보를 웹에 게시할까요?':'게시를 취소하고 초안으로 돌릴까요? 공개 주보에서 제외됩니다.'))return;
+    if(!await confirm(publish?{title:'주보를 웹에 게시할까요?',message:'게시하면 공개 주보에 바로 나타납니다.',confirmLabel:'게시'}:{title:'게시를 취소하고 초안으로 돌릴까요?',message:'공개 주보에서 제외됩니다.',confirmLabel:'게시 취소',tone:'danger'}))return;
+    // 확인 창이 떠 있던 사이 자동 저장이 돌았다면 끝나고 화면에 반영될 때까지 기다린다.
+    await new Promise(resolve=>setTimeout(resolve,0));for(let n=0;inFlight.current&&n<100;n++)await new Promise(resolve=>setTimeout(resolve,50));await new Promise(resolve=>setTimeout(resolve,0));
+    const fresh=live.current,base=fresh.draft;if(!base)return;
     setBusy(true);setMessage('');const savedVersion=version.current;
     try{
       const {data:{user},error:authError}=await client.auth.getUser();if(authError)throw authError;if(!user||user.id!==editorId.current){setSession('login');throw new Error('로그인이 만료되었습니다. 다시 로그인해 주세요.');}
-      let current=draft;
-      if(publish&&(dirty||draft.revision===0||draft.items.some(item=>item.needsReview))){
-        current=await saveDraft(client,prepared);setDraft(existing=>existing?.id===current.id?{...existing,revision:current.revision,items:version.current===savedVersion?current.items:existing.items}:existing);
+      let current=base;
+      if(publish&&(fresh.dirty||base.revision===0||base.items.some(item=>item.needsReview))){
+        current=await saveDraft(client,{...base,items:base.items.map(confirmItem)});setDraft(existing=>existing?.id===current.id?{...existing,revision:current.revision,items:version.current===savedVersion?current.items:existing.items}:existing);
         setDirty(version.current!==savedVersion);setSavePaused(false);setRows(existing=>[current,...existing.filter(row=>row.id!==current.id)].sort((a,b)=>b.serviceDate.localeCompare(a.serviceDate)));
         if(version.current!==savedVersion){setMessage('추가 입력을 저장한 뒤 다시 게시해 주세요.');return;}
       }
@@ -234,14 +243,14 @@ export default function BulletinWorkspace() {
     }):draft.items;
     if(wasPristine)initialItems.current=JSON.stringify(items);setDraft({...draft,serviceDate:value,items});markDirty();
   }
-  function createNew() {
-    if (!mayLeave()) return;
+  async function createNew() {
+    if (!(await mayLeave())) return;
     const issueNumber=rows.length?Math.max(...rows.map(row=>row.issueNumber))+1:1;
-    const date=nextSunday(),items=initialBulletinItems(date,previousFor(date));initialItems.current=JSON.stringify(items);setDraft({...createBulletin({id:crypto.randomUUID(),serviceDate:date,issueNumber}),revision:0,items});
+    const date=nextSunday(),items=initialBulletinItems(date,previousFor(date));initialItems.current=JSON.stringify(items);setDraft({...createBulletin({id:crypto.randomUUID(),serviceDate:date,issueNumber}),revision:0,items,theme:previousFor(date)?.theme});
     setGroups({});setView('register');markDirty();setSavePaused(false);setMessage('');setPreview(false);
   }
-  function library() {
-    if(!mayLeave())return;
+  async function library() {
+    if(!(await mayLeave()))return;
     setView('library');setDirty(false);setDraft(null);setSavePaused(false);setMessage('');
   }
   const editing=view==='register'||view==='edit';
@@ -263,15 +272,15 @@ export default function BulletinWorkspace() {
   const reader=draft?<>
     <section className={`${polish.reader} ${view_.reader}`} aria-label="주보 상세 내용">
       {webItems.some(item=>sectionFor(item)==='표지')?null:<header className={view_.readerHead}><span>꿈꾸는좋은교회 · 주일 주보</span><h3>{draft.issueNumber}호 주보</h3><p>{longDate(draft.serviceDate)}</p></header>}
-      {webItems.length?<ChurchContentProvider><PrintEditorProvider bulletinId={draft.id} editable={false} plain webFormats onReplace={()=>{}}><PaperView items={webItems} meta={draft} sectionIdPrefix="detail-section" addSchedule/></PrintEditorProvider></ChurchContentProvider>:<p className={view_.empty}>웹에 공개할 내용이 아직 없습니다.</p>}
+      {webItems.length?<ChurchContentProvider><PrintEditorProvider bulletinId={draft.id} editable={false} plain webFormats onReplace={()=>{}}><PaperView items={webItems} meta={draft} sectionIdPrefix="detail-section" addSchedule theme={draft.theme}/></PrintEditorProvider></ChurchContentProvider>:<p className={view_.empty}>웹에 공개할 내용이 아직 없습니다.</p>}
     </section></>:null;
 
-  return <AdminShell active="bulletins" intro={session==='editor'||session==='denied'?<ManagementHeading id="bulletin-heading" eyebrow="WEEKLY BULLETIN" title="주보 관리"/>:undefined} authenticated={session === 'editor'} canLeave={mayLeave} onLogout={session === 'editor' || session === 'denied' ? logout : undefined} busy={locked} pages={pages}><main id="admin-content" tabIndex={-1} aria-labelledby={session==='editor'||session==='denied'?'bulletin-heading':undefined} className={`${styles.page} ${session==='editor'||session==='denied'?`${ui.surface} ${polish.surface} ${view_.view}`:''}`}>
+  return <><AdminShell active="bulletins" intro={session==='editor'||session==='denied'?<ManagementHeading id="bulletin-heading" eyebrow="WEEKLY BULLETIN" title="주보 관리"/>:undefined} authenticated={session === 'editor'} canLeave={mayLeave} onLogout={session === 'editor' || session === 'denied' ? logout : undefined} busy={locked} pages={pages}><main id="admin-content" tabIndex={-1} aria-labelledby={session==='editor'||session==='denied'?'bulletin-heading':undefined} className={`${styles.page} ${session==='editor'||session==='denied'?`${ui.surface} ${polish.surface} ${view_.view}`:''}`}>
     {!client ? <section className={styles.card}>서비스 연결 설정이 필요합니다. 관리자에게 문의해 주세요.</section> : session === "loading" ? <AdminLoading/> : session === "login" ?
       <div className={styles.authLayout}><section className={styles.authStory}><span className={styles.eyebrow}>WELCOME TO CHURCH WORKSPACE</span><h1>함께 준비하는 예배,<br /><em>함께 나누는 소식.</em></h1><p>교회의 한 주를 차분히 준비하는 공간입니다.<br />주보와 소식, 교회 안내를 이곳에서 관리하세요.</p><a className={styles.authHome} href="/" target="_blank" rel="noreferrer">교회 홈페이지 보기<span aria-hidden="true">↗</span></a></section><form action={login} className={`${styles.card} ${styles.login}`}><h2>관리자 로그인</h2><p>등록된 편집 계정으로 로그인해 주세요.</p><label>이메일<input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} required disabled={locked} /></label><PasswordField label="비밀번호" name="password" autoComplete="current-password" required disabled={locked} /><p role="status" aria-live="polite" className={styles.message}>{message}</p><button className={styles.primary} disabled={locked}>{busy ? "확인 중…" : "로그인"}</button><p className={styles.loginHint}>초대받은 운영자만 사용할 수 있습니다.<br />비밀번호를 잊으셨다면 계정 관리 담당자에게 재설정 링크를 요청해 주세요.</p></form></div>
     : session === "denied" ? <><p role="status" aria-live="polite" className={view_.message}>{message}</p><section className={styles.card}><h2>편집 권한이 필요합니다</h2><p>로그인한 계정이 교회 편집자로 등록되지 않았습니다. 관리자에게 등록을 요청해 주세요.</p></section></>
     : <>
-      <p role="status" aria-live="polite" className={view_.message}>{message}</p>
+      <StatusMessage message={message} className={view_.message} attrs={{'aria-live':'polite'}} onDone={()=>setMessage('')}/>
 
       {view==='library'?<section aria-labelledby="bulletin-library-title" id="bulletin-library" tabIndex={-1}>
         <div className={view_.cardHead}><h2 id="bulletin-library-title">주보 목록</h2><div className={view_.headActions}><input type="search" className={view_.search} aria-label="주보 검색" placeholder="날짜 또는 호수로 검색" value={query} onChange={e=>setQuery(e.target.value)}/><button type="button" className={`${view_.btn} ${view_.primary}`} disabled={locked} onClick={createNew}>+ 새 주보 작성</button></div></div>
@@ -299,6 +308,7 @@ export default function BulletinWorkspace() {
           {editing?<div className={view_.toolRow}>
             <div className={view_.segmented} role="group" aria-label="보기 전환"><button type="button" className={view_.seg} aria-pressed={!preview} disabled={locked} onClick={()=>setPreview(false)}>편집</button><button type="button" className={view_.seg} aria-pressed={preview} disabled={locked} onClick={()=>setPreview(true)}>웹 미리보기</button></div>
             {!preview?<div className={`${view_.meta} ${view_.meta}`}><div><label htmlFor="bulletin-service-date">예배 날짜</label><DatePicker id="bulletin-service-date" label="예배 날짜" disabled={busy||draft.status!=='draft'} value={draft.serviceDate} onChange={changeDate}/></div><label>호수<input className={view_.issue} type="number" min="1" step="1" disabled={busy||draft.status!=='draft'} value={draft.issueNumber} onChange={e=>{setDraft(current=>current&&({...current,issueNumber:Number(e.target.value)}));markDirty();}}/></label>{draft.revision===0?<SaveButton className={`${view_.btn} ${view_.ghost}`} disabled={locked||!rows.some(row=>row.serviceDate<draft.serviceDate)} disabledHint={locked?'처리 중입니다.':'가져올 지난 주 주보가 없습니다.'} onClick={()=>void importPrevious()}>지난 주 정보 가져오기</SaveButton>:null}</div>:null}
+            {!preview?<div className={view_.themeRow}><span className={view_.themeLabel}>주보 테마</span><ThemePicker value={draft.theme} disabled={busy||draft.status!=='draft'} onChange={key=>{setDraft(current=>current&&({...current,theme:key}));markDirty();}}/></div>:null}
           </div>:null}
         </div>
 
@@ -318,7 +328,7 @@ export default function BulletinWorkspace() {
         </div>:null}
       </>:<section className={view_.empty}><p>주보를 선택하거나 새로 작성해 주세요.</p></section>):null}
     </>}
-  </main></AdminShell>;
+  </main></AdminShell>{confirmDialog}</>;
 }
 
 /** The offering line is a fixed phrase without a trailing period. */

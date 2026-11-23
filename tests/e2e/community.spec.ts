@@ -3,6 +3,7 @@ import {calendarControl,selectCalendar} from './calendar-helpers';
 import {test,expect} from "@playwright/test";
 import {createClient} from "@supabase/supabase-js";
 import {randomUUID} from "node:crypto";
+import { acceptConfirm, dismissConfirm } from "./confirm";
 
 test("select a bulletin notice, publish separately, include event snapshot and archive safely",async({page,context})=>{
   const admin=createClient("http://127.0.0.1:54321",process.env.LOCAL_SUPABASE_SERVICE_KEY!,{auth:{persistSession:false}});
@@ -21,7 +22,7 @@ test("select a bulletin notice, publish separately, include event snapshot and a
     const manager=await context.newPage();await manager.goto("/admin/community");
     await manager.getByRole("button",{name:/주보 환영 공지.*공지/}).click();
     await manager.getByLabel("내용",{exact:true}).fill("별도 공지에서 수정한 문구");
-    manager.once("dialog",dialog=>dialog.accept());await manager.getByRole("button",{name:"저장",exact:true}).click();
+    await acceptConfirm(manager);await manager.getByRole("button",{name:"저장",exact:true}).click();
     await expect(manager.getByRole("status")).toContainText("저장했습니다");
     const response=await page.request.get(`/api/community?kind=notice&id=${exported.data.id}`);expect(response.status()).toBe(200);expect(await response.text()).toContain("별도 공지에서 수정한 문구");
     expect((await admin.from("bulletin_items").select("body").eq("id",item).single()).data?.body).toBe("이번 주 환영합니다");
@@ -59,14 +60,14 @@ test("select a bulletin notice, publish separately, include event snapshot and a
     await expect(page.getByRole("textbox",{name:eventTitle+" 내용",exact:true})).toHaveValue(/2091-11-04 13:40/);
     await manager.getByLabel("제목",{exact:true}).fill("모임 시간 수정");
 
-    manager.once("dialog",dialog=>dialog.accept());await manager.getByRole("button",{name:"공개 목록에서 내리기",exact:true}).click();
+    await acceptConfirm(manager);await manager.getByRole("button",{name:"공개 목록에서 내리기",exact:true}).click();
     await expect(manager.getByRole("status")).toContainText("보관했습니다");
     await page.reload();await page.getByRole("button",{name:/2091-11-04/}).click();await page.getByRole("button",{name:"수정",exact:true}).click();
     await expect(page.getByRole("button",{name:eventTitle+" 이름 수정",exact:true})).toBeVisible();
     const reader=await context.newPage();await reader.goto("/notices");await expect(reader.getByText("별도 공지에서 수정한 문구",{exact:true})).toBeVisible();
     await bulletinPage(manager,"소식 목록");await manager.getByRole("button",{name:/주보 환영 공지.*공지/}).click();await manager.getByLabel("민감정보 포함",{exact:true}).check();
     await expect(manager.getByLabel("별도 메뉴에 공개",{exact:true})).not.toBeChecked();
-    manager.once("dialog",dialog=>dialog.accept());await manager.getByRole("button",{name:"저장",exact:true}).click();await expect(manager.getByRole("status")).toContainText("저장했습니다");
+    await acceptConfirm(manager);await manager.getByRole("button",{name:"저장",exact:true}).click();await expect(manager.getByRole("status")).toContainText("저장했습니다");
     expect((await page.request.get(`/api/community?kind=notice&id=${exported.data.id}`)).status()).toBe(404);
     await reader.reload();await expect(reader.getByText("별도 공지에서 수정한 문구",{exact:true})).toHaveCount(0);
   }finally{await admin.from("community_entries").delete().eq("title",eventTitle);await admin.from("community_entries").delete().in("id",entryIds);await admin.from("bulletins").delete().eq("id",bulletin);await admin.auth.admin.deleteUser(user.data.user.id);}

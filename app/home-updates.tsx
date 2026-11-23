@@ -1,4 +1,5 @@
 "use client";
+import { Skel } from "./skeleton";
 import { longDate } from "@/lib/korean-date";
 
 import Link from "next/link";
@@ -11,9 +12,11 @@ type Feed = "bulletins" | "notice" | "event";
 const urls: Record<Feed, string> = { bulletins: "/api/bulletins", notice: "/api/community?kind=notice", event: "/api/community?kind=event" };
 const eventDate = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "long", day: "numeric", weekday: "short", hour: "numeric", minute: "2-digit" });
 
+const LOADING = "불러오고 있습니다…";
+const skelSr: React.CSSProperties = { position: "absolute", width: 1, height: 1, overflow: "hidden", clipPath: "inset(50%)" };
 function FeedCard({ feed, title, href }: { feed: Feed; title: string; href: string }) {
   const [items, setItems] = useState<Item[]>([]);
-  const [status, setStatus] = useState("불러오고 있습니다…");
+  const [status, setStatus] = useState(LOADING);
   const [failed, setFailed] = useState(false);
   const [retry, setRetry] = useState(0);
   useEffect(() => {
@@ -50,7 +53,7 @@ function FeedCard({ feed, title, href }: { feed: Feed; title: string; href: stri
   const sub = !first ? null : feed === "bulletins" ? null : feed === "event" && first.starts_at ? eventDate.format(new Date(first.starts_at)) : items.length > 1 ? `외 ${items.length - 1}건의 소식` : null;
   const target = feed === "bulletins" && first?.service_date ? `/bulletins/${first.service_date}` : href;
   // Each feed is a tinted card: name on top, the latest item large, and the whole card as the link.
-  const body = <><h3>{title}</h3><strong role={first ? undefined : "status"} data-empty={!first}>{first ? first.title : status}</strong><p aria-hidden={sub ? undefined : true}>{sub}</p></>;
+  const body = <><h3>{title}</h3><strong role={first ? undefined : "status"} data-empty={!first}>{first ? first.title : status === LOADING ? <><Skel w="70%" h={20} /><span style={skelSr}>불러오는 중</span></> : status}</strong><p aria-hidden={sub ? undefined : true}>{sub}</p></>;
   return <section aria-label={title}>
     {failed ? <div>{body}<button onClick={() => setRetry(value => value + 1)}>다시 불러오기</button></div> : <Link href={target}>{body}<SiteIcon /></Link>}
   </section>;
