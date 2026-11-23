@@ -66,6 +66,6 @@
   .calendar button { min-height: 56px; padding: 6px; }
   .blank { min-height: 56px; }
   .calendar button span { font-size: 0; min-height: 8px; }
-  .calendar button[data-has] span { width: 6px; height: 6px; padding: 0; border-radius: 50%; background: #c08a2a; }
+  .calendar button[data-has] span { width: 6px; height: 6px; padding: 0; border-radius: 50%; background: #c08a2a; color: #2f2720; }
   .monthBar h2 { font-size: 19px; min-width: 0; }
 }
