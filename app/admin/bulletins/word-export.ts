@@ -100,6 +100,25 @@ function runStyle(el: Element): TextRunModel {
   };
 }
 
+/*
+ * 글꼴 폭 맞추기: Word는 맑은 고딕(화면의 Noto Sans KR보다 약 6% 넓음)으로 열린다.
+ * 글자 조각마다 두 글꼴의 폭을 재서, 차이만큼 Word 글자 간격을 줄여 줄바꿈 위치를 미리보기와 같게 한다.
+ */
+let ruler: CanvasRenderingContext2D | null = null, wordFontReady: boolean | undefined;
+function measure(font: string, text: string) { ruler ??= document.createElement('canvas').getContext('2d'); ruler!.font = font; return ruler!.measureText(text).width; }
+function hasWordFont() {
+  if (wordFontReady === undefined) { const probe = '가나다라마바사 abc 123'; wordFontReady = measure(`40px "${SANS}", monospace`, probe) !== measure('40px monospace', probe); }
+  return wordFontReady;
+}
+function fitSpacing(el: Element, style: TextRunModel, text: string) {
+  const chars = [...text].length; if (!chars) return;
+  const cs = getComputedStyle(el), base = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize}`;
+  const screen = measure(`${base} ${cs.fontFamily}`, text);
+  const word = hasWordFont() ? measure(`${base} "${style.serif ? SERIF : SANS}"`, text) : screen * 1.063;
+  const extra = Math.max(-2, Math.min(1.5, (screen - word) / chars)); // 글자당 px(음수 = 좁히기), 지나친 보정은 막는다
+  style.spacing += Math.round(extra * PX);
+}
+
 function collectRuns(node: Node, out: Run[]) {
   if (node.nodeType === Node.TEXT_NODE) {
     const parent = node.parentElement!; const ws = getComputedStyle(parent).whiteSpace;
@@ -107,7 +126,7 @@ function collectRuns(node: Node, out: Run[]) {
     const raw = (node.textContent ?? '').replace(/ /g, ' ');
     const style = runStyle(parent);
     const parts = keepBreaks ? raw.split('\n') : [raw.replace(/\s+/g, ' ')];
-    parts.forEach((part, i) => { if (i) out.push({ t: 'br' }); if (part) out.push({ ...style, text: part }); });
+    parts.forEach((part, i) => { if (i) out.push({ t: 'br' }); if (part) { const run = { ...style, text: part }; fitSpacing(parent, run, part); out.push(run); } });
     return;
   }
   if (!(node instanceof Element) || !visible(node)) return;
@@ -211,7 +230,8 @@ function inner(el: Element, frame: Frame): Block[] {
   if (el.classList.contains(paper.spreadText)) {
     // 균등 배치 글자(한 글자씩 벌린 span들) → Word의 '균등 분할' 문단
     const text = (el.textContent ?? '').replace(/\s+/g, ''), style = runStyle(el.firstElementChild ?? el);
-    const p = paragraph(el, frame, undefined, [...text].length > 1 ? 'distribute' : 'center', [{ ...style, text }]);
+    const run = { ...style, text }; fitSpacing(el.firstElementChild ?? el, run, text);
+    const p = paragraph(el, frame, undefined, [...text].length > 1 ? 'distribute' : 'center', [run]);
     return p ? [p] : [];
   }
   if (rowLayout(el, cs)) return [layoutTable(el, frame)];
