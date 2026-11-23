@@ -34,9 +34,17 @@ export async function GET(request: Request) {
       const bulletins = data.slice(0, 20);
       return Response.json({ bulletins, nextCursor: data.length > 20 ? bulletins.at(-1)!.service_date : null }, { headers });
     }
-    // print_page(인쇄 면)는 공개 읽기 권한을 여는 DB 업데이트 뒤에만 읽힌다. 아직이면 면 없이 읽는다.
-    const withPage = client.from("bulletins").select("id,service_date,issue_number,items:bulletin_items(id,position,title,body,kind,content,print_page)").eq("status", "published");
-    let { data, error } = await (id ? withPage.eq("id", id) : withPage.eq("service_date", date!)).maybeSingle();
+    const withPageQuery = () => {
+      const query = client.from("bulletins").select("id,service_date,issue_number,items:bulletin_items(id,position,title,body,kind,content,print_page)").eq("status", "published");
+      return (id ? query.eq("id", id) : query.eq("service_date", date!)).maybeSingle();
+    };
+    // theme·print_page는 공개 읽기 권한을 여는 DB 업데이트 뒤에만 읽힌다. 아직이면 있는 열만으로 읽는다.
+    const withTheme = client.from("bulletins").select("id,service_date,issue_number,theme,items:bulletin_items(id,position,title,body,kind,content,print_page)").eq("status", "published");
+    let { data, error } = await (id ? withTheme.eq("id", id) : withTheme.eq("service_date", date!)).maybeSingle() as unknown as { data: (Awaited<ReturnType<typeof withPageQuery>>["data"] & { theme?: string }) | null; error: unknown };
+    if (error) {
+      const retry = await withPageQuery();
+      data = retry.data as typeof data; error = retry.error;
+    }
     if (error) {
       const plain = client.from("bulletins").select("id,service_date,issue_number,items:bulletin_items(id,position,title,body,kind,content)").eq("status", "published");
       const retry = await (id ? plain.eq("id", id) : plain.eq("service_date", date!)).maybeSingle();

@@ -139,10 +139,9 @@ export async function DELETE(request: Request) {
 
     const removed = await service.admin.from('church_editors').delete().eq('user_id', id);
     if (removed.error) return reply({ error: 'unavailable' }, 502);
-    if (!target.data.user.last_sign_in_at) {
-      const deleted = await service.admin.auth.admin.deleteUser(id);
-      if (deleted.error) return reply({ error: 'unavailable' }, 502);
-    }
+    // 개인정보 처리방침: 관리자 권한을 해제하면 계정(이메일) 정보도 바로 삭제한다.
+    const deleted = await service.admin.auth.admin.deleteUser(id);
+    if (deleted.error) return reply({ error: 'unavailable' }, 502);
     return reply({ removed: true });
   } catch {
     return reply({ error: 'unavailable' }, 503);

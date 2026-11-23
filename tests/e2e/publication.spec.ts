@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { PDFDocument } from "pdf-lib";
+import { acceptConfirm, dismissConfirm } from "./confirm";
 
 test("publish and withdraw expose only reviewed public content in API and reader", async ({ page, browser }) => {
   const admin = createClient("http://127.0.0.1:54321", process.env.LOCAL_SUPABASE_SERVICE_KEY!, { auth: { persistSession: false } });
@@ -29,7 +30,7 @@ test("publish and withdraw expose only reviewed public content in API and reader
     await page.getByRole("button", { name: "로그인", exact: true }).click();
     await page.getByRole("button", { name: /2094-11-07/ }).click();await page.getByRole("button",{name:"수정",exact:true}).click();
     expect((await page.request.get("/api/bulletins/pdf?date=2094-11-07")).status()).toBe(404);
-    page.once("dialog", (dialog) => dialog.accept());
+    await acceptConfirm(page);
     await page.getByRole("button", { name: "게시하기", exact: true }).click();
     await expect(page.getByRole("status")).toContainText("주보를 게시했습니다");
     await expect(page.getByRole("heading", { name: "주보 목록", exact: true })).toBeVisible();
@@ -39,7 +40,7 @@ test("publish and withdraw expose only reviewed public content in API and reader
     const response = await reader.request.get(`/api/bulletins?id=${id}`);
     expect(response.status()).toBe(200); expect(response.headers()["cache-control"]).toContain("no-store");
     const payload = await response.text();
-    expect(payload).not.toContain("print_page"); expect(payload).not.toContain("printPage");
+    expect(payload).not.toContain("printPage");
     expect(payload).toContain("성도에게 보여줄 내용");
     expect(payload).not.toContain("노출되면"); expect(payload).not.toContain("숨겨진"); expect(payload).not.toContain("needs_review");
     expect((await reader.request.get("/api/bulletins?date=2094-11-07")).status()).toBe(200);
@@ -65,7 +66,7 @@ test("publish and withdraw expose only reviewed public content in API and reader
     await reader.getByRole("region", { name: "지난 주보" }).getByRole("button", { name: /^2094년 11월 7일 .* · 1호$/ }).click();
     await expect(reader.getByText("성도에게 보여줄 내용", { exact: true })).toBeVisible();
     await expect(reader.getByText("숨겨진 제목", { exact: true })).toHaveCount(0);
-    page.once("dialog", (dialog) => dialog.accept());
+    await acceptConfirm(page);
     await page.getByRole("button", { name: "게시 취소", exact: true }).click();
     await expect(page.getByRole("status")).toContainText("게시를 취소했습니다");
     expect((await reader.request.get(`/api/bulletins?id=${id}`)).status()).toBe(404);

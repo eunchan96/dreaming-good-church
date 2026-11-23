@@ -1,4 +1,5 @@
 'use client';
+import {themeOf} from '@/lib/bulletin-themes';
 import Image from 'next/image';
 import {Fragment,useContext,type ReactNode} from 'react';
 import type {BulletinItem,BlockContent} from '@/lib/bulletins';
@@ -20,9 +21,9 @@ type Tone='orange'|'gold'|'yellow'|'olive'|'green'|'lime';
 const strip=(value:string)=>value.replace(/^\s*↑\s*/,'');
 
 /** Word-style 균등 배치: shows characters spread across the cell; the real text appears while editing. */
-function Spread({value,className,children}:{value:string;className:string;children:ReactNode}){
- const chars=[...value.replace(/\s+/g,'')];
- return <span className={`${css.spread} ${className}`}>{children}<span className={css.spreadText} aria-hidden="true">{chars.map((c,i)=><span key={i}>{c}</span>)}</span></span>;
+function Spread({value,className,children,id}:{value:string;className:string;children:ReactNode;id?:string}){
+ const chars=[...value.replace(/\s+/g,'')],aligned=useContext(PrintContext).formats[id??'']?.align;
+ return <span className={`${css.spread} ${className}`} data-aligned={aligned||undefined}>{children}<span className={css.spreadText} aria-hidden="true">{chars.map((c,i)=><span key={i}>{c}</span>)}</span></span>;
 }
 
 export function Band({title,tone}:{title:string;tone:Tone}){return <h3 className={css.band} data-tone={tone}><span>{title}</span></h3>;}
@@ -52,7 +53,7 @@ function Cover({items,meta}:{items:BulletinItem[];meta:PaperMeta}){
    <div className={css.coverMeta}><p>{longDate(meta.serviceDate)}</p><p>{meta.issueNumber}호</p></div>
   </div>
   <div className={css.coverImages}>{images.map(item=><Scope key={item.id} item={item}><BulletinImageView key={item.content!.assetId} id={item.content!.assetId!} alt={item.content?.alt??''} editor/></Scope>)}</div>
-  <div className={css.coverMark}><Image src="/brand/church-mark.svg" width={56} height={56} alt=""/><span><small>꿈 꾸 는</small><strong>좋은교회</strong></span></div>
+  <div className={css.coverMark}><Image src="/brand/church-logo-192.png" width={56} height={56} alt="" unoptimized/><span><small>꿈 꾸 는</small><strong>좋은교회</strong></span></div>
  </div>;
 }
 function CoverTitle({item}:{item:BulletinItem}){
@@ -67,9 +68,9 @@ function Order({item}:{item:BulletinItem}){
    ?<PrintText key={i} className={css.orderIntro} id={`${item.id}:row:${i}:0`} label={`${item.title} ${i+1}행 내용`} value={row[0]} maxLength={500} onChange={value=>cell(i,0,value)}/>
    :<div key={i} className={css.orderRow} data-order-row data-emph={/^성경봉독$/.test(rowIdentity(row[0]))?'scripture':/^말씀선포$/.test(rowIdentity(row[0]))?'sermon':undefined}>
      <span className={css.stand}>{/^\s*↑/.test(row[0])?'↑':''}</span>
-     <Spread className={css.orderName} value={strip(row[0])}><PrintText id={`${item.id}:row:${i}:0`} label={`${item.title} ${i+1}행 1열`} value={strip(row[0])} maxLength={500} onChange={value=>cell(i,0,(/^\s*↑/.test(row[0])?'↑ ':'')+value)}/></Spread>
+     <Spread className={css.orderName} id={`${item.id}:row:${i}:0`} value={strip(row[0])}><PrintText id={`${item.id}:row:${i}:0`} label={`${item.title} ${i+1}행 1열`} value={strip(row[0])} maxLength={500} onChange={value=>cell(i,0,(/^\s*↑/.test(row[0])?'↑ ':'')+value)}/></Spread>
      <span className={css.leader}><i/>{row[1]?<><PrintText className={css.orderWhat} id={`${item.id}:row:${i}:1`} label={`${item.title} ${i+1}행 2열`} value={row[1]} maxLength={500} onChange={value=>cell(i,1,value)}/><i/></>:null}</span>
-     <Spread className={css.orderWho} value={row[2]??''}><PrintText id={`${item.id}:row:${i}:2`} label={`${item.title} ${i+1}행 3열`} value={row[2]??''} maxLength={500} onChange={value=>cell(i,2,value)}/></Spread>
+     <Spread className={css.orderWho} id={`${item.id}:row:${i}:2`} value={row[2]??''}><PrintText id={`${item.id}:row:${i}:2`} label={`${item.title} ${i+1}행 3열`} value={row[2]??''} maxLength={500} onChange={value=>cell(i,2,value)}/></Spread>
    </div>)}</div>
   {content.footer?<PrintText className={css.orderFoot} id={`${item.id}:footer`} label="일어서서 안내" value={content.footer} maxLength={1000} onChange={value=>field('footer',value)}/>:null}
  </Scope>;
@@ -139,14 +140,14 @@ function Plain({item,tone='olive'}:{item:BulletinItem;tone?:Tone}){
 }
 function NewsEntry({item,account}:{item:BulletinItem;account:boolean}){
  const {rows,cell,text}=useEdit(item);
- return <div data-print-item={item.id}>{isPrayerGuide(item)?<table className={css.prayer} aria-label="기도･안내"><tbody>{['날짜','기도','안내'].map((label,col)=><tr key={label}><th scope="row">{col===0?<span className={css.srOnly}>{label}</span>:label}</th>{rows.map(({row,i})=><td key={i}><PrintText id={`${item.id}:row:${i}:${col}`} label={`기도･안내 ${i+1}열 ${label}`} value={row[col]??''} maxLength={500} onChange={v=>cell(i,col,v)}/></td>)}</tr>)}</tbody></table>:null}
+ return <div data-print-item={item.id}>{isPrayerGuide(item)?<table className={css.prayer} aria-label="기도･안내" style={{'--cols':rows.length} as React.CSSProperties}><tbody>{['날짜','기도','안내'].map((label,col)=><tr key={label}><th scope="row">{col===0?<span className={css.srOnly}>{label}</span>:label}</th>{rows.map(({row,i})=><td key={i}><PrintText id={`${item.id}:row:${i}:${col}`} label={`기도･안내 ${i+1}열 ${label}`} value={row[col]??''} maxLength={500} onChange={v=>cell(i,col,v)}/></td>)}</tr>)}</tbody></table>:null}
   {item.body&&account?(()=>{const lines=accountBody(item).split('\n');
    // One line per account so 온라인 건축헌금 can be green by default; edits rejoin the lines.
    return lines.map((line,n)=><PrintText key={n} className={/건축/.test(line)?css.accountBuilding:undefined} id={`${item.id}:body:${n}`} label={`${item.title} 내용 ${n+1}줄`} value={line} onChange={v=>text('body',lines.map((old,i)=>i===n?v:old).join('\n'))}/>);})()
   :item.body?<PrintText id={`${item.id}:body`} label={`${item.title} 내용`} value={item.body} onChange={v=>text('body',v)}/>:null}</div>;
 }
 function News({items}:{items:BulletinItem[]}){
- return <section className={css.block} data-print-group="news"><Band title="좋은 소식" tone="orange"/><ol className={css.news}>{newsGroups(items).map(group=><li key={group.title} data-prayer={group.entries.some(isPrayerGuide)||undefined}><span className={css.tag}>&lt;{group.title}&gt;</span><div>{group.entries.map(entry=><NewsEntry key={entry.id} item={entry} account={group.title==='헌금'}/>)}</div></li>)}</ol></section>;
+ return <section className={css.block} data-print-group="news"><Band title="좋은 소식" tone="orange"/><ol className={css.news}>{newsGroups(items).map(group=><li key={group.title} data-prayer={group.entries.some(isPrayerGuide)||undefined}><span className={css.tag}><span className={css.tagBr}>&lt;</span>{group.title}<span className={css.tagBr}>&gt;</span></span><div>{group.entries.map(entry=><NewsEntry key={entry.id} item={entry} account={group.title==='헌금'}/>)}</div></li>)}</ol></section>;
 }
 const offeringName=(value:string)=>value.replace(/^온라인\s*[\/·]\s*/,'').trim();
 /** Shared names (주일헌금·십일조…) share one row with 현장/온라인 columns; the rest sit on the right. */
@@ -207,7 +208,7 @@ export function useScheduledItems(items:BulletinItem[],addIfMissing:boolean){
  return mapped;
 }
 /** Read-only Word-style rendering for the admin detail / web preview — same blocks as print. */
-export function PaperView({items,meta,sectionIdPrefix,addSchedule=false}:{items:BulletinItem[];meta:PaperMeta;sectionIdPrefix?:string;addSchedule?:boolean}){
+export function PaperView({items,meta,sectionIdPrefix,addSchedule=false,theme}:{items:BulletinItem[];meta:PaperMeta;sectionIdPrefix?:string;addSchedule?:boolean;theme?:string}){
  const scheduled=useScheduledItems(items,addSchedule);
- return <div className={css.flow}><PaperBlocks items={scheduled} meta={meta} sectionIdPrefix={sectionIdPrefix}/></div>;
+ return <div className={css.flow} data-theme={themeOf(theme).key}><PaperBlocks items={scheduled} meta={meta} sectionIdPrefix={sectionIdPrefix}/></div>;
 }

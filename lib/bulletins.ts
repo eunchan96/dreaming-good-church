@@ -40,6 +40,8 @@ export type Bulletin = {
   serviceDate: string;
   issueNumber: number;
   status: "draft" | "published";
+  /** 레이아웃·색 구성 키(lib/bulletin-themes.ts). 없으면 classic. */
+  theme?: string;
   items: BulletinItem[];
 };
 
@@ -121,7 +123,7 @@ export function copyBulletin(
   input: { id: string; serviceDate: string; issueNumber: number },
   newItemId: () => string,
 ): Bulletin {
-  const copy = createBulletin(input);
+  const copy = { ...createBulletin(input), ...(source.theme ? { theme: source.theme } : {}) };
   if (copy.id === source.id) throw new Error("새 주보 ID가 필요합니다.");
   if (parseDate(copy.serviceDate) <= parseDate(source.serviceDate)) {
     throw new Error("복사할 주보 날짜는 원본보다 이후여야 합니다.");

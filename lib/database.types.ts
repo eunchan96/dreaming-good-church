@@ -147,6 +147,7 @@ export type Database = {
                     "revision": number;
                     "service_date": string;
                     "status": string;
+                    "theme": string;
                     "updated_at": string;
                 };
                 ComputedFields: never;
@@ -156,6 +157,7 @@ export type Database = {
                     "revision"?: number;
                     "service_date": string;
                     "status"?: string;
+                    "theme"?: string;
                     "updated_at"?: string;
                 };
                 Update: {
@@ -164,6 +166,7 @@ export type Database = {
                     "revision"?: number;
                     "service_date"?: string;
                     "status"?: string;
+                    "theme"?: string;
                     "updated_at"?: string;
                 };
                 Relationships: [
@@ -512,6 +515,7 @@ export type Database = {
                     "p_items": Json;
                     "p_revision": number;
                     "p_service_date": string;
+                    "p_theme"?: string;
                 };
                 Returns: {
                     "id": string;
@@ -519,6 +523,7 @@ export type Database = {
                     "revision": number;
                     "service_date": string;
                     "status": string;
+                    "theme": string;
                     "updated_at": string;
                 };
                 SetofOptions: {

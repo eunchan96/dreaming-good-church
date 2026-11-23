@@ -3,6 +3,7 @@ import {calendarControl,selectCalendar} from './calendar-helpers';
 import {test,expect} from '@playwright/test';
 import {createClient} from '@supabase/supabase-js';
 import {randomUUID} from 'node:crypto';
+import { acceptConfirm, dismissConfirm } from "./confirm";
 
 test('new bulletin retains print-only material and structured attribution when reopened',async({page})=>{
  const db=createClient('http://127.0.0.1:54321',process.env.LOCAL_SUPABASE_SERVICE_KEY!,{auth:{persistSession:false}}),email=randomUUID()+'@example.test',password=randomUUID();const user=await db.auth.admin.createUser({email,password,email_confirm:true});if(user.error)throw user.error;
@@ -14,6 +15,6 @@ test('new bulletin retains print-only material and structured attribution when r
   expect((await db.from('bulletin_items').insert([{bulletin_id:result.data.id,position:count.count!,title:'메모',body:'인쇄 메모',needs_review:true,web_visible:true},{bulletin_id:result.data.id,position:count.count!+1,title:'교회 안내',body:'기존 교회 안내',needs_review:false,web_visible:true}])).error).toBeNull();
   await page.reload();await page.getByRole('button',{name:/2097-11-03/}).click();await expect(page.getByText('인쇄 메모',{exact:true})).toHaveCount(0);await page.getByRole('button',{name:'수정',exact:true}).click();await expect(page.getByLabel('표지 첫째 줄',{exact:true})).toHaveValue('이번 주 표지');await expect(page.getByLabel('담당',{exact:true})).toHaveValue('선교회');
   await page.getByRole('button',{name:'인쇄 미리보기',exact:true}).click();const print=page.getByRole('dialog',{name:'관리자 인쇄 미리보기',exact:true});await expect(print.getByText('인쇄 메모',{exact:true})).toBeVisible();await expect(print.getByText('선교회',{exact:true})).toBeVisible();await expect(print.getByRole('button',{name:'그대로 사용',exact:true})).toHaveCount(0);await print.getByRole('button',{name:'미리보기 닫기',exact:true}).click();
-  page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'게시하기',exact:true}).click();await expect(page.getByRole('status')).toContainText('주보를 게시했습니다');expect((await db.from('bulletin_items').select('needs_review').eq('bulletin_id',result.data.id)).data?.every(item=>!item.needs_review)).toBe(true);
+  await acceptConfirm(page);await page.getByRole('button',{name:'게시하기',exact:true}).click();await expect(page.getByRole('status')).toContainText('주보를 게시했습니다');expect((await db.from('bulletin_items').select('needs_review').eq('bulletin_id',result.data.id)).data?.every(item=>!item.needs_review)).toBe(true);
  }finally{await db.from('bulletins').delete().eq('service_date','2097-11-03');await db.auth.admin.deleteUser(user.data.user.id);}
 });

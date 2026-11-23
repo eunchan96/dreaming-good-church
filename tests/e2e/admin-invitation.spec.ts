@@ -2,6 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { createClient } from '@supabase/supabase-js';
 import { randomUUID } from 'node:crypto';
+import { acceptConfirm, dismissConfirm } from "./confirm";
 
 // Needs the local dev server from scripts/dev-local.ps1, which lets @inviter.test editors invite.
 const key = process.env.LOCAL_SUPABASE_SERVICE_KEY;
@@ -67,7 +68,7 @@ test('only designated inviters see 관리자 초대; they can issue, list and ca
     expect((await new AxeBuilder({ page }).include('dialog').analyze()).violations.map(v => v.id)).toEqual([]);
 
     // Cancelling the pending invitation removes both the access and the unused account.
-    page.once('dialog', d => d.accept());
+    await acceptConfirm(page);
     await row.getByRole('button', { name: `${invitee} 초대 취소` }).click();
     await expect(dialog.getByRole('status').last()).toContainText('초대를 취소했습니다.');
     await expect(current.getByText(invitee, { exact: true })).toHaveCount(0);
@@ -75,7 +76,7 @@ test('only designated inviters see 관리자 초대; they can issue, list and ca
 
     // Removing an active editor keeps the account but takes away access; the inviter cannot remove themself.
     await expect(current.getByRole('listitem').filter({ hasText: inviter.email }).getByRole('button')).toHaveCount(0);
-    page.once('dialog', d => d.accept());
+    await acceptConfirm(page);
     await current.getByRole('listitem').filter({ hasText: plain.email }).getByRole('button', { name: `${plain.email} 권한 해제` }).click();
     await expect(dialog.getByRole('status').last()).toContainText('관리자 권한을 해제했습니다.');
     expect((await db.from('church_editors').select('user_id').eq('user_id', plain.id)).data).toHaveLength(0);

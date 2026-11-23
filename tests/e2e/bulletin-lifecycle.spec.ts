@@ -5,6 +5,7 @@ import { test, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { PDFDocument } from "pdf-lib";
 import { randomUUID } from "node:crypto";
+import { acceptConfirm, dismissConfirm } from "./confirm";
 
 test("one bulletin travels from published source through copy, print, public PDF and withdrawal", async ({ page, browser }) => {
   const admin = createClient("http://127.0.0.1:54321", process.env.LOCAL_SUPABASE_SERVICE_KEY!, { auth: { persistSession: false } });
@@ -64,7 +65,7 @@ test("one bulletin travels from published source through copy, print, public PDF
       await page.getByRole("button", { name: "편집", exact: true }).click();
     });
     await test.step("publish and read/download from a separate anonymous browser", async () => {
-      page.once("dialog", dialog => dialog.accept());
+      await acceptConfirm(page);
       await page.getByRole("button", { name: "게시하기", exact: true }).click();
       await expect(page.getByRole("status")).toContainText("주보를 게시했습니다");
       // Publishing returns to 주보 목록; reopen the bulletin for the later steps.
@@ -79,7 +80,7 @@ test("one bulletin travels from published source through copy, print, public PDF
       await expect.poll(() => reader.evaluate(() => (window as unknown as { __printed: number }).__printed)).toBe(1);
     });
     await test.step("withdrawal removes the public page and blocks new PDF access without changing the source", async () => {
-      page.once("dialog", dialog => dialog.accept());
+      await acceptConfirm(page);
       await page.getByRole("button", { name: "게시 취소", exact: true }).click();
       await expect(page.getByRole("status")).toContainText("게시를 취소했습니다");
       expect((await reader.request.get("/api/bulletins?date=2086-11-10")).status()).toBe(404);

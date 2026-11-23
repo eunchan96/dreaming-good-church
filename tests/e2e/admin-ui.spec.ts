@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { createClient } from '@supabase/supabase-js';
 import { randomUUID } from 'node:crypto';
+import { acceptConfirm, dismissConfirm } from "./confirm";
 
 test('login layout, password visibility and errors remain accessible on small screens',async({page})=>{
   await page.route('**/auth/v1/token?*',r=>r.fulfill({status:400,json:{error:'invalid_grant',error_description:'Invalid login credentials'}}));
@@ -45,14 +46,14 @@ test('shared admin navigation protects unsaved church edits and all workspaces f
         const menuBox=await page.getByRole('navigation',{name:'관리 메뉴',exact:true}).boundingBox();expect(menuBox!.y).toBeLessThan(150);
         await page.keyboard.press('Escape');await expect(mobile).toBeFocused();await expect(mobile).toHaveAttribute('aria-expanded','false');await mobile.click();
         await page.getByLabel('인사말 글',{exact:true}).fill('저장하지 않은 인사말');
-        page.once('dialog',d=>d.dismiss());await page.getByRole('navigation',{name:'관리 메뉴',exact:true}).getByRole('link',{name:/주보 관리/}).click();
+        await dismissConfirm(page);await page.getByRole('navigation',{name:'관리 메뉴',exact:true}).getByRole('link',{name:/주보 관리/}).click();
         await expect(page).toHaveURL(/\/admin\/church$/);await expect(page.getByLabel('인사말 글',{exact:true})).toHaveValue('저장하지 않은 인사말');
-        page.once('dialog',d=>d.dismiss());await page.getByRole('button',{name:'로그아웃',exact:true}).click();await expect(page.getByLabel('인사말 글',{exact:true})).toHaveValue('저장하지 않은 인사말');
+        await dismissConfirm(page);await page.getByRole('button',{name:'로그아웃',exact:true}).click();await expect(page.getByLabel('인사말 글',{exact:true})).toHaveValue('저장하지 않은 인사말');
       }
       const axe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();
       expect(axe.violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)})),path).toEqual([]);
     }
-    page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'로그아웃',exact:true}).click();
+    await acceptConfirm(page);await page.getByRole('button',{name:'로그아웃',exact:true}).click();
     await expect(page.getByRole('button',{name:'로그인 다시 확인',exact:true})).toBeVisible();
     await expect(page.getByLabel('인사말 글',{exact:true})).toHaveCount(0);
   }finally{const removed=await local.auth.admin.deleteUser(id);if(removed.error)throw removed.error;}

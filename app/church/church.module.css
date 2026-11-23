@@ -86,8 +86,8 @@
 /* 대중교통: plain cells split by thin lines, like the worship times. */
 /* 대중교통: label and stops together in one line-style block (dark rule on top, light rule below). */
 .transitBlock { padding: 18px 0 4px; border-top: 1px solid #9f8d70; border-bottom: 1px solid #e3ded5; }
-.transitCards { display: flex; flex-wrap: wrap; column-gap: 40px; margin: 6px 0 0; padding: 0; list-style: none; }
-.transitCards li { display: flex; align-items: center; gap: 10px; padding: 12px 0 14px; font-size: 15px; line-height: 1.5; color: #342b25; }
+.transitCards { display: flex; flex-wrap: wrap; column-gap: 40px; row-gap: 0; margin: 4px 0 0; padding: 0; list-style: none; }
+.transitCards li { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 15px; line-height: 1.5; color: #342b25; }
 .transitCards li:first-child { border-left: 0; padding-left: 0; }
 .transitCards svg { flex-shrink: 0; color: #b99132; }
 /* Links styled like the home page ones: text, arrow and a thin underline; gold on hover. */
@@ -121,7 +121,7 @@
 }
 @media (max-width: 600px) {
   .transitCards { flex-direction: column; }
-  .transitCards li { padding: 10px 0; border-left: 0; }
+  .transitCards li { padding: 5px 0; border-left: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .phone svg, .textLink svg { transition: none; translate: none !important; } }
 

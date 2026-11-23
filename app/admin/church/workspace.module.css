@@ -32,3 +32,4 @@
 .surface .photoAlt { display: grid !important; grid-template-columns: auto minmax(0, 1fr) !important; align-items: center; gap: 10px !important; max-width: 420px; margin: 0 !important; font-size: 13.5px !important; }
 .photoNote { margin: 0; font-size: 13px; color: #6b5a42; line-height: 1.6; }
 .labelWithHint { display: grid; gap: 3px; align-content: start; }
+

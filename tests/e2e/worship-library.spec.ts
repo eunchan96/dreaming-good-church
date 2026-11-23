@@ -3,6 +3,7 @@ import {test,expect} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import {createClient} from '@supabase/supabase-js';
 import {randomUUID} from 'node:crypto';
+import { acceptConfirm, dismissConfirm } from "./confirm";
 test('editor video registration, representative changes, conflict rollback and public pagination enforce permissions',async({page,request})=>{
  const key=process.env.LOCAL_SUPABASE_SERVICE_KEY,pub=process.env.LOCAL_SUPABASE_PUBLISHABLE_KEY;if(!key||!pub)throw new Error('Local keys required');
  const db=createClient('http://127.0.0.1:54321',key,{auth:{persistSession:false}});
@@ -45,20 +46,20 @@ test('admin video form saves drafts, publishes, protects unsaved inputs and scro
   await page.getByRole('button',{name:'영상 등록',exact:true}).click();await page.getByRole('group',{name:'종류',exact:true}).getByRole('button',{name:'금요예배',exact:true}).click();await selectCalendar(page,calendarControl(page,"날짜"),'2026-11-06');await page.getByLabel('링크',{exact:true}).fill('https://youtu.be/OSfMkv-YWJQ');await page.getByLabel('제목',{exact:true}).fill(title);
   await page.getByRole('button',{name:'임시 저장',exact:true}).click();await expect(page.getByRole('status')).toContainText('임시 저장');
   expect((await (await request.get('/api/worship/videos?type=friday')).json()).videos.some((v:{title:string})=>v.title===title)).toBe(false);
-  await page.getByRole('checkbox',{name:'이 예배의 대표 영상으로 지정'}).check();page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'저장',exact:true}).click();await expect(page.getByRole('status')).toContainText('저장했습니다');
+  await page.getByRole('checkbox',{name:'이 예배의 대표 영상으로 지정'}).check();await page.getByRole('button',{name:'저장',exact:true}).click();await page.getByRole('dialog').getByRole('button',{name:'공개 저장'}).click();await expect(page.getByRole('status')).toContainText('저장했습니다');
   await expect(page.locator('#video-library')).toBeVisible();await page.locator('#video-library').getByRole('button',{name:new RegExp(title)}).click();
   const body=await (await request.get('/api/worship/videos?type=friday')).json();expect(body.featured.title).toBe(title);
   await page.screenshot({path:'.local/worship-admin-desktop.png',fullPage:true});
   const reader=await page.context().newPage();await reader.goto('/worship/friday');await expect(reader.getByRole('heading',{name:title,exact:true})).toBeVisible();await reader.screenshot({path:'.local/worship-public-desktop.png',fullPage:true});await reader.close();
   await page.evaluate(()=>{const original=Element.prototype.scrollIntoView;Element.prototype.scrollIntoView=function(options){document.documentElement.dataset.scrollBehavior=typeof options==='object'?options.behavior:'';return original.call(this,options);};scrollTo(0,0);});
   await page.getByRole('navigation',{name:'페이지 목차'}).getByRole('link',{name:/저장/}).click();expect(await page.locator('html').getAttribute('data-scroll-behavior')).toBe('smooth');await expect.poll(()=>page.evaluate(()=>scrollY)).toBeGreaterThan(200);await expect(page.locator('#video-publication')).toBeFocused();
-  await page.getByLabel('제목',{exact:true}).fill(title+' 수정');page.once('dialog',d=>d.dismiss());await page.getByRole('navigation',{name:'관리 메뉴'}).getByRole('link',{name:'주보 관리',exact:true}).click();await expect(page).toHaveURL(/\/admin\/worship/);
-  await page.route('**/rest/v1/rpc/save_worship_video',r=>r.fulfill({status:503,json:{message:'offline'}}));page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'저장',exact:true}).click();await expect(page.getByRole('status')).toContainText('입력 내용은 화면에 유지');await expect(page.getByLabel('제목',{exact:true})).toHaveValue(title+' 수정');await page.unroute('**/rest/v1/rpc/save_worship_video');
+  await page.getByLabel('제목',{exact:true}).fill(title+' 수정');await dismissConfirm(page);await page.getByRole('navigation',{name:'관리 메뉴'}).getByRole('link',{name:'주보 관리',exact:true}).click();await expect(page).toHaveURL(/\/admin\/worship/);
+  await page.route('**/rest/v1/rpc/save_worship_video',r=>r.fulfill({status:503,json:{message:'offline'}}));await page.getByRole('button',{name:'저장',exact:true}).click();await page.getByRole('dialog').getByRole('button',{name:'공개 저장'}).click();await expect(page.getByRole('status')).toContainText('입력 내용은 화면에 유지');await expect(page.getByLabel('제목',{exact:true})).toHaveValue(title+' 수정');await page.unroute('**/rest/v1/rpc/save_worship_video');
   for(const width of [1440,768,390,320]){await page.setViewportSize({width,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
   const axe=await new AxeBuilder({page}).exclude('iframe').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(axe.violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)}))).toEqual([]);
   await page.evaluate(()=>{(document.activeElement as HTMLElement)?.blur();scrollTo({top:0,behavior:'instant'});});await page.screenshot({path:'.local/worship-admin-mobile.png',fullPage:true});
   await page.setViewportSize({width:1440,height:900});await page.emulateMedia({reducedMotion:'reduce'});await page.getByRole('navigation',{name:'페이지 목차'}).getByRole('link',{name:/저장/}).click();expect(await page.locator('html').getAttribute('data-scroll-behavior')).toBe('instant');
-  page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'공개 목록에서 내리기',exact:true}).click();await expect(page.getByRole('status')).toContainText('공개 목록에서 내렸습니다');expect((await (await request.get('/api/worship/videos?type=friday')).json()).videos.some((v:{title:string})=>v.title===title)).toBe(false);
+  await acceptConfirm(page);await page.getByRole('button',{name:'공개 목록에서 내리기',exact:true}).click();await expect(page.getByRole('status')).toContainText('공개 목록에서 내렸습니다');expect((await (await request.get('/api/worship/videos?type=friday')).json()).videos.some((v:{title:string})=>v.title===title)).toBe(false);
   await page.getByRole('button',{name:'로그아웃',exact:true}).click();await expect(page.getByLabel('제목',{exact:true})).toHaveCount(0);await expect(page.getByRole('navigation',{name:'관리 메뉴'})).toHaveCount(0);
  }finally{await db.from('worship_videos').delete().like('title',title+'%');await db.auth.admin.deleteUser(uid);}
 });
@@ -86,6 +87,6 @@ test('video pages, chips, date range and automatic title keep editing simple',as
   await page.route('**/api/worship/title?*',async route=>{await new Promise(resolve=>setTimeout(resolve,600));await route.fulfill({json:{title:'자동으로 가져온 제목'}});});
   await page.getByLabel('링크',{exact:true}).fill('https://youtu.be/OSfMkv-YWJQ');await expect(page.getByLabel('제목',{exact:true})).toHaveValue('자동으로 가져온 제목');await expect(page.locator('iframe')).toBeVisible();
   await page.getByLabel('링크',{exact:true}).fill('https://youtu.be/abcdefghijk');await page.getByLabel('제목',{exact:true}).fill('직접 쓴 제목');await page.waitForResponse('**/api/worship/title?*');await expect(page.getByLabel('제목',{exact:true})).toHaveValue('직접 쓴 제목');
-  page.once('dialog',d=>d.dismiss());await toc.getByRole('button',{name:'영상 목록',exact:true}).click();await expect(page.getByLabel('제목',{exact:true})).toHaveValue('직접 쓴 제목');
+  await dismissConfirm(page);await toc.getByRole('button',{name:'영상 목록',exact:true}).click();await expect(page.getByLabel('제목',{exact:true})).toHaveValue('직접 쓴 제목');
  }finally{await db.from('worship_videos').delete().in('id',fixtures.map(row=>row.id));await db.auth.admin.deleteUser(user.data.user.id);}
 });

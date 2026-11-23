@@ -1,0 +1,21 @@
+/* 관리자 확인 창 (confirm-dialog.tsx) */
+.dialog { position: fixed; inset: 0; margin: auto; width: min(420px, calc(100vw - 32px)); height: fit-content; padding: 0; border: 1px solid #e3d9c7; border-radius: 14px; background: #fffdf8; color: #342b25; box-shadow: 0 24px 70px #342b2538; font-family: inherit; }
+.dialog::backdrop { background: #2f27209e; }
+.dialog[open] { animation: pop .14s ease-out; }
+@keyframes pop { from { opacity: 0; transform: translateY(6px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .dialog[open] { animation: none; } }
+.body { padding: 26px 26px 20px; }
+.title { margin: 0; font-size: 18px; font-weight: 600; line-height: 1.45; letter-spacing: -.01em; color: #2f2720; }
+.message { margin-top: 10px; font-size: 14px; line-height: 1.7; color: #6b5d4b; }
+.message p { margin: 0; }
+.message p + p { margin-top: 4px; }
+.actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+.actions button { min-width: 84px; height: 40px; padding: 0 18px; border-radius: 9px; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: background .12s, border-color .12s; }
+.cancel { border: 1px solid #ddd5c6; background: #fffdf8; color: #4a3f33; }
+.cancel:hover { background: #f3eee4; }
+.confirm { border: 1px solid #2f2720; background: #2f2720; color: #fff; }
+.confirm:hover { background: #46392e; }
+.danger { border-color: #b3382c; background: #b3382c; }
+.danger:hover { background: #962d23; }
+.actions button:focus-visible { outline: 2px solid #8d6d2f; outline-offset: 2px; }
+@media (max-width: 480px) { .body { padding: 22px 20px 16px; } .actions button { flex: 1; } }
