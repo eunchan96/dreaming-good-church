@@ -3,6 +3,7 @@ import {createClient} from '@supabase/supabase-js';
 import {randomUUID} from 'node:crypto';
 import {PDFDocument} from 'pdf-lib';
 import AxeBuilder from '@axe-core/playwright';
+import { acceptConfirm, dismissConfirm } from "./confirm";
 
 test('print studio balances a dense page, saves assignments and prints two A4 sheets',async({page})=>{
  const db=createClient('http://127.0.0.1:54321',process.env.LOCAL_SUPABASE_SERVICE_KEY!,{auth:{persistSession:false}}),email=randomUUID()+'@example.test',password=randomUUID(),id=randomUUID();const user=await db.auth.admin.createUser({email,password,email_confirm:true});if(user.error)throw user.error;
@@ -21,6 +22,6 @@ test('print studio balances a dense page, saves assignments and prints two A4 sh
   const body=print.getByRole('textbox',{name:'묵상 가이드 내용',exact:true});await body.focus();await body.evaluate(el=>{const range=document.createRange();range.selectNodeContents(el);const s=window.getSelection()!;s.removeAllRanges();s.addRange(range);const data=new DataTransfer();data.setData('text/plain','안전하게 붙여넣은 문구');data.setData('text/html','<img src=x onerror=alert(1)>');el.dispatchEvent(new ClipboardEvent('paste',{clipboardData:data,bubbles:true,cancelable:true}));});await expect(body).toHaveText('안전하게 붙여넣은 문구');await expect(body.locator('img')).toHaveCount(0);
   expect((await new AxeBuilder({page}).analyze()).violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.html)}))).toEqual([]);
   const pdf=await PDFDocument.load(await page.pdf({preferCSSPageSize:true}));expect(pdf.getPageCount()).toBe(2);for(const sheet of pdf.getPages()){expect(sheet.getWidth()).toBeCloseTo(841.89,0);expect(sheet.getHeight()).toBeCloseTo(595.28,0);}
-  await print.getByRole('button',{name:'미리보기 닫기',exact:true}).click();await expect.poll(async()=>(await db.from('bulletin_items').select('body').eq('bulletin_id',id).eq('title','묵상 가이드').single()).data?.body).toBe('안전하게 붙여넣은 문구');page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'게시하기',exact:true}).click();await expect(page.getByRole('status')).toContainText('주보를 게시했습니다');await page.getByRole('button',{name:/\(2188-11-01\)/}).click();await page.getByRole('button',{name:'인쇄 미리보기',exact:true}).click();await expect(print.locator('[contenteditable="plaintext-only"]')).toHaveCount(0);await print.getByRole('button',{name:'미리보기 닫기',exact:true}).click();
+  await print.getByRole('button',{name:'미리보기 닫기',exact:true}).click();await expect.poll(async()=>(await db.from('bulletin_items').select('body').eq('bulletin_id',id).eq('title','묵상 가이드').single()).data?.body).toBe('안전하게 붙여넣은 문구');await acceptConfirm(page);await page.getByRole('button',{name:'게시하기',exact:true}).click();await expect(page.getByRole('status')).toContainText('주보를 게시했습니다');await page.getByRole('button',{name:/\(2188-11-01\)/}).click();await page.getByRole('button',{name:'인쇄 미리보기',exact:true}).click();await expect(print.locator('[contenteditable="plaintext-only"]')).toHaveCount(0);await print.getByRole('button',{name:'미리보기 닫기',exact:true}).click();
  }finally{await db.from('bulletins').delete().eq('id',id);await db.auth.admin.deleteUser(user.data.user.id);}
 });

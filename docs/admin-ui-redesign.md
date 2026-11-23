@@ -1,7 +1,8 @@
 ## 2026-11-23 관리자 확인 창
 
 - 브라우저 기본 confirm()은 모양을 바꿀 수 없어 사이트 모양의 확인 창 `useConfirm()`을 만들었다(app/admin/confirm-dialog.tsx). `const [confirm, dialog] = useConfirm()` → `await confirm({title,message,confirmLabel,tone})`, dialog를 화면에 한 번 그린다. Esc·바깥 클릭=취소, 위험 동작은 tone:'danger'(빨간 버튼).
-- 적용: 예배 영상 '공개 저장'만 우선 교체(app/admin/worship/workspace.tsx). 나머지 confirm() 18곳(주보 게시, 이미지 삭제, 변경 버리기 등)은 아직 기본 창이다. e2e 두 곳은 창의 '공개 저장' 버튼을 누르도록 고쳤으나 서비스 키가 없어 실행은 못 했다.
+- 적용: 관리자의 모든 confirm()을 교체했다(영상·주보·교회 정보·소식·홈·관리자 초대). 저장하지 않은 변경 확인(mayLeave)은 Promise를 돌려주므로 호출부는 `await mayLeave()`, AdminShell의 canLeave·homeTabs도 비동기를 받는다(링크 클릭은 막았다가 확인 후 router.push). 새 확인이 필요하면 useConfirm()을 쓴다.
+- e2e: 기본 confirm을 누르던 page.once('dialog')는 tests/e2e/confirm.ts의 acceptConfirm/dismissConfirm(addLocatorHandler로 창의 data-confirm-ok/cancel 버튼 클릭)으로 바꿨다. 서비스 키가 없어 e2e 전체는 못 돌렸다.
 
 ## 2026-11-23 실제 로고 적용
 

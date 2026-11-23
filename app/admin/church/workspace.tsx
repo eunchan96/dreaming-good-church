@@ -8,6 +8,7 @@ import PortraitField, { type PortraitDraft } from "./portrait-field";
 import { checkImageFile, updateImage, uploadImage, withFolder } from "@/lib/image-upload";
 import styles from "../bulletins/workspace.module.css";
 import AdminShell from '../admin-shell';
+import {useConfirm} from '../confirm-dialog';
 import ReauthPanel from '../reauth-panel';
 import ManagementHeading from '../management-heading';
 import ui from '../management.module.css';
@@ -63,10 +64,11 @@ export default function ChurchWorkspace() {
   const infoDirty=fields.some(changed);
   const portraitDirty=portrait.image_asset_id!==savedPortrait.image_asset_id||portrait.alt!==savedPortrait.alt;
   const dirty=infoDirty||portraitDirty||(Object.keys(defaultPageSettings) as SettingKey[]).some(key=>JSON.stringify(pages[key])!==JSON.stringify(savedPages[key]));
+  const [confirm,confirmDialog]=useConfirm();
   const unsaved = dirty || !!file || !!title || !!alt;
-  const mayLeave = () => !unsaved || window.confirm('저장하지 않은 입력을 버릴까요?');
+  const mayLeave = () => !unsaved || confirm({title:'저장하지 않은 입력을 버릴까요?',message:'지금 나가면 입력한 내용이 사라집니다.',confirmLabel:'버리기',tone:'danger'});
   async function logout() {
-    if (!client || busy || !mayLeave()) return;
+    if (!client || busy || !(await mayLeave())) return;
     setBusy(true);
     try { const { error } = await client.auth.signOut({ scope:'local' }); if (error) throw error; }
     catch { setMessage('로그아웃 요청을 확인하지 못했습니다. 로그인 상태를 다시 확인해 주세요.'); }
@@ -79,10 +81,10 @@ export default function ChurchWorkspace() {
     if(!client||!allowed||!pagesReady||busy)return;
     if(!validPageSetting(key,pages[key])){setPageMessages(current=>({...current,[key]:key==='worship_times'?'요일·주기와24시간제 시각을 확인해 주세요.':key==='offering_accounts'?'은행·예금주와 숫자/하이픈 계좌번호를 확인해 주세요.':'위치 안내 내용을 확인해 주세요.'}));return;}
     const detail=key==='offering_accounts'?'\n'+pages.offering_accounts.map(row=>`${row.key==='general'?'온라인':'건축'} 헌금: ${row.bank} ${row.number} / ${row.holder}`).join('\n'):key==='location'?`\n현재 저장 주소: ${savedFields.find(row=>row.key==='address')?.body||CHURCH_ADDRESS}`:'';
-    if(!window.confirm(`${settingLabels[key]} 설정을 공개 화면에 반영할까요?${detail}`))return;
+    if(!await confirm({title:`${settingLabels[key]} 설정을 공개 화면에 반영할까요?`,message:detail.trim(),confirmLabel:'반영'}))return;
     setBusy(true);setMessage('');try{const row=await savePageSetting(client,key,pageVersions[key],pages[key]);setPages(current=>({...current,[key]:row.payload} as ChurchPageSettings));setSavedPages(current=>({...current,[key]:row.payload} as ChurchPageSettings));setPageVersions(current=>({...current,[key]:row.revision}));setPageMessages(current=>({...current,[key]:'저장했습니다. 공개 안내에 반영됩니다.'}));}catch(e){setPageMessages(current=>({...current,[key]:(e as {code?:string}).code==='23505'?'다른 곳에서 먼저 등록했습니다. 입력을 보관한 뒤 다시 불러와 주세요.':errorMessage(e)}));}finally{setBusy(false);}
   }
-  async function reloadGroup(key:SettingKey,confirmed=false){if(!client||busy)return;if(!confirmed&&JSON.stringify(pages[key])!==JSON.stringify(savedPages[key])&&!window.confirm('이 묶음의 수정 내용을 버리고 현재 저장값을 불러올까요?'))return;setBusy(true);try{const r=await client.from('church_page_settings').select('*').eq('key',key).maybeSingle();if(r.error)throw r.error;const current=readPageSettings(r.data?[r.data]:[]);setPages(value=>({...value,[key]:current.values[key]}));setSavedPages(value=>({...value,[key]:current.values[key]}));setPageVersions(value=>({...value,[key]:current.revisions[key]}));setPageMessages(value=>({...value,[key]:'현재 저장된 설정을 불러왔습니다.'}));}catch(e){setPageMessages(value=>({...value,[key]:errorMessage(e)}));}finally{setBusy(false);}}
+  async function reloadGroup(key:SettingKey,confirmed=false){if(!client||busy)return;if(!confirmed&&JSON.stringify(pages[key])!==JSON.stringify(savedPages[key])&&!await confirm({title:'이 묶음의 수정 내용을 버릴까요?',message:'현재 저장된 값을 불러옵니다.',confirmLabel:'불러오기',tone:'danger'}))return;setBusy(true);try{const r=await client.from('church_page_settings').select('*').eq('key',key).maybeSingle();if(r.error)throw r.error;const current=readPageSettings(r.data?[r.data]:[]);setPages(value=>({...value,[key]:current.values[key]}));setSavedPages(value=>({...value,[key]:current.values[key]}));setPageVersions(value=>({...value,[key]:current.revisions[key]}));setPageMessages(value=>({...value,[key]:'현재 저장된 설정을 불러왔습니다.'}));}catch(e){setPageMessages(value=>({...value,[key]:errorMessage(e)}));}finally{setBusy(false);}}
   /** Saves the given fields (one category) in the existing all-or-nothing RPC; other categories keep their unsaved edits. */
   async function savePortrait(){
     if(!client||!allowed||busy)return;
@@ -105,7 +107,7 @@ export default function ChurchWorkspace() {
   }
   async function imageRequest(method: "POST" | "DELETE", id?: string, folder = "") {
     if (!client || !allowed || busy) return;
-    if (method === "DELETE" && !window.confirm("사용하지 않는 이미지를 삭제할까요? 주보에서 사용 중인 이미지는 삭제되지 않습니다.")) return;
+    if (method === "DELETE" && !await confirm({ title: "사용하지 않는 이미지를 삭제할까요?", message: "주보에서 사용 중인 이미지는 삭제되지 않습니다.", confirmLabel: "삭제", tone: "danger" })) return;
     if (method === "POST" && !file) { setMessage("올릴 이미지를 선택해 주세요."); return; }
     const problem = method === "POST" && file ? checkImageFile(file) : ""; if (problem) { setMessage(problem); return; }
     setBusy(true); setMessage("");
@@ -134,9 +136,9 @@ export default function ChurchWorkspace() {
   const groupDirty=(key:SettingKey)=>JSON.stringify(pages[key])!==JSON.stringify(savedPages[key]);
   const categoryDirty=(c:typeof categories[number])=>fields.some(f=>c.fields.includes(f.key)&&changed(f))||c.groups.some(groupDirty)||(c.id==='greeting'&&portraitDirty);
   async function saveCategory(c:typeof categories[number]){if(c.id==='greeting'&&portraitDirty)await savePortrait();if(fields.some(f=>c.fields.includes(f.key)&&changed(f)))await saveInfo(c.fields);for(const key of c.groups)if(groupDirty(key))await saveGroup(key);}
-  async function reloadCategory(c:typeof categories[number]){if(categoryDirty(c)&&!window.confirm(`${c.title}의 수정 내용을 버리고 저장된 내용을 불러올까요?`))return;if(c.id==='greeting'&&portraitDirty)setPortrait(savedPortrait);if(c.fields.length)await reloadInfo(c.fields);for(const key of c.groups)if(groupDirty(key))await reloadGroup(key,true);}
+  async function reloadCategory(c:typeof categories[number]){if(categoryDirty(c)&&!await confirm({title:`${c.title}의 수정 내용을 버릴까요?`,message:'저장된 내용을 불러옵니다.',confirmLabel:'불러오기',tone:'danger'}))return;if(c.id==='greeting'&&portraitDirty)setPortrait(savedPortrait);if(c.fields.length)await reloadInfo(c.fields);for(const key of c.groups)if(groupDirty(key))await reloadGroup(key,true);}
   const intro=<ManagementHeading id="church-heading" eyebrow="HOMEPAGE CONTENT" title="홈페이지 관리"/>;
-  return <AdminShell active="church" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} pages={homeTabs(view==='images'?'images':'church',view==='images'?[{id:'church-images',label:'이미지 보관함'}]:categories.map(c=>({id:`church-section-${c.id}`,label:c.title})),{canLeave:mayLeave,onSelect:tab=>{if(tab==='home')return false;setView(tab==='images'?'images':'info');history.replaceState(null,'',tab==='images'?'/admin/church?view=images':'/admin/church');return true;}})}><main id="admin-content" aria-labelledby="church-heading" tabIndex={-1} className={`${styles.page} ${ui.surface} ${church.surface}`}>
+  return <><AdminShell active="church" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} pages={homeTabs(view==='images'?'images':'church',view==='images'?[{id:'church-images',label:'이미지 보관함'}]:categories.map(c=>({id:`church-section-${c.id}`,label:c.title})),{canLeave:mayLeave,onSelect:tab=>{if(tab==='home')return false;setView(tab==='images'?'images':'info');history.replaceState(null,'',tab==='images'?'/admin/church?view=images':'/admin/church');return true;}})}><main id="admin-content" aria-labelledby="church-heading" tabIndex={-1} className={`${styles.page} ${ui.surface} ${church.surface}`}>
     {allowed&&message?<p data-page-message role="status" className={`${styles.message} ${ui.feedback}`}>{message}</p>:null}{!allowed ? <ReauthPanel message={message} hasDraft={unsaved} onRetry={()=>{setMessage('로그인 상태를 확인하고 있습니다…');setReload(n=>n+1);}}/> : <>
       {view==='info'?<>{infoMessage?<p role="status" className={`${ui.feedback} ${church.feedback}`}>{infoMessage}</p>:null}
       {categories.map(c=><section key={c.id} id={`church-section-${c.id}`} tabIndex={-1} aria-label={c.title} className={church.section}>
@@ -153,5 +155,5 @@ export default function ChurchWorkspace() {
       </>:null}
       {view==='images'?<section id="church-images" tabIndex={-1} className={church.section}><ImageLibrary images={images} busy={busy} file={file} title={title} alt={alt} fileInput={fileInput} onTitle={setTitle} onAlt={setAlt} onFile={setFile} onUpload={folder=>void imageRequest('POST',undefined,folder)} onEdit={editImage} onDelete={id=>void imageRequest('DELETE',id)} onCancel={()=>{setFile(null);setTitle('');setAlt('');if(fileInput.current)fileInput.current.value='';}}/>
       </section>:null}</>}
-  </main></AdminShell>;
+  </main></AdminShell>{confirmDialog}</>;
 }

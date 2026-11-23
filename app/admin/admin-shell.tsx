@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { rememberSignedIn, useRememberedSignIn } from './admin-session';
 import AdminInvitation from './admin-invitation';
@@ -38,8 +39,9 @@ function TocLinks({ toc, onPick }: { toc: ContentsSection[]; onPick: (id: string
   </div>)}</>;
 }
 
-export default function AdminShell({ children, intro, active, authenticated = false, canLeave = () => true, onLogout, busy = false, sections = [], pages = [] }: { children: ReactNode; intro?: ReactNode; active: 'bulletins' | 'community' | 'church' | 'account' | 'worship' | 'home'; authenticated?: boolean; canLeave?: () => boolean; onLogout?: () => void | Promise<void>; busy?: boolean; sections?: ContentsSection[]; pages?: WorkspacePage[] }) {
+export default function AdminShell({ children, intro, active, authenticated = false, canLeave = () => true, onLogout, busy = false, sections = [], pages = [] }: { children: ReactNode; intro?: ReactNode; active: 'bulletins' | 'community' | 'church' | 'account' | 'worship' | 'home'; authenticated?: boolean; canLeave?: () => boolean | Promise<boolean>; onLogout?: () => void | Promise<void>; busy?: boolean; sections?: ContentsSection[]; pages?: WorkspacePage[] }) {
   const [menu, setMenu] = useState(false);
+  const router = useRouter();
   // While a page re-checks the session, keep the menu if this tab was already signed in (display only).
   const remembered = useRememberedSignIn(), signedIn = authenticated || remembered;
   useEffect(() => { if (authenticated) rememberSignedIn(); }, [authenticated]);
@@ -53,7 +55,7 @@ export default function AdminShell({ children, intro, active, authenticated = fa
     <header className={styles.header}><div className={styles.headerInner}>
       <a href="/" target="_blank" rel="noreferrer" className={styles.brand} title="홈페이지 새 탭에서 열기"><ChurchBrand /><span className={styles.badge}>관리</span></a>
       {signedIn ? <nav id="admin-navigation" className={styles.managementNav} data-open={menu} aria-label="관리 메뉴">
-        {links.map(link => <Link key={link.key} href={link.href} aria-current={active === link.key || (link.key === 'home' && active === 'church') ? 'page' : undefined} onClick={e => { if (busy || !canLeave()) { e.preventDefault(); return; } setMenu(false); }}>{link.label}</Link>)}
+        {links.map(link => <Link key={link.key} href={link.href} aria-current={active === link.key || (link.key === 'home' && active === 'church') ? 'page' : undefined} onClick={e => { if (busy) { e.preventDefault(); return; } const answer = canLeave(); if (answer === true) { setMenu(false); return; } e.preventDefault(); void Promise.resolve(answer).then(ok => { if (ok) { setMenu(false); router.push(link.href); } }); }}>{link.label}</Link>)}
       </nav> : null}
       <div className={styles.headerActions}>
         <a href={publicPaths[active] ?? '/'} target="_blank" rel="noreferrer" aria-label="공개 화면 확인"><span>공개 화면 확인</span><SiteIcon name="diagonal" size={14} /></a>

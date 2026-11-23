@@ -26,15 +26,15 @@ function ConfirmDialog({ options, onAnswer }: { options: ConfirmOptions; onAnswe
   const answer = useCallback((value: boolean) => { if (answered.current) return; answered.current = true; dialog.current?.close(); onAnswer(value); }, [onAnswer]);
   useEffect(() => { const node = dialog.current; if (node && !node.open) node.showModal(); }, []);
   const paragraphs = (options.message ?? "").split("\n").filter(Boolean);
-  return <dialog ref={dialog} className={styles.dialog} aria-labelledby="confirm-title" aria-describedby={paragraphs.length ? "confirm-message" : undefined}
+  return <dialog ref={dialog} className={styles.dialog} data-confirm aria-labelledby="confirm-title" aria-describedby={paragraphs.length ? "confirm-message" : undefined}
     onCancel={event => { event.preventDefault(); answer(false); }}
     onClick={event => { if (event.target === dialog.current) answer(false); }}>
     <div className={styles.body}>
       <h2 id="confirm-title" className={styles.title}>{options.title}</h2>
       {paragraphs.length ? <div id="confirm-message" className={styles.message}>{paragraphs.map((line, index) => <p key={index}>{line}</p>)}</div> : null}
       <div className={styles.actions}>
-        <button type="button" className={styles.cancel} onClick={() => answer(false)}>{options.cancelLabel ?? "취소"}</button>
-        <button type="button" className={`${styles.confirm} ${options.tone === "danger" ? styles.danger : ""}`} autoFocus onClick={() => answer(true)}>{options.confirmLabel ?? "확인"}</button>
+        <button type="button" className={styles.cancel} data-confirm-cancel onClick={() => answer(false)}>{options.cancelLabel ?? "취소"}</button>
+        <button type="button" className={`${styles.confirm} ${options.tone === "danger" ? styles.danger : ""}`} autoFocus data-confirm-ok onClick={() => answer(true)}>{options.confirmLabel ?? "확인"}</button>
       </div>
     </div>
   </dialog>;

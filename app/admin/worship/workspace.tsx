@@ -47,16 +47,16 @@ export default function WorshipWorkspace(){
   void load();const {data:{subscription}}=client.auth.onAuthStateChange(event=>{if(!active)return;if(event==='SIGNED_OUT'){setAllowed(false);setRows([]);setMessage('로그인이 종료되었습니다. 같은 계정으로 다시 로그인해 주세요.');}if(event==='SIGNED_IN')setReload(n=>n+1);});
   return()=>{active=false;subscription.unsubscribe();};
  },[client,reload]);
- const mayLeave=()=>!dirty||window.confirm('저장하지 않은 영상 정보를 버릴까요?');
+ const mayLeave=()=>!dirty||confirm({title:'저장하지 않은 영상 정보를 버릴까요?',message:'지금 나가면 입력한 내용이 사라집니다.',confirmLabel:'버리기',tone:'danger'});
  useEffect(()=>{if(!dirty)return;const guard=(e:BeforeUnloadEvent)=>{e.preventDefault();e.returnValue='';};window.addEventListener('beforeunload',guard);return()=>window.removeEventListener('beforeunload',guard);},[dirty]);
  const change=(values:Partial<Draft>)=>{setEntry(current=>current?{...current,...values}:null);setDirty(true);setMessage('');};
- async function logout(){if(!client||busy||!mayLeave())return;setBusy(true);try{const r=await client.auth.signOut({scope:'local'});if(r.error)throw r.error;}catch{setMessage('로그아웃하지 못했습니다. 다시 시도해 주세요.');}finally{setBusy(false);}}
+ async function logout(){if(!client||busy||!(await mayLeave()))return;setBusy(true);try{const r=await client.auth.signOut({scope:'local'});if(r.error)throw r.error;}catch{setMessage('로그아웃하지 못했습니다. 다시 시도해 주세요.');}finally{setBusy(false);}}
  async function save(status:WorshipEntry['status']){
   if(!client||!allowed||!entry||busy)return;const videoId=youtubeId(link);
   if(!videoId||!entry.title.trim()||!entry.service_date){setMessage('예배 날짜·제목·올바른 YouTube 영상 링크를 입력해 주세요.');return;}
   if(status==='published'&&!await confirm({title:'이 영상 정보를 공개 저장할까요?',message:entry.featured?'대표로 지정하면 기존 대표 영상이 바뀝니다.':'공개 목록에 바로 나타납니다.',confirmLabel:'공개 저장'}))return;
-  if(status==='archived'&&!window.confirm('공개 목록에서 내릴까요? 영상 정보는 남습니다.'))return;
-  if(status==='draft'&&entry.status==='published'&&!window.confirm('공개를 취소하고 임시 저장할까요?'))return;
+  if(status==='archived'&&!await confirm({title:'공개 목록에서 내릴까요?',message:'영상 정보는 남습니다.',confirmLabel:'내리기'}))return;
+  if(status==='draft'&&entry.status==='published'&&!await confirm({title:'공개를 취소하고 임시 저장할까요?',message:'공개 목록에서 내려갑니다.',confirmLabel:'임시 저장'}))return;
   titleEdited.current=true;setBusy(true);setMessage('');try{
    const kinds=entry.service_type==='dawn'?(entry.dawn_kinds??[]):[],before=rows.find(row=>row.id===entry.id)?.dawn_kinds??[];
    // A dawn tag must be cleared before the type changes (DB constraint).
@@ -83,10 +83,10 @@ export default function WorshipWorkspace(){
   }catch{if(active&&!titleEdited.current)setMessage('제목을 가져오지 못했습니다. 직접 입력해 주세요.');}},400);
   return()=>{active=false;clearTimeout(timer);controller.abort();};
  },[id,allowed,client,view]);
- function openEditor(){if(view==='editor'||!mayLeave())return;setEntry({id:crypto.randomUUID(),service_type:'sunday',service_date:new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()),video_id:'',title:'',status:'draft',featured:false,revision:0,dawn_kinds:[]});setLink('');setDirty(false);titleEdited.current=false;setMessage('');setView('editor');}
- function openLibrary(){if(view==='library'||!mayLeave())return;setView('library');setEntry(null);setLink('');setDirty(false);setMessage('');}
- function openCalendar(){if(view==='calendar'||!mayLeave())return;if(!month)setMonth(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date()).slice(0,7));setView('calendar');setEntry(null);setLink('');setDirty(false);setMessage('');}
- function openRow(row:WorshipEntry){if(!mayLeave())return;titleEdited.current=true;setView('editor');setEntry({...row,dawn_kinds:row.dawn_kinds??[]});setLink(`https://www.youtube.com/watch?v=${row.video_id}`);setDirty(false);setMessage('');}
+ async function openEditor(){if(view==='editor'||!(await mayLeave()))return;setEntry({id:crypto.randomUUID(),service_type:'sunday',service_date:new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()),video_id:'',title:'',status:'draft',featured:false,revision:0,dawn_kinds:[]});setLink('');setDirty(false);titleEdited.current=false;setMessage('');setView('editor');}
+ async function openLibrary(){if(view==='library'||!(await mayLeave()))return;setView('library');setEntry(null);setLink('');setDirty(false);setMessage('');}
+ async function openCalendar(){if(view==='calendar'||!(await mayLeave()))return;if(!month)setMonth(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date()).slice(0,7));setView('calendar');setEntry(null);setLink('');setDirty(false);setMessage('');}
+ async function openRow(row:WorshipEntry){if(!(await mayLeave()))return;titleEdited.current=true;setView('editor');setEntry({...row,dawn_kinds:row.dawn_kinds??[]});setLink(`https://www.youtube.com/watch?v=${row.video_id}`);setDirty(false);setMessage('');}
 
  const filtered=rows.filter(row=>(filter==='all'||row.service_type===filter)&&(!dates.start||row.service_date>=dates.start)&&(!dates.end||row.service_date<=dates.end)&&`${row.title} ${row.service_date}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
  const pages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE)),current=Math.min(page,pages),shown=filtered.slice((current-1)*PAGE_SIZE,current*PAGE_SIZE);

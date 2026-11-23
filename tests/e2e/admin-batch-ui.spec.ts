@@ -2,6 +2,7 @@ import {test,expect} from '@playwright/test';
 import {createClient} from '@supabase/supabase-js';
 import {randomUUID} from 'node:crypto';
 import AxeBuilder from '@axe-core/playwright';
+import { acceptConfirm, dismissConfirm } from "./confirm";
 
 test('all management pages share concise headings, mobile layouts and accessible editing controls',async({page})=>{
  const db=createClient('http://127.0.0.1:54321',process.env.LOCAL_SUPABASE_SERVICE_KEY!,{auth:{persistSession:false}});
@@ -14,7 +15,7 @@ test('all management pages share concise headings, mobile layouts and accessible
   await expect(page.getByRole('button',{name:'예배 순서 2행 이름 수정',exact:true})).toBeVisible();
   for(const [path,label,section] of [['bulletins','주보 관리','게시하기'],['worship','예배 영상 관리','저장'],['church','홈페이지 관리','오시는 길']] as const){
    if(path!=='bulletins'){
-    await page.setViewportSize({width:1440,height:1000});page.once('dialog',d=>d.accept());await page.getByRole('navigation',{name:'관리 메뉴'}).getByRole('link',{name:label,exact:true}).click();if(path==='church')await page.getByRole('navigation',{name:'페이지 메뉴'}).getByRole('button',{name:'교회 소개',exact:true}).click();
+    await page.setViewportSize({width:1440,height:1000});await acceptConfirm(page);await page.getByRole('navigation',{name:'관리 메뉴'}).getByRole('link',{name:label,exact:true}).click();if(path==='church')await page.getByRole('navigation',{name:'페이지 메뉴'}).getByRole('button',{name:'교회 소개',exact:true}).click();
     if(path==='worship'){await page.getByRole('button',{name:'영상 등록',exact:true}).click();await page.getByLabel('링크',{exact:true}).fill('https://youtu.be/OSfMkv-YWJQ');await page.getByLabel('제목',{exact:true}).fill('관리자 화면 검수용 영상');}
    }
    await expect(page.getByRole('heading',{name:label,level:1,exact:true})).toBeVisible();await expect(page.locator('[data-tip-panel]')).toHaveCount(0);

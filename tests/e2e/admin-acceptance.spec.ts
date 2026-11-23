@@ -2,6 +2,7 @@ import {calendarControl,selectCalendar} from './calendar-helpers';
 import { test, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
+import { acceptConfirm, dismissConfirm } from "./confirm";
 
 test("unregistered account is denied; editor sees duplicate date and can cancel leaving unsaved work", async ({ page }) => {
   const admin = createClient("http://127.0.0.1:54321", process.env.LOCAL_SUPABASE_SERVICE_KEY!, { auth: { persistSession: false } });
@@ -27,7 +28,7 @@ test("unregistered account is denied; editor sees duplicate date and can cancel 
     await page.getByRole("button", { name: "+ 새 주보 작성", exact: true }).click();
     await selectCalendar(page,calendarControl(page,"예배 날짜"),"2090-05-07");
     await page.getByLabel("내용", { exact: true }).first().fill("이탈 취소 후 유지할 입력");
-    page.once("dialog", dialog => dialog.dismiss());
+    await dismissConfirm(page);
     await page.getByRole("link", { name: "공지·일정 관리", exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/bulletins$/);
     await expect(page.getByLabel("내용", { exact: true }).first()).toHaveValue("이탈 취소 후 유지할 입력");

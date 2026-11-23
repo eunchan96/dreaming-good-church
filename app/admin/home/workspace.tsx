@@ -7,6 +7,7 @@ import {defaultHomeContent,homeTextLimits,validHomeContent,type HomeContent} fro
 import type {BulletinImage} from '@/lib/church';
 import SaveButton from '../save-button';
 import AdminShell from '../admin-shell';
+import {useConfirm} from '../confirm-dialog';
 import ReauthPanel from '../reauth-panel';
 import ImagePicker from './image-picker';
 import {homeTabs} from '../home-tabs';
@@ -31,7 +32,8 @@ export default function HomeWorkspace(){
  const closePicker=()=>{setPicker(false);imageButton.current?.focus();};
  const owner=useRef<string|null>(null),loaded=useRef(false),frame=useRef<HTMLIFrameElement>(null),previewBox=useRef<HTMLDivElement>(null),fileInput=useRef<HTMLInputElement>(null);
  const dirty=JSON.stringify(draft)!==JSON.stringify(saved),unsaved=dirty||!!file;
- const mayLeave=()=>!unsaved||window.confirm('저장하지 않은 홈페이지 변경 내용을 버릴까요?');
+  const [confirm,confirmDialog]=useConfirm();
+ const mayLeave=()=>!unsaved||confirm({title:'저장하지 않은 홈페이지 변경 내용을 버릴까요?',message:'지금 나가면 입력한 내용이 사라집니다.',confirmLabel:'버리기',tone:'danger'});
  useEffect(()=>{if(!client)return;let active=true;
   async function load(){try{
    const user=await client!.auth.getUser();if(user.error||!user.data.user)throw new Error('login');
@@ -51,11 +53,11 @@ export default function HomeWorkspace(){
  useEffect(()=>{if(!allowed)return;const ready=(e:MessageEvent)=>{if(e.origin===location.origin&&e.source===frame.current?.contentWindow&&e.data?.type==='homepage-preview-ready')frame.current?.contentWindow?.postMessage({type:'homepage-preview',content:draft,imageSrc},location.origin);};addEventListener('message',ready);return()=>removeEventListener('message',ready);},[allowed,draft,imageSrc]);
  useEffect(()=>{if(!allowed)return;const resize=(e:MessageEvent)=>{if(e.origin!==location.origin||e.source!==frame.current?.contentWindow||e.data?.type!=='homepage-preview-height')return;const h=e.data.height;if(typeof h==='number'&&Number.isFinite(h)&&h>=100&&h<=5000)setPreviewHeight(Math.ceil(h));};addEventListener('message',resize);return()=>removeEventListener('message',resize);},[allowed]);
  const change=(values:Partial<HomeContent>)=>{setDraft(current=>({...current,...values}));setMessage('');};
- async function logout(){if(!client||busy||!mayLeave())return;setBusy(true);try{const r=await client.auth.signOut({scope:'local'});if(r.error)throw r.error;}catch{setMessage('로그아웃하지 못했습니다. 다시 시도해 주세요.');}finally{setBusy(false);}}
- async function restore(){if(!client||busy||!unsaved||!mayLeave())return;setBusy(true);try{const r=await client.from('homepage_content').select('*').maybeSingle();if(r.error)throw r.error;const content=editableContent(r.data);setDraft(content);setSaved(content);setFile(null);if(fileInput.current)fileInput.current.value='';setMessage('현재 공개 중인 설정을 불러왔습니다.');}catch(e){setMessage(errorMessage(e));}finally{setBusy(false);}}
+ async function logout(){if(!client||busy||!(await mayLeave()))return;setBusy(true);try{const r=await client.auth.signOut({scope:'local'});if(r.error)throw r.error;}catch{setMessage('로그아웃하지 못했습니다. 다시 시도해 주세요.');}finally{setBusy(false);}}
+ async function restore(){if(!client||busy||!unsaved||!(await mayLeave()))return;setBusy(true);try{const r=await client.from('homepage_content').select('*').maybeSingle();if(r.error)throw r.error;const content=editableContent(r.data);setDraft(content);setSaved(content);setFile(null);if(fileInput.current)fileInput.current.value='';setMessage('현재 공개 중인 설정을 불러왔습니다.');}catch(e){setMessage(errorMessage(e));}finally{setBusy(false);}}
  async function save(){if(!client||!allowed||busy)return;if(!validHomeContent(draft)){setMessage('제목·문구 길이와 이미지 선택·설명을 확인해 주세요.');return;}
   if(file){setMessage('선택한 파일을 먼저 올리거나 선택을 취소해 주세요.');return;}
-  if(!window.confirm('현재 문구와 이미지를 홈페이지에 반영할까요? 저장한 내용은 공개됩니다.'))return;
+  if(!await confirm({title:'홈페이지에 반영할까요?',message:'현재 문구와 이미지를 반영합니다. 저장한 내용은 공개됩니다.',confirmLabel:'반영'}))return;
   setBusy(true);setMessage('');try{const r=await client.rpc('save_homepage_content',{p_revision:draft.revision,p_content:{...draft}});if(r.error)throw r.error;const content=editableContent(r.data);setDraft(content);setSaved(content);setMessage('저장했습니다. 홈페이지에 반영되었습니다.');}catch(e){const code=(e as {code?:string;message?:string});setMessage(code.code==='23505'?'다른 곳에서 홈페이지 설정이 먼저 저장되었습니다. 입력을 보관한 뒤 현재 설정을 다시 불러와 주세요.':code.message==='IMAGE_RESOLUTION_REQUIRED'?'사진은 600×400px 이상, 일러스트는 256×256px 이상을 선택해 주세요.':errorMessage(e));}finally{setBusy(false);}
  }
  async function upload(next:File|null=file){if(!client||!allowed||!next||busy)return;setFile(next);if(next.size>4*1024*1024){setMessage('4MB 이하의 정지된 JPEG·PNG·WebP 파일을 선택해 주세요.');return;}
@@ -67,7 +69,7 @@ export default function HomeWorkspace(){
 
  const textInput=(key:keyof typeof labels,placeholder?:string)=><div className={ui.countedInput}><input id={`home-${key}`} aria-label={labels[key]} placeholder={placeholder} value={draft[key]} maxLength={homeTextLimits[key]} onChange={e=>change({[key]:e.target.value.replace(/[\r\n]/g,'')})}/><span aria-hidden="true">{draft[key].length}/{homeTextLimits[key]}</span></div>;
  const intro=<ManagementHeading id="home-management-title" eyebrow="HOMEPAGE CONTENT" title="홈페이지 관리"/>;
- return <AdminShell active="home" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} pages={homeTabs('home',[{id:'home-preview',label:'미리보기'},{id:'home-copy',label:'첫 화면 문구'},{id:'home-image',label:'사진·일러스트'}],{canLeave:mayLeave})}><main id="admin-content" aria-labelledby="home-management-title" tabIndex={-1} className={`${styles.page} ${ui.editor}`}>
+ return <><AdminShell active="home" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} pages={homeTabs('home',[{id:'home-preview',label:'미리보기'},{id:'home-copy',label:'첫 화면 문구'},{id:'home-image',label:'사진·일러스트'}],{canLeave:mayLeave})}><main id="admin-content" aria-labelledby="home-management-title" tabIndex={-1} className={`${styles.page} ${ui.editor}`}>
   {!allowed?<ReauthPanel message={message} hasDraft={unsaved} onRetry={()=>{setMessage("로그인 상태를 확인하고 있습니다…");setReload(n=>n+1);}}/>:<>
    <section id="home-preview" tabIndex={-1} className={ui.previewSection} aria-label="미리보기"><div className={ui.sectionHeading}><h2>미리보기</h2><div className={ui.deviceSwitch}>{[[1280,'PC'],[390,'모바일']].map(([value,label])=><button key={value} aria-pressed={width===value} onClick={()=>setWidth(Number(value))}>{label}</button>)}</div></div><div ref={previewBox} className={`${styles.homePreviewBox} ${ui.previewBox}`} style={{height:previewHeight*scale}}><iframe ref={frame} title="홈페이지 첫 화면 미리보기" src="/admin/home/preview" onLoad={sendPreview} style={{width,height:previewHeight,left:'50%',marginLeft:-width*scale/2,transform:`scale(${scale})`}}/></div>
     <div className={ui.publishActions}><SaveButton disabled={busy||!dirty||!!file} disabledHint={busy?'처리 중입니다.':file?'선택한 파일을 먼저 올리거나 선택을 취소해 주세요.':'현재 최신 상태입니다.'} className={`${btn.btn} ${btn.primary}`} onClick={()=>void save()}>이렇게 반영하기</SaveButton><SaveButton className={btn.btn} disabled={busy||!unsaved} disabledHint={busy?'처리 중입니다.':'불러올 변경 사항이 없습니다.'} onClick={()=>void restore()}>이전 설정 불러오기</SaveButton></div>
@@ -90,5 +92,5 @@ export default function HomeWorkspace(){
    </section></fieldset>
    {picker?<ImagePicker images={images} onClose={closePicker} onDefault={()=>{change({image_mode:'art',image_asset_id:null,image_alt:''});setFile(null);if(fileInput.current)fileInput.current.value='';closePicker();}} onDevice={()=>{closePicker();fileInput.current?.click();}} onSelect={image=>{change({image_asset_id:image.id,image_alt:image.alt.slice(0,200),image_mode:draft.image_mode==='art'?'photo':draft.image_mode});setFile(null);if(fileInput.current)fileInput.current.value='';closePicker();}}/>:null}
   </>}
- </main></AdminShell>;
+ </main></AdminShell>{confirmDialog}</>;
 }
