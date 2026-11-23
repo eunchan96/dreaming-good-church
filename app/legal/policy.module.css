@@ -1,0 +1,32 @@
+/* 개인정보처리방침·사진 게시정책: 왼쪽 목차 + 읽기 좋은 본문 (교회 소개와 같은 1040px 칸) */
+.layout { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 56px; max-width: 1040px; margin: 44px auto 0; align-items: start; }
+.index { position: sticky; top: 104px; }
+.index h2 { margin: 0 0 10px; font-size: 13px; font-weight: 600; letter-spacing: .04em; color: #8d6d2f; }
+.index ol { margin: 0; padding: 0; list-style: none; counter-reset: idx; }
+.index li { counter-increment: idx; }
+.index a { display: block; padding: 9px 12px; border-left: 2px solid #ece5d8; color: #5d4930; font-size: 14px; line-height: 1.5; text-decoration: none; }
+.index a:hover { border-left-color: #8d6d2f; color: #2f2720; }
+.article { min-width: 0; max-width: 720px; padding-bottom: 20px; }
+.notice { margin: 0 0 8px; padding: 2px 0 2px 16px; border-left: 2px solid #ac8c45; font-size: 13.5px; line-height: 1.85; color: #6e5a3a; }
+.notice strong { display: block; margin-bottom: 2px; color: #4a3b22; font-weight: 600; }
+.section { padding: 34px 0 6px; scroll-margin-top: 100px; }
+.section + .section { margin-top: 20px; border-top: 1px solid #e8e0d0; }
+.section h2 { display: flex; align-items: baseline; gap: 14px; margin: 0 0 14px; font-family: var(--font-public-serif), serif; font-size: 23px; font-weight: 500; letter-spacing: -.03em; line-height: 1.4; color: #2f2720; }
+.section h2 span { font-family: var(--font-public-sans), sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .08em; color: #a8873f; }
+.section p { margin: 0 0 14px; font-size: 15.5px; line-height: 1.95; color: #4a3f33; word-break: keep-all; }
+.contact { display: inline-flex; align-items: center; gap: 8px; margin-top: 30px; padding-bottom: 4px; border-bottom: 1px solid #b9a37a; color: #5d4930; font-size: 13.5px; text-decoration: none; transition: color .15s, border-color .15s; }
+.contact:hover { color: #8d6d2f; border-color: #8d6d2f; }
+.contact svg { transition: translate .15s; }
+.contact:hover svg { translate: 4px 0; }
+@media (max-width: 860px) {
+  .layout { display: block; margin-top: 26px; }
+  .index { position: static; margin: 0 0 22px; }
+  .index h2 { display: none; }
+  .index ol { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  .index ol::-webkit-scrollbar { display: none; }
+  .index li { flex: 0 0 auto; }
+  .index a { padding: 5px 10px; border: 1px solid #e3dbcd; border-radius: 3px; font-size: 12.5px; white-space: nowrap; }
+  .section { padding-top: 26px; }
+  .section h2 { font-size: 20px; gap: 10px; }
+  .section p { font-size: 15px; line-height: 1.9; }
+}
