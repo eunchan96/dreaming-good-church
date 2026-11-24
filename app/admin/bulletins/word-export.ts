@@ -19,7 +19,7 @@ type Borders = Partial<Record<'top' | 'bottom' | 'left' | 'right', Side>>;
 type TextRunModel = { t: 'text'; text: string; size: number; weight: number; italic: boolean; underline: boolean; color: string; serif: boolean; spacing: number; shade?: string };
 /** 그림: 화면의 img/svg, 또는 글자를 그대로 그린 그림(로고 글씨) */
 type Glyphs = { text: string; font: string; color: string; letterSpacing: string };
-type Run = TextRunModel | { t: 'br'; soft?: boolean } | { t: 'tab'; style: TextRunModel } | { t: 'img'; el: Element; w: number; h: number; glyphs?: Glyphs; behind?: boolean };
+type Run = TextRunModel | { t: 'br'; soft?: boolean } | { t: 'tab'; style: TextRunModel } | { t: 'img'; el: Element; w: number; h: number; glyphs?: Glyphs; behind?: boolean; abs?: { left: number; top: number }; at?: { x: number; y: number }; fill?: string };
 type Align = 'left' | 'center' | 'right' | 'both' | 'distribute';
 type Para = { k: 'p'; runs: Run[]; align: Align; left: number; right: number; line: number; exact: boolean; top: number; bottom: number; before?: number; tabs?: { type: 'center' | 'right'; pos: number }[]; border?: Borders; size: number };
 type Cell = { width: number; blocks: Block[]; shade?: string; border?: Borders; pad: [number, number, number, number]; vAlign: 'top' | 'center' | 'bottom'; span?: number };
@@ -43,17 +43,33 @@ function parseColor(value: string): { hex: string; alpha: number } | null {
 const colorOf = (value: string) => parseColor(value)?.hex;
 const px = (value: string) => parseFloat(value) || 0;
 
+/** 선 굵기 px → Word 1/8pt. 1px 선은 0.5pt(0.75pt는 Word에서 화면보다 굵어 보인다). */
+const hairline = (width: number) => width <= 1.5 ? 4 : Math.min(96, Math.max(2, Math.round(width * 6)));
 function side(cs: CSSStyleDeclaration, name: 'Top' | 'Bottom' | 'Left' | 'Right'): Side | undefined {
   const style = cs.getPropertyValue(`border-${name.toLowerCase()}-style`), width = px(cs.getPropertyValue(`border-${name.toLowerCase()}-width`));
   const color = colorOf(cs.getPropertyValue(`border-${name.toLowerCase()}-color`));
   if (!width || !color || style === 'none' || style === 'hidden') return undefined;
-  return { color, size: Math.min(96, Math.max(2, Math.round(width * 6))), style: style === 'dashed' ? 'dashed' : style === 'dotted' ? 'dotted' : style === 'double' ? 'double' : 'single' };
+  return { color, size: hairline(width), style: style === 'dashed' ? 'dashed' : style === 'dotted' ? 'dotted' : style === 'double' ? 'double' : 'single' };
 }
 function bordersOf(cs: CSSStyleDeclaration): Borders | undefined {
   const b: Borders = {};
   for (const [key, name] of [['top', 'Top'], ['bottom', 'Bottom'], ['left', 'Left'], ['right', 'Right']] as const) { const s = side(cs, name); if (s) b[key] = s; }
   const drawn = lineImage(cs); if (drawn && !b[drawn.side]) b[drawn.side] = drawn.line;
   return Object.keys(b).length ? b : undefined;
+}
+/** 칸 일부만 덮는 1px 배경 선(예: 위를 띄운 세로선) → 화면 위치·크기·색 */
+function partialLine(el: Element, cs: CSSStyleDeclaration): { left: number; top: number; w: number; h: number; color: string } | undefined {
+  if (!cs.backgroundImage.startsWith('linear-gradient')) return undefined;
+  const colors = [...new Set([...cs.backgroundImage.matchAll(/rgba?\([^)]*\)/g)].map(m => colorOf(m[0])))];
+  if (colors.length !== 1 || !colors[0]) return undefined;
+  const r = el.getBoundingClientRect(), bl = px(cs.borderLeftWidth), bt = px(cs.borderTopWidth), W = r.width - bl - px(cs.borderRightWidth), H = r.height - bt - px(cs.borderBottomWidth);
+  const length = (v: string, total: number) => { const calc = v.match(/^calc\(100% - ([\d.]+)px\)$/); return calc ? total - parseFloat(calc[1]) : v.endsWith('%') ? total * parseFloat(v) / 100 : px(v); };
+  const [sw, sh] = cs.backgroundSize.split(/\s+(?![^(]*\))/), [p1, p2] = cs.backgroundPosition.split(/\s+(?![^(]*\))/);
+  if (!sw || !sh) return undefined;
+  const w = length(sw, W), h = length(sh, H);
+  if (!(w <= 2 && h < H - 1) && !(h <= 2 && w < W - 1)) return undefined;
+  const at = (v: string | undefined, total: number, size: number) => !v || v === '0%' || v === 'left' || v === 'top' ? 0 : v === '100%' || v === 'right' || v === 'bottom' ? total - size : v.endsWith('%') ? (total - size) * parseFloat(v) / 100 : px(v);
+  return { left: r.left + bl + at(p1, W, w), top: r.top + bt + at(p2, H, h), w: Math.max(w, .75), h: Math.max(h, .75), color: colors[0] };
 }
 /** 배경 그림으로 그린 1px 선(linear-gradient 한 색, 폭이나 높이가 1~2px) → 그 쪽 테두리 */
 function lineImage(cs: CSSStyleDeclaration): { side: 'top' | 'bottom' | 'left' | 'right'; line: Side } | undefined {
@@ -63,7 +79,10 @@ function lineImage(cs: CSSStyleDeclaration): { side: 'top' | 'bottom' | 'left' |
   const [w, h] = cs.backgroundSize.split(/\s+(?![^(]*\))/);
   const thin = (v?: string) => !!v && /^[\d.]+px$/.test(v) && px(v) <= 2;
   const pos = cs.backgroundPosition;
-  const line = (width: string) => ({ color: colors[0]!, size: Math.max(2, Math.round(px(width) * 6)), style: 'single' as const });
+  const line = (width: string) => ({ color: colors[0]!, size: hairline(px(width)), style: 'single' as const });
+  // 선 길이가 칸 전체가 아니면(섬기는 이들 첫 줄처럼 위를 띄운 선) 테두리로 그리지 않고 따로 그린다.
+  const full = (v?: string) => !v || v === 'auto' || v === '100%';
+  if (thin(w) && !full(h) || thin(h) && !full(w)) return undefined;
   if (thin(w)) return { side: /(^|\s)(100%|right)/.test(pos.split(' ')[0] ?? '') ? 'right' : 'left', line: line(w) };
   if (thin(h)) return { side: /(100%|bottom)/.test(pos.split(' ')[1] ?? '') ? 'bottom' : 'top', line: line(h) };
   return undefined;
@@ -196,7 +215,7 @@ function collectRuns(node: Node, out: Run[]) {
   }
   if (!(node instanceof Element) || !visible(node)) return;
   if (node.tagName === 'BR') { out.push({ t: 'br' }); lineTop = undefined; return; }
-  if (isMedia(node)) { const r = node.getBoundingClientRect(); out.push({ t: 'img', el: node, w: r.width, h: r.height }); return; }
+  if (isMedia(node)) { const r = node.getBoundingClientRect(); out.push({ t: 'img', el: node, w: r.width, h: r.height, ...(/absolute|fixed/.test(getComputedStyle(node).position) ? { abs: { left: r.left, top: r.top } } : {}) }); return; }
   for (const child of node.childNodes) collectRuns(child, out);
 }
 function trimRuns(runs: Run[]) {
@@ -263,7 +282,8 @@ function paragraph(el: Element, frame: Frame, nodes?: Node[], align?: Align, giv
     for (let i = runs.length - 1; i >= 0; i--) { const r = runs[i]; if (r.t === 'br' && !r.soft) runs.splice(i + 1, 0, { ...style }); }
     runs.unshift({ ...style });
   }
-  const imageHeight = Math.max(0, ...runs.map(r => r.t === 'img' ? r.h : 0));
+  for (const r of runs) if (r.t === 'img' && r.abs) r.at = { x: r.abs.left - frame.left, y: r.abs.top - top }; // 화면에서 띄워 둔 그림(하트) → 같은 자리에 띄움
+  const imageHeight = Math.max(0, ...runs.map(r => r.t === 'img' && !r.at ? r.h : 0));
   const border = bordersOf(cs) ?? {};
   // 선과 글자 사이 간격 = 화면의 안쪽 여백(pt)
   for (const [key, name] of [['top', 'Top'], ['bottom', 'Bottom'], ['left', 'Left'], ['right', 'Right']] as const) if (border[key]) border[key] = { ...border[key]!, space: Math.min(31, px(cs.getPropertyValue(`padding-${name.toLowerCase()}`)) * .75) };
@@ -454,10 +474,13 @@ function htmlTable(table: HTMLTableElement, frame: Frame): Tbl {
       height: (trs[index + 1]?.getBoundingClientRect().top ?? tr_r.bottom) - tr_r.top,
       cells: [...tr.cells].filter(visible).map((td): Cell => {
         const cs = getComputedStyle(td), box = contentBox(td);
+        const blocks = stack(hasBlockChild(td) || rowLayout(td, cs) ? inner(td, box) : [paragraph(td, box)].filter((p): p is Para => !!p), box.top);
+        const line = partialLine(td, cs), first = blocks[0];
+        if (line && first?.k === 'p') first.runs.push({ t: 'img', el: td, w: line.w, h: line.h, fill: line.color, at: { x: line.left - box.left, y: line.top - first.top } });
         return {
           width: td.getBoundingClientRect().width, shade: colorOf(cs.backgroundColor) ?? trBg, border: bordersOf(cs), span: td.colSpan > 1 ? td.colSpan : undefined,
           pad: [px(cs.paddingTop), px(cs.paddingRight), px(cs.paddingBottom), px(cs.paddingLeft)], vAlign: cs.verticalAlign === 'middle' ? 'center' : cs.verticalAlign === 'bottom' ? 'bottom' : 'top',
-          blocks: stack(hasBlockChild(td) || rowLayout(td, cs) ? inner(td, box) : [paragraph(td, box)].filter((p): p is Para => !!p), box.top),
+          blocks,
         };
       }),
     };
@@ -502,6 +525,8 @@ function mediaParagraph(el: Element, frame: Frame): Para | null {
   const r = el.getBoundingClientRect(), parent = el.parentElement ? getComputedStyle(el.parentElement) : null;
   const left = Math.max(0, r.left - frame.left), right = Math.max(0, frame.right - r.right);
   const align: Align = parent && alignOf(parent) !== 'left' ? alignOf(parent) : Math.abs(left - right) < 4 && left > 4 ? 'center' : 'left';
+  // 작은 아이콘(주소·전화·유튜브)은 Word가 글줄 바닥선에 맞춰 놓아 높이가 흔들린다 → 화면과 같은 자리에 띄운다.
+  if (r.width <= 32 && r.height <= 32) return { k: 'p', runs: [{ t: 'img', el, w: r.width, h: r.height, at: { x: left, y: 0 } }], align: 'left', left: 0, right: 0, line: .15, exact: true, top: r.top, bottom: r.bottom, size: 1 };
   return { k: 'p', runs: [{ t: 'img', el, w: r.width, h: r.height }], align, left: align === 'left' ? left : 0, right: 0, line: r.height, exact: false, top: r.top, bottom: r.bottom, size: 1 };
 }
 
@@ -550,6 +575,7 @@ async function rasterize(run: Extract<Run, { t: 'img' }>): Promise<{ data: Uint8
   canvas.width = Math.max(1, Math.round(w * scale)); canvas.height = Math.max(1, Math.round(h * scale));
   const ctx = canvas.getContext('2d')!;
   if (run.behind) { ctx.scale(scale, scale); paintGradient(ctx, getComputedStyle(el).backgroundImage, w, h); return png(canvas); }
+  if (run.fill) { ctx.fillStyle = `#${run.fill}`; ctx.fillRect(0, 0, canvas.width, canvas.height); return png(canvas); }
   if (run.glyphs) {
     // 로고 글씨: 화면과 같은 글꼴·간격으로 그린다.
     ctx.scale(scale, scale); ctx.font = run.glyphs.font; ctx.fillStyle = run.glyphs.color; ctx.textBaseline = 'alphabetic';
@@ -630,14 +656,16 @@ export async function buildDocx(panels: WordPanel[], title: string, fonts?: Word
         const img = ready.get(r); if (!img) continue;
         if (Object.keys(brk).length) children.push(new d.TextRun({ break: 1 }));
         // 배경 그림은 칸 왼쪽 위(0,0)에 글자 뒤로 띄운다.
-        const floating = r.behind ? { horizontalPosition: { relative: d.HorizontalPositionRelativeFrom.COLUMN, offset: 0 }, verticalPosition: { relative: d.VerticalPositionRelativeFrom.PARAGRAPH, offset: 0 }, behindDocument: true, allowOverlap: true, lockAnchor: true, layoutInCell: true, wrap: { type: d.TextWrappingType.NONE } } : undefined;
+        const EMU = 9525; // px → EMU
+        const floating = r.behind ? { horizontalPosition: { relative: d.HorizontalPositionRelativeFrom.COLUMN, offset: 0 }, verticalPosition: { relative: d.VerticalPositionRelativeFrom.PARAGRAPH, offset: 0 }, behindDocument: true, allowOverlap: true, lockAnchor: true, layoutInCell: true, wrap: { type: d.TextWrappingType.NONE } }
+          : r.at ? { horizontalPosition: { relative: d.HorizontalPositionRelativeFrom.COLUMN, offset: Math.round(r.at.x * EMU) }, verticalPosition: { relative: d.VerticalPositionRelativeFrom.PARAGRAPH, offset: Math.round((r.at.y + (p.before ?? 0)) * EMU) /* Word의 '문단 기준'은 앞 간격까지 포함한 맨 위 */ }, behindDocument: false, allowOverlap: true, lockAnchor: true, layoutInCell: true, wrap: { type: d.TextWrappingType.NONE } } : undefined;
         children.push(new d.ImageRun({ type: img.type, data: img.data, transformation: { width: r.w, height: r.h }, ...(floating ? { floating } : {}) }));
       }
     }
     if (pendingBreak) children.push(new d.TextRun({ break: 1 }));
     const firstText = p.runs.find(r => r.t === 'text') as TextRunModel | undefined;
     if (!children.length) children.push(new d.TextRun({ text: '', size: firstText?.size ?? Math.round(p.size * 1.5) }));
-    const pictures = p.runs.some(r => r.t === 'img' && !r.behind) && !p.runs.some(r => r.t === 'text');
+    const pictures = p.runs.some(r => r.t === 'img' && !r.behind && !r.at) && !p.runs.some(r => r.t === 'text');
     return new d.Paragraph({
       ...browserLike, children, alignment: alignment[p.align],
       // 그림 줄: 고정 줄 높이면 Word가 그림을 자르거나 위로 올린다 → 보통 줄 높이 + 아주 작은 문단 기호
@@ -656,7 +684,7 @@ export async function buildDocx(panels: WordPanel[], title: string, fonts?: Word
       width: { size: twips(t.width), type: d.WidthType.DXA }, indent: { size: twips(t.left), type: d.WidthType.DXA },
       layout: uniform ? d.TableLayoutType.FIXED : d.TableLayoutType.AUTOFIT, columnWidths: uniform ? t.rows[0].cells.map(c => twips(c.width)) : undefined,
       borders: d.TableBorders.NONE, margins: { top: 0, bottom: 0, left: 0, right: 0 },
-      rows: t.rows.map(row => new d.TableRow({
+      rows: t.rows.map(row => { const rise = rowRise(row); return new d.TableRow({
         // Word는 고정 줄 높이에 칸 위아래 테두리 두께를 더 얹는다 → 그만큼 뺀다.
         cantSplit: true, height: { value: Math.max(20, twips(row.height - Math.max(0, ...row.cells.map(c => (c.border?.top?.size ?? 0) / 6)) - Math.max(0, ...row.cells.map(c => (c.border?.bottom?.size ?? 0) / 6)))), rule: row.exact === false ? d.HeightRule.ATLEAST : d.HeightRule.EXACT },
         children: row.cells.map(c => new d.TableCell({
@@ -666,15 +694,25 @@ export async function buildDocx(panels: WordPanel[], title: string, fonts?: Word
           verticalAlign: c.vAlign === 'center' ? d.VerticalAlign.CENTER : c.vAlign === 'bottom' ? d.VerticalAlign.BOTTOM : d.VerticalAlign.TOP,
           shading: c.shade ? { type: d.ShadingType.CLEAR, fill: c.shade, color: 'auto' } : undefined,
           borders: { top: border(c.border?.top) ?? none, bottom: border(c.border?.bottom) ?? none, left: border(c.border?.left) ?? none, right: border(c.border?.right) ?? none },
-          children: flow(c.vAlign === 'top' && c.pad[0] > 0 && c.blocks.length ? [{ ...c.blocks[0], before: (c.blocks[0].before ?? 0) + c.pad[0] }, ...c.blocks.slice(1)] : c.blocks, c.width - c.pad[1] - c.pad[3], true, c.vAlign === 'center'),
+          children: flow(lead(c, rise), c.width - c.pad[1] - c.pad[3], true, c.vAlign === 'center'),
         })),
-      })),
+      }); }),
     });
   }
+  const picturesOnly = (b: Para) => b.runs.some(r => r.t === 'img' && !r.behind && !r.at) && !b.runs.some(r => r.t === 'text');
+  /** 이 줄의 글자 칸 첫 문단이 칸 안에서 스스로 올라가는 양 */
+  const rowRise = (row: Row) => Math.max(0, ...row.cells.map(c => { const f = c.blocks[0]; return f?.k === 'p' && !picturesOnly(f) ? Math.min(halfLeading(f, c.vAlign === 'center'), (f.before ?? 0) + (c.vAlign === 'top' ? c.pad[0] : 0)) : 0; }));
+  /** 칸 첫 덩어리: 위쪽 여백을 앞 간격으로 옮기고, 그림만 있는 칸(아이콘)은 옆 글자만큼 같이 올린다 */
+  const lead = (c: Cell, rise: number): Block[] => {
+    const f = c.blocks[0]; if (!f) return c.blocks;
+    let before = (f.before ?? 0) + (c.vAlign === 'top' ? c.pad[0] : 0);
+    if (f.k === 'p' && picturesOnly(f)) before = Math.max(0, before - rise);
+    return [{ ...f, before }, ...c.blocks.slice(1)];
+  };
   /** 고정 줄 높이 문단에서 Word가 브라우저보다 아래에 두는 양(반쪽 줄 간격, px) */
   const halfLeading = (b: Para, centred: boolean) => {
     const tallest = Math.max(0, ...b.runs.map(r => r.t === 'text' ? r.size : r.t === 'tab' ? r.style.size : 0)) / 1.5; // 반포인트 → px
-    const picturesOnly = b.runs.some(r => r.t === 'img' && !r.behind) && !b.runs.some(r => r.t === 'text');
+    const picturesOnly = b.runs.some(r => r.t === 'img' && !r.behind && !r.at) && !b.runs.some(r => r.t === 'text');
     return b.exact && !centred && !picturesOnly && tallest ? Math.max(0, (b.line - tallest * (embedded ? 1.448 : 1.33)) / 2) : 0;
   };
   /** 표 첫 줄 칸들의 첫 문단이 앞 간격만으로 다 올라가지 못하는 양 → 표 전체를 그만큼 올린다 */
