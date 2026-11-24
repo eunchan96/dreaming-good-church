@@ -152,7 +152,7 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
       </div>
     </header>
     <PrintFormatToolbar/>
-    <StatusMessage message={toast} onDone={() => setToast("")}/>
+    <StatusMessage toast message={toast} onDone={() => setToast("")}/>
     <div className={styles.notice} role="status" data-empty={!message&&!overflowPages.length&&settingsStatus!=="error"}>{overflowPages.length?`${overflowPages.join("·")}면 넘침: 면 배치나 글자 크기를 조절해 주세요. `:""}{message}{settingsStatus==="error"?<button type="button" className={styles.tool} onClick={retry}>예배시간 다시 불러오기</button>:null}</div>
     <p className={styles.blockedPrint}>내용이 면을 넘쳐 인쇄를 중단했습니다. 미리보기에서 면 배치를 조정한 뒤 다시 인쇄해 주세요.</p>
     <div className={styles.stage} data-panel={panel}>

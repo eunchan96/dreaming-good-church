@@ -39,8 +39,11 @@ test('print preview downloads a two-sheet A4 landscape Word bulletin with the pr
   const xml=unzip(await readFile(await file.path()),'word/document.xml'),text=xml.replace(/<w:br\/>|<\/w:p>/g,'\n').replace(/<[^>]+>/g,'');
   expect(xml.match(/<w:pgSz [^>]*w:orient="landscape"/g)).toHaveLength(2);
   expect(xml).toContain('w:w="16838" w:h="11906"');
-  expect(xml.match(/<w:cols [^>]*w:num="2"/g)).toHaveLength(2);
-  expect(xml.match(/w:type="column"/g)).toHaveLength(2);
+  // 한 장 = 높이 고정(196mm) 2칸 표 한 줄: 면이 길어져도 옆 면·다음 쪽으로 밀리지 않는다.
+  expect(xml.match(/<w:trHeight w:val="11112" w:hRule="exact"\/>/g)).toHaveLength(2);
+  expect(xml).not.toContain('w:type="column"');
+  // 3색 띠에 폭 0인 칸이 없어야 한다.
+  expect(xml).not.toContain('<w:gridCol w:w="0"/>');
   // 바깥면(4면 → 1면) 다음 안쪽면(2면 → 3면) 순서
   const order=['좋은 소식','첫째 소식입니다.','헌금 내역','하나님 앞에서','더 나은 예배','묵상 가이드','워드 파일에 담길 묵상 문장입니다.'].map(value=>text.indexOf(value));
   expect(order.every(index=>index>=0)).toBe(true);expect([...order].sort((a,b)=>a-b)).toEqual(order);

@@ -56,7 +56,11 @@ function gradientSegments(image: string): { color: string; until: number }[] | u
   const valid = stops.filter((s): s is { color: string; until: number } => !!s.color);
   if (!valid.length) return undefined;
   valid.forEach((s, i) => { if (Number.isNaN(s.until)) s.until = i === valid.length - 1 ? 1 : (i + 1) / valid.length; });
-  return valid;
+  // 계산된 값은 'c1 0%, c1 66%, c2 66%…'처럼 색마다 두 번 나온다: 같은 색은 합치고 폭 0인 조각은 버린다.
+  const merged: { color: string; until: number }[] = [];
+  for (const stop of valid) { const last = merged.at(-1); if (last && last.color === stop.color) last.until = Math.max(last.until, stop.until); else merged.push({ ...stop }); }
+  merged[merged.length - 1].until = 1;
+  return merged.filter((s, i) => s.until - (i ? merged[i - 1].until : 0) > .005);
 }
 /** 배경색. 칸 전체를 덮는 선형 그라데이션만 색으로 본다(작게 반복되는 무늬·점은 제외). */
 function fullGradient(cs: CSSStyleDeclaration) {
@@ -110,12 +114,14 @@ function hasWordFont() {
   if (wordFontReady === undefined) { const probe = '가나다라마바사 abc 123'; wordFontReady = measure(`40px "${SANS}", monospace`, probe) !== measure('40px monospace', probe); }
   return wordFontReady;
 }
-function fitSpacing(el: Element, style: TextRunModel, text: string) {
+function fitSpacing(el: Element, style: TextRunModel, text: string, squeeze = 0) {
   const chars = [...text].length; if (!chars) return;
   const cs = getComputedStyle(el), base = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize}`;
   const screen = measure(`${base} ${cs.fontFamily}`, text);
   const word = hasWordFont() ? measure(`${base} "${style.serif ? SERIF : SANS}"`, text) : screen * 1.063;
-  const extra = Math.max(-2, Math.min(1.5, (screen - word) / chars)); // 글자당 px(음수 = 좁히기), 지나친 보정은 막는다
+  // 글자당 px(음수 = 좁히기). Word 줄 맞춤 오차에 대비해 조금 더 좁히고, 줄바꿈 금지(nowrap) 글자는 더 여유를 둔다.
+  const nowrap = /nowrap|pre$/.test(cs.whiteSpace) ? .3 : 0;
+  const extra = Math.max(-2.4, Math.min(1.5, (screen - word) / chars - .12 - nowrap - squeeze));
   style.spacing += Math.round(extra * PX);
 }
 
@@ -230,7 +236,7 @@ function inner(el: Element, frame: Frame): Block[] {
   if (el.classList.contains(paper.spreadText)) {
     // 균등 배치 글자(한 글자씩 벌린 span들) → Word의 '균등 분할' 문단
     const text = (el.textContent ?? '').replace(/\s+/g, ''), style = runStyle(el.firstElementChild ?? el);
-    const run = { ...style, text }; fitSpacing(el.firstElementChild ?? el, run, text);
+    const run = { ...style, text }; fitSpacing(el.firstElementChild ?? el, run, text, .45);
     const p = paragraph(el, frame, undefined, [...text].length > 1 ? 'distribute' : 'center', [run]);
     return p ? [p] : [];
   }
@@ -419,7 +425,10 @@ export function measurePanels(root: HTMLElement): WordPanel[] {
       if (!body) return { page, blocks: [] };
       const box = contentBox(body);
       const frame = { left: box.left, right: box.right, top: box.top };
-      return { page, blocks: stack(children(body, frame), box.top) };
+      // 큰 빈 공간(예: 4면 아래 교회 안내 앞)은 10% 줄여, Word에서 조금 길어져도 아래가 잘리지 않게 한다.
+      const blocks = stack(children(body, frame), box.top);
+      blocks.forEach(b => { if ((b.before ?? 0) > 40) b.before = b.before! * .9; });
+      return { page, blocks };
     });
   } finally { if (zoomed) zoomed.style.zoom = zoom; }
 }
@@ -532,14 +541,32 @@ export async function buildDocx(panels: WordPanel[], title: string): Promise<Blo
     if (inCell && (!out.length || out.at(-1) instanceof d.Table)) out.push(spacer(0.2));
     return out;
   }
-  const columnWidth = (297 - 22 - 10) / 2 * 3.7795; // mm → px
-  const columnBreak = () => new d.Paragraph({ children: [new d.ColumnBreak()], spacing: { before: 0, after: 0, line: 20, lineRule: d.LineRuleType.EXACT } });
+  /*
+   * 한 장(두 면) = 높이가 고정된 2칸짜리 표 한 줄. Word에서 한 면이 조금 길어져도
+   * 옆 면·다음 쪽으로 밀리지 않는다(단·단 나누기를 쓰면 몇 mm 차이로 전체가 밀린다).
+   * 시트: 297×210mm, 안쪽 여백 7mm(위아래)·6mm(좌우), 면마다 좌우 5mm 여백.
+   */
+  const panelWidth = 142.5, panelPad = 5, panelHeight = 196, contentPx = (panelWidth - panelPad * 2) * 3.7795;
+  const none4 = { top: none, bottom: none, left: none, right: none };
+  const sheet = (pages: WordPanel[]) => new d.Table({
+    width: { size: Math.round(panelWidth * 2 * MM), type: d.WidthType.DXA }, layout: d.TableLayoutType.FIXED, columnWidths: [Math.round(panelWidth * MM), Math.round(panelWidth * MM)],
+    borders: d.TableBorders.NONE, margins: { top: 0, bottom: 0, left: 0, right: 0 },
+    rows: [new d.TableRow({
+      cantSplit: true, height: { value: Math.round(panelHeight * MM), rule: d.HeightRule.EXACT },
+      children: pages.map(page => new d.TableCell({
+        width: { size: Math.round(panelWidth * MM), type: d.WidthType.DXA }, borders: none4, verticalAlign: d.VerticalAlign.TOP,
+        margins: { top: 0, bottom: 0, left: Math.round(panelPad * MM), right: Math.round(panelPad * MM) },
+        children: flow(page.blocks, contentPx, true),
+      })),
+    })],
+  });
+  // 표 뒤에 Word가 요구하는 빈 문단은 아주 낮게(빈 쪽이 생기지 않도록).
+  const tail = () => new d.Paragraph({ ...browserLike, children: [new d.TextRun({ text: '', size: 2 })], spacing: { before: 0, after: 0, line: 20, lineRule: d.LineRuleType.EXACT } });
   const section = (pages: WordPanel[]) => ({
     properties: {
-      page: { size: { width: 11906, height: 16838, orientation: d.PageOrientation.LANDSCAPE }, margin: { top: Math.round(7 * MM), bottom: Math.round(5 * MM), left: Math.round(11 * MM), right: Math.round(11 * MM), header: 0, footer: 0, gutter: 0 } },
-      column: { count: 2, space: Math.round(10 * MM), equalWidth: true },
+      page: { size: { width: 11906, height: 16838, orientation: d.PageOrientation.LANDSCAPE }, margin: { top: Math.round(7 * MM), bottom: Math.round(5 * MM), left: Math.round(6 * MM), right: Math.round(6 * MM), header: 0, footer: 0, gutter: 0 } },
     },
-    children: [...flow(pages[0].blocks, columnWidth), columnBreak(), ...flow(pages[1].blocks, columnWidth)],
+    children: [sheet(pages), tail()],
   });
   const byPage = (n: number) => panels.find(p => p.page === n) ?? { page: n, blocks: [] };
   const doc = new d.Document({
