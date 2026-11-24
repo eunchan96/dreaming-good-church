@@ -19,11 +19,11 @@ type Borders = Partial<Record<'top' | 'bottom' | 'left' | 'right', Side>>;
 type TextRunModel = { t: 'text'; text: string; size: number; weight: number; italic: boolean; underline: boolean; color: string; serif: boolean; spacing: number; shade?: string };
 /** 그림: 화면의 img/svg, 또는 글자를 그대로 그린 그림(로고 글씨) */
 type Glyphs = { text: string; font: string; color: string; letterSpacing: string };
-type Run = TextRunModel | { t: 'br'; soft?: boolean } | { t: 'tab'; style: TextRunModel } | { t: 'img'; el: Element; w: number; h: number; glyphs?: Glyphs; behind?: boolean; abs?: { left: number; top: number }; at?: { x: number; y: number }; fill?: string };
+type Run = TextRunModel | { t: 'br' } | { t: 'tab'; style: TextRunModel } | { t: 'img'; el: Element; w: number; h: number; glyphs?: Glyphs; behind?: boolean; abs?: { left: number; top: number }; at?: { x: number; y: number }; fill?: string };
 type Align = 'left' | 'center' | 'right' | 'both' | 'distribute';
 type Para = { k: 'p'; runs: Run[]; align: Align; left: number; right: number; line: number; exact: boolean; top: number; bottom: number; before?: number; tabs?: { type: 'center' | 'right'; pos: number }[]; border?: Borders; size: number };
 type Cell = { width: number; blocks: Block[]; shade?: string; border?: Borders; pad: [number, number, number, number]; vAlign: 'top' | 'center' | 'bottom'; span?: number };
-type Row = { height: number; exact?: boolean; cells: Cell[] }; // 높이는 미리보기에서 잰 값 그대로(exact). 줄 사이 간격도 포함한다.
+type Row = { height: number; cells: Cell[] }; // 높이: 미리보기에서 잰 값(줄 사이 간격 포함)을 Word의 최소 높이로
 type Tbl = { k: 't'; rows: Row[]; width: number; left: number; top: number; bottom: number; before?: number };
 type Block = Para | Tbl;
 type Frame = { left: number; right: number; top: number };
@@ -164,28 +164,6 @@ function fitSpacing(el: Element, style: TextRunModel, text: string, squeeze = 0)
   style.spacing += Math.round(extra * PX);
 }
 
-/*
- * 줄바꿈: Word에 맡기지 않고 브라우저가 실제로 줄을 바꾼 자리에 줄바꿈을 넣는다(글자마다 화면 위치를 재서 줄이 바뀌는 곳을 찾음).
- * paragraph()가 문단마다 lineTop을 비우고 시작한다.
- */
-let lineTop: number | undefined, wrapLines = false;
-function splitAtWraps(node: Text, start: number, text: string): string[] {
-  if (!wrapLines) return [text];
-  const parts: string[] = []; const range = document.createRange(); let from = 0, offset = start;
-  for (let i = 0; i < text.length;) {
-    const size = text.codePointAt(i)! > 0xffff ? 2 : 1;
-    range.setStart(node, offset); range.setEnd(node, offset + size);
-    const rect = [...range.getClientRects()].find(r => r.width > 0 || r.height > 0);
-    if (rect && text[i] !== ' ') {
-      if (lineTop !== undefined && rect.top > lineTop + rect.height * .5) { parts.push(text.slice(from, i).replace(/\s+$/, '')); from = i; }
-      if (lineTop === undefined || rect.top > lineTop + rect.height * .5) lineTop = rect.top;
-    }
-    i += size; offset += size;
-  }
-  parts.push(text.slice(from));
-  return parts;
-}
-
 function collectRuns(node: Node, out: Run[]) {
   if (node.nodeType === Node.TEXT_NODE) {
     const parent = node.parentElement!; const ws = getComputedStyle(parent).whiteSpace;
@@ -198,23 +176,16 @@ function collectRuns(node: Node, out: Run[]) {
       out.push({ t: 'img', el: parent, w: r.width, h: r.height, glyphs: { text: raw.trim(), font: `${pcs.fontStyle} ${pcs.fontWeight} ${pcs.fontSize} ${pcs.fontFamily}`, color: pcs.color, letterSpacing: pcs.letterSpacing === 'normal' ? '0px' : pcs.letterSpacing } });
       return;
     }
-    // 줄(원래 줄바꿈, 브라우저가 바꾼 줄) 단위로 나눈다. 화면에서 이어 붙는 공백은 하나로.
-    let offset = 0;
-    const lines = keepBreaks ? raw.split('\n') : [raw];
+    // 원래 있는 줄바꿈만 옮기고, 나머지 줄바꿈은 Word가 한다(Word에서 글을 고쳐도 자연스럽게 다시 줄이 바뀌도록).
+    const lines = keepBreaks ? raw.split('\n') : [raw.replace(/\s+/g, ' ')];
     lines.forEach((line, i) => {
-      if (i) { out.push({ t: 'br' }); lineTop = undefined; }
-      const pieces = splitAtWraps(node as Text, offset, line);
-      pieces.forEach((piece, j) => {
-        if (j) out.push({ t: 'br', soft: true }); // 브라우저가 바꾼 줄
-        const text = keepBreaks ? piece : piece.replace(/\s+/g, ' ');
-        if (text) { const run = { ...style, text }; fitSpacing(parent, run, text); out.push(run); }
-      });
-      offset += line.length + 1;
+      if (i) out.push({ t: 'br' });
+      if (line) { const run = { ...style, text: line }; fitSpacing(parent, run, line); out.push(run); }
     });
     return;
   }
   if (!(node instanceof Element) || !visible(node)) return;
-  if (node.tagName === 'BR') { out.push({ t: 'br' }); lineTop = undefined; return; }
+  if (node.tagName === 'BR') { out.push({ t: 'br' }); return; }
   if (isMedia(node)) { const r = node.getBoundingClientRect(); out.push({ t: 'img', el: node, w: r.width, h: r.height, ...(/absolute|fixed/.test(getComputedStyle(node).position) ? { abs: { left: r.left, top: r.top } } : {}) }); return; }
   for (const child of node.childNodes) collectRuns(child, out);
 }
@@ -260,10 +231,7 @@ function pseudoRun(el: Element, which: '::before' | '::after'): TextRunModel | u
 function paragraph(el: Element, frame: Frame, nodes?: Node[], align?: Align, given?: Run[]): Para | null {
   const box = contentBox(el), cs = box.cs;
   const size = px(cs.fontSize), lh = cs.lineHeight === 'normal' ? size * 1.4 : px(cs.lineHeight);
-  // 줄바꿈은 미리보기(브라우저)가 실제로 바꾼 자리 그대로: 한글은 글자 단위로 줄이 바뀌어 Word와 다르다.
-  lineTop = undefined; wrapLines = !given && !/nowrap|pre$/.test(cs.whiteSpace);
   const collected = given ?? (() => { const out: Run[] = []; for (const n of nodes ?? el.childNodes) collectRuns(n, out); return out; })();
-  wrapLines = false;
   if (!given && !nodes) { const before = pseudoRun(el, '::before'), after = pseudoRun(el, '::after'); if (before && collected.length) collected.unshift(before); if (after && collected.length) collected.push(after); }
   const runs = trimRuns(collected);
   if (!runs.length) return null;
@@ -279,7 +247,7 @@ function paragraph(el: Element, frame: Frame, nodes?: Node[], align?: Align, giv
   const bullet = bulletOf(cs);
   if (bullet) {
     const style = { ...runStyle(el), color: bullet, text: '• ', weight: 400 };
-    for (let i = runs.length - 1; i >= 0; i--) { const r = runs[i]; if (r.t === 'br' && !r.soft) runs.splice(i + 1, 0, { ...style }); }
+    for (let i = runs.length - 1; i >= 0; i--) if (runs[i].t === 'br') runs.splice(i + 1, 0, { ...style });
     runs.unshift({ ...style });
   }
   for (const r of runs) if (r.t === 'img' && r.abs) r.at = { x: r.abs.left - frame.left, y: r.abs.top - top }; // 화면에서 띄워 둔 그림(하트) → 같은 자리에 띄움
@@ -685,8 +653,8 @@ export async function buildDocx(panels: WordPanel[], title: string, fonts?: Word
       layout: uniform ? d.TableLayoutType.FIXED : d.TableLayoutType.AUTOFIT, columnWidths: uniform ? t.rows[0].cells.map(c => twips(c.width)) : undefined,
       borders: d.TableBorders.NONE, margins: { top: 0, bottom: 0, left: 0, right: 0 },
       rows: t.rows.map(row => { const rise = rowRise(row); return new d.TableRow({
-        // Word는 고정 줄 높이에 칸 위아래 테두리 두께를 더 얹는다 → 그만큼 뺀다.
-        cantSplit: true, height: { value: Math.max(20, twips(row.height - Math.max(0, ...row.cells.map(c => (c.border?.top?.size ?? 0) / 6)) - Math.max(0, ...row.cells.map(c => (c.border?.bottom?.size ?? 0) / 6)))), rule: row.exact === false ? d.HeightRule.ATLEAST : d.HeightRule.EXACT },
+        // 높이는 '최소'로: Word에서 글을 더 쓰면 칸이 늘어난다. Word는 칸 위아래 테두리 두께를 높이에 더 얹으므로 그만큼 뺀다.
+        cantSplit: true, height: { value: Math.max(20, twips(row.height - Math.max(0, ...row.cells.map(c => (c.border?.top?.size ?? 0) / 6)) - Math.max(0, ...row.cells.map(c => (c.border?.bottom?.size ?? 0) / 6)))), rule: d.HeightRule.ATLEAST },
         children: row.cells.map(c => new d.TableCell({
           width: { size: twips(c.width), type: d.WidthType.DXA }, columnSpan: c.span,
           // Word는 고정 줄 높이에 칸 위아래 여백을 더 얹는다 → 위아래 여백은 쓰지 않고, 위쪽은 첫 문단 앞 간격으로 옮긴다.
@@ -749,7 +717,8 @@ export async function buildDocx(panels: WordPanel[], title: string, fonts?: Word
     width: { size: Math.round(panelWidth * 2 * MM), type: d.WidthType.DXA }, layout: d.TableLayoutType.FIXED, columnWidths: [Math.round(panelWidth * MM), Math.round(panelWidth * MM)],
     borders: d.TableBorders.NONE, margins: { top: 0, bottom: 0, left: 0, right: 0 },
     rows: [new d.TableRow({
-      cantSplit: true, height: { value: Math.round(panelHeight * MM), rule: d.HeightRule.EXACT },
+      // 면 높이도 '최소': 내용이 넘치면 Word가 다음 쪽으로 넘긴다(잘라 버리지 않음).
+      cantSplit: true, height: { value: Math.round(panelHeight * MM), rule: d.HeightRule.ATLEAST },
       children: pages.map(page => new d.TableCell({
         width: { size: Math.round(panelWidth * MM), type: d.WidthType.DXA }, borders: none4, verticalAlign: d.VerticalAlign.TOP,
         margins: { top: 0, bottom: 0, left: Math.round(panelPad * MM), right: Math.round(panelPad * MM) },

@@ -39,8 +39,9 @@ test('print preview downloads a two-sheet A4 landscape Word bulletin with the pr
   const xml=unzip(await readFile(await file.path()),'word/document.xml'),text=xml.replace(/<w:br\/>|<\/w:p>/g,'\n').replace(/<[^>]+>/g,'');
   expect(xml.match(/<w:pgSz [^>]*w:orient="landscape"/g)).toHaveLength(2);
   expect(xml).toContain('w:w="16838" w:h="11906"');
-  // 한 장 = 높이 고정(196mm + 1.5mm 여유) 2칸 표 한 줄: 면이 길어져도 옆 면·다음 쪽으로 밀리지 않는다.
-  expect(xml.match(/<w:trHeight w:val="11197" w:hRule="exact"\/>/g)).toHaveLength(2);
+  // 한 장 = 2칸 표 한 줄(면 높이 196mm + 1.5mm 여유, 최소 높이라 Word에서 글을 더 쓰면 늘어난다)
+  expect(xml.match(/<w:trHeight w:val="11197" w:hRule="atLeast"\/>/g)).toHaveLength(2);
+  expect(xml).not.toContain('w:hRule="exact"');
   expect(xml).not.toContain('w:type="column"');
   // 3색 띠에 폭 0인 칸이 없어야 한다.
   expect(xml).not.toContain('<w:gridCol w:w="0"/>');
