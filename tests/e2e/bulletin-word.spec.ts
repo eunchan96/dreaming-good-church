@@ -29,7 +29,7 @@ test('print preview downloads a two-sheet A4 landscape Word bulletin with the pr
   ].map(row=>({id:randomUUID(),bulletin_id:id,kind:'text',content:{},...row})))).error).toBeNull();
   await page.goto('/admin/bulletins');await page.getByLabel('이메일',{exact:true}).fill(email);await page.getByLabel('비밀번호',{exact:true}).fill(password);await page.getByRole('button',{name:'로그인',exact:true}).click();
   await page.getByRole('button',{name:/2189-03-04/}).click();await page.getByRole('button',{name:'수정',exact:true}).click();await page.getByRole('button',{name:'인쇄 미리보기',exact:true}).click();
-  const print=page.getByRole('dialog',{name:'관리자 인쇄 미리보기',exact:true});await expect(print.getByText('워드 파일에 담길 묵상 문장입니다.')).toBeVisible();
+  const print=page.getByRole('dialog',{name:'관리자 인쇄 미리보기',exact:true});await expect(print.getByText('워드 파일에 담길 묵상 문장입니다.')).toBeVisible();await expect(print.getByText('하늘보좌예배').first()).toBeVisible();
   const zoom=await print.getByRole('document',{name:'인쇄 주보'}).evaluate(el=>(el as HTMLElement).style.zoom);
   const download=page.waitForEvent('download');await print.getByRole('button',{name:'Word로 내려받기',exact:true}).click();const file=await download;
   expect(file.suggestedFilename()).toBe('890304 주일 주보.docx');

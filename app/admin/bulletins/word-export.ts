@@ -18,7 +18,7 @@ type Run = TextRunModel | { t: 'br' } | { t: 'tab'; style: TextRunModel } | { t:
 type Align = 'left' | 'center' | 'right' | 'both' | 'distribute';
 type Para = { k: 'p'; runs: Run[]; align: Align; left: number; right: number; line: number; exact: boolean; top: number; bottom: number; before?: number; tabs?: { type: 'center' | 'right'; pos: number }[]; border?: Borders; size: number };
 type Cell = { width: number; blocks: Block[]; shade?: string; border?: Borders; pad: [number, number, number, number]; vAlign: 'top' | 'center' | 'bottom'; span?: number };
-type Row = { height: number; exact?: boolean; cells: Cell[] };
+type Row = { height: number; exact?: boolean; cells: Cell[] }; // 높이는 미리보기에서 잰 값 그대로(exact). 줄 사이 간격도 포함한다.
 type Tbl = { k: 't'; rows: Row[]; width: number; left: number; top: number; bottom: number; before?: number };
 type Block = Para | Tbl;
 type Frame = { left: number; right: number; top: number };
@@ -89,6 +89,7 @@ function hasBlockChild(el: Element): boolean {
     if (!visible(child)) continue;
     const d = getComputedStyle(child).display;
     if (d === 'contents') { if (hasBlockChild(child)) return true; continue; }
+    if (isMedia(child) && /absolute|fixed/.test(getComputedStyle(child).position)) continue; // 글자 위에 띄운 그림(하트)은 글줄에 붙인다
     if (!isInlineDisplay(d)) return true;
     if (!isMedia(child) && hasBlockChild(child)) return true;
   }
@@ -187,9 +188,11 @@ function paragraph(el: Element, frame: Frame, nodes?: Node[], align?: Align, giv
   const bar = accentBar(el); if (bar) border.left = bar;
   // Word 글꼴(맑은 고딕)은 화면 글꼴보다 넓을 수 있어, 정렬 반대쪽 여백은 비워 줄바꿈을 막는다.
   // 가운데 정렬은 가운데 위치를 지키면서 양쪽에 여유를 둔다.
-  const a = align ?? alignOf(cs), slack = a === 'center' ? Math.max(8, (box.right - box.left) * .3) : 0;
+  const a = align ?? alignOf(cs), L = Math.max(0, (bullet ? box.rect.left : box.left) - frame.left), R = Math.max(0, frame.right - box.right);
+  const slack = a === 'center' ? Math.min(Math.max(8, (box.right - box.left) * .3), L, R) : 0; // 양쪽 같은 만큼만 → 가운데 위치 유지
+  const lined = Object.keys(border).length > 0; // 밑줄·테두리가 있는 문단은 화면 폭 그대로(선 길이 유지)
   return {
-    k: 'p', runs, align: a, left: a === 'right' ? 0 : Math.max(0, (bullet ? box.rect.left : box.left) - frame.left - slack), right: a === 'left' || a === 'both' ? 0 : Math.max(0, frame.right - box.right - slack),
+    k: 'p', runs, align: a, left: a === 'right' && !lined ? 0 : L - slack, right: (a === 'left' || a === 'both') && !lined ? 0 : (lined ? Math.max(0, frame.right - box.rect.right) : R - slack),
     line: lh, exact: !hasImage, top: box.top, bottom: box.bottom, border: Object.keys(border).length ? border : undefined, size,
   };
 }
@@ -259,7 +262,7 @@ function children(el: Element, frame: Frame): Block[] {
     if (node.nodeType === Node.TEXT_NODE) { loose.push(node); continue; }
     if (!(node instanceof Element) || !visible(node)) continue;
     const d = getComputedStyle(node).display;
-    if ((isInlineDisplay(d) && d !== 'contents' && !hasBlockChild(node)) || node.tagName === 'BR') { loose.push(node); continue; }
+    if ((isInlineDisplay(d) && d !== 'contents' && !hasBlockChild(node)) || node.tagName === 'BR' || (isMedia(node) && /absolute|fixed/.test(getComputedStyle(node).position))) { loose.push(node); continue; }
     flushLoose();
     out.push(...walk(node, frame));
   }
@@ -309,7 +312,8 @@ function pseudoText(el: Element): { text: string; cs: CSSStyleDeclaration } | un
 }
 function layoutTable(el: Element, frame: Frame): Tbl {
   const box = contentBox(el), kids = [...el.children].filter(visible), before = pseudoText(el);
-  const rows = groupRows(kids).map((row, rowIndex) => {
+  const grouped = groupRows(kids);
+  const rows = grouped.map((row, rowIndex) => {
     const lead = rowIndex === 0 && before && row.columns[0].left - box.left > 2 ? before : undefined;
     const edges = [box.left, ...row.columns.slice(lead ? 0 : 1).map(c => c.left), box.right];
     const leadCell: Cell[] = lead ? [(() => {
@@ -319,7 +323,7 @@ function layoutTable(el: Element, frame: Frame): Tbl {
     })()] : [];
     const offset = lead ? 1 : 0;
     return {
-      height: row.bottom - row.top,
+      height: (grouped[rowIndex + 1]?.top ?? row.bottom) - row.top,
       cells: [...leadCell, ...row.columns.map((column, j): Cell => { const i = j + offset;
         const cellLeft = edges[i], cellRight = Math.max(edges[i + 1], cellLeft + 4), top = column.items[0].r.top;
         const blocks = column.items.flatMap(item => walk(item.el, { left: column.left, right: cellRight, top: item.r.top }));
@@ -349,10 +353,11 @@ function boxTable(el: Element, cs: CSSStyleDeclaration, frame: Frame): Tbl {
 
 function htmlTable(table: HTMLTableElement, frame: Frame): Tbl {
   const r = table.getBoundingClientRect();
-  const rows = [...table.rows].filter(visible).map(tr => {
+  const trs = [...table.rows].filter(visible);
+  const rows = trs.map((tr, index) => {
     const trBg = colorOf(getComputedStyle(tr).backgroundColor), tr_r = tr.getBoundingClientRect();
     return {
-      height: tr_r.height,
+      height: (trs[index + 1]?.getBoundingClientRect().top ?? tr_r.bottom) - tr_r.top,
       cells: [...tr.cells].filter(visible).map((td): Cell => {
         const cs = getComputedStyle(td), box = contentBox(td);
         return {
@@ -371,12 +376,13 @@ function orderTable(rows: Element[], frame: Frame): Tbl {
   const first = rows[0].getBoundingClientRect(), last = rows[rows.length - 1].getBoundingClientRect();
   return {
     k: 't', left: Math.max(0, first.left - frame.left), width: first.width, top: first.top, bottom: last.bottom,
-    rows: rows.map(row => {
+    rows: rows.map((row, index) => {
       const rr = row.getBoundingClientRect(), rcs = getComputedStyle(row), rowBorder = bordersOf(rcs);
+      const height = (rows[index + 1]?.getBoundingClientRect().top ?? rr.bottom) - rr.top;
       const kids = [...row.children].filter(visible);
       const edges = [rr.left, ...kids.slice(1).map(k => k.getBoundingClientRect().left), rr.right];
       return {
-        height: rr.height, exact: true,
+        height,
         cells: kids.map((kid, i): Cell => {
           const kr = kid.getBoundingClientRect(), width = Math.max(4, edges[i + 1] - edges[i]);
           const cellFrame = { left: edges[i], right: edges[i] + width, top: kr.top };
@@ -425,10 +431,7 @@ export function measurePanels(root: HTMLElement): WordPanel[] {
       if (!body) return { page, blocks: [] };
       const box = contentBox(body);
       const frame = { left: box.left, right: box.right, top: box.top };
-      // 큰 빈 공간(예: 4면 아래 교회 안내 앞)은 10% 줄여, Word에서 조금 길어져도 아래가 잘리지 않게 한다.
-      const blocks = stack(children(body, frame), box.top);
-      blocks.forEach(b => { if ((b.before ?? 0) > 40) b.before = b.before! * .9; });
-      return { page, blocks };
+      return { page, blocks: stack(children(body, frame), box.top) };
     });
   } finally { if (zoomed) zoomed.style.zoom = zoom; }
 }
@@ -506,7 +509,7 @@ export async function buildDocx(panels: WordPanel[], title: string): Promise<Blo
       ...browserLike, children, alignment: alignment[p.align],
       indent: { left: twips(p.left), right: twips(p.right) },
       spacing: { before: twips(p.before ?? 0), after: 0, ...(p.exact ? { line: Math.max(20, twips(p.line)), lineRule: d.LineRuleType.EXACT } : { line: 240, lineRule: d.LineRuleType.AUTO }) },
-      tabStops: p.tabs?.map(t => ({ type: t.type === 'center' ? d.TabStopType.CENTER : d.TabStopType.RIGHT, position: Math.min(twips(width), twips(t.pos)), leader: d.LeaderType.DOT })),
+      tabStops: p.tabs?.map(t => ({ type: t.type === 'center' ? d.TabStopType.CENTER : d.TabStopType.RIGHT, position: Math.min(twips(width), twips(t.pos)), leader: d.LeaderType.MIDDLE_DOT })),
       border: p.border ? { top: border(p.border.top), bottom: border(p.border.bottom), left: border(p.border.left), right: border(p.border.right) } : undefined,
     });
   }
@@ -519,7 +522,7 @@ export async function buildDocx(panels: WordPanel[], title: string): Promise<Blo
       layout: uniform ? d.TableLayoutType.FIXED : d.TableLayoutType.AUTOFIT, columnWidths: uniform ? t.rows[0].cells.map(c => twips(c.width)) : undefined,
       borders: d.TableBorders.NONE, margins: { top: 0, bottom: 0, left: 0, right: 0 },
       rows: t.rows.map(row => new d.TableRow({
-        cantSplit: true, height: { value: Math.max(20, twips(row.height)), rule: row.exact ? d.HeightRule.EXACT : d.HeightRule.ATLEAST },
+        cantSplit: true, height: { value: Math.max(20, twips(row.height)), rule: row.exact === false ? d.HeightRule.ATLEAST : d.HeightRule.EXACT },
         children: row.cells.map(c => new d.TableCell({
           width: { size: twips(c.width), type: d.WidthType.DXA }, columnSpan: c.span,
           margins: { top: twips(c.pad[0]), right: twips(c.pad[1]), bottom: twips(c.pad[2]), left: twips(c.pad[3]) },
