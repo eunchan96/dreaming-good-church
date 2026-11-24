@@ -385,6 +385,7 @@ function pseudoText(el: Element): { text: string; cs: CSSStyleDeclaration } | un
 }
 function layoutTable(el: Element, frame: Frame): Tbl {
   const box = contentBox(el), kids = [...el.children].filter(visible), before = pseudoText(el);
+  const centredRow = getComputedStyle(el).justifyContent === 'center';
   const grouped = groupRows(kids);
   const rows = grouped.map((row, rowIndex) => {
     const rowTop = rowIndex === 0 ? Math.min(box.top, row.top) : row.top, rowBottom = grouped[rowIndex + 1]?.top ?? Math.max(box.bottom, row.bottom);
@@ -403,10 +404,15 @@ function layoutTable(el: Element, frame: Frame): Tbl {
       height: rowBottom - rowTop,
       cells: [...leadCell, ...cols.map((column, k): Cell => { const i = k + offset;
         const cellLeft = edges[i], cellRight = Math.max(edges[i + 1], cellLeft + 4);
-        const blocks = column.items.flatMap(item => walk(item.el, { left: column.left, right: cellRight, top: item.r.top }));
-        // 칸 하나짜리 항목의 선은 Word 칸 테두리로(문단 옆 선은 Word가 좁은 칸에서 그리지 않는다).
+        // 칸 하나짜리 항목의 선은 Word 칸 테두리로(문단 옆 선은 Word가 좁은 칸에서 그리지 않는다). 항목 자체는 다시 상자로 감싸지 않는다(선이 두 겹이 됨).
+        const own = (el: Element) => lines[k] && !backgroundOf(getComputedStyle(el));
+        const blocks = column.items.flatMap(item => own(item.el) ? inner(item.el, { left: column.left, right: cellRight, top: item.r.top }) : walk(item.el, { left: column.left, right: cellRight, top: item.r.top }));
         const border = lines[k] ? { ...lines[k] } : undefined;
         if (border) for (const b of blocks) if (b.k === 'p') b.border = undefined;
+        // 가운데로 모으는 줄(날개 그림 사이 예배 제목)의 글자는 자기 칸 안 가운데에 둔다(Word 글자 폭이 조금 달라도 가운데 유지).
+        if (centredRow && column.items.length === 1) for (const b of blocks) if (b.k === 'p' && b.align === 'left' && !b.runs.some(r => r.t === 'img')) { b.align = 'center'; b.left = 0; b.right = Math.max(0, cellRight - column.right); }
+        // 칸 위치가 이미 화면 자리이므로, 그림만 있는 문단(날개 그림 등)은 칸 안에서 다시 가운데로 옮기지 않는다.
+        for (const b of blocks) if (b.k === 'p' && b.runs.length && b.runs.every(r => r.t === 'img' && !r.at && !r.behind)) { b.align = 'left'; b.left = 0; b.right = 0; }
         // 칸 안 세로 위치는 칸 위쪽 여백 대신 문단 앞 간격으로(Word가 칸 위쪽 여백을 무시하는 경우가 있다).
         return { width: cellRight - cellLeft, pad: [0, 0, 0, Math.max(0, column.left - cellLeft)], vAlign: 'top', border, blocks: stack(blocks, rowTop) };
       })],
@@ -436,23 +442,41 @@ function boxTable(el: Element, cs: CSSStyleDeclaration, frame: Frame): Tbl {
 function htmlTable(table: HTMLTableElement, frame: Frame): Tbl {
   const r = table.getBoundingClientRect();
   const trs = [...table.rows].filter(visible);
+  type VLine = { x: number; top: number; bottom: number; color: string };
+  const vlines: (VLine | undefined)[][] = [];
   const rows = trs.map((tr, index) => {
     const trBg = colorOf(getComputedStyle(tr).backgroundColor), tr_r = tr.getBoundingClientRect();
+    const tds = [...tr.cells].filter(visible), lines: (VLine | undefined)[] = [];
+    vlines.push(lines);
     return {
       height: (trs[index + 1]?.getBoundingClientRect().top ?? tr_r.bottom) - tr_r.top,
-      cells: [...tr.cells].filter(visible).map((td): Cell => {
-        const cs = getComputedStyle(td), box = contentBox(td);
+      cells: tds.map((td, c): Cell => {
+        const cs = getComputedStyle(td), box = contentBox(td), tr_ = td.getBoundingClientRect();
         const blocks = stack(hasBlockChild(td) || rowLayout(td, cs) ? inner(td, box) : [paragraph(td, box)].filter((p): p is Para => !!p), box.top);
-        const line = partialLine(td, cs), first = blocks[0];
-        if (line && first?.k === 'p') first.runs.push({ t: 'img', el: td, w: line.w, h: line.h, fill: line.color, at: { x: line.left - box.left, y: line.top - first.top } });
+        // 칸 오른쪽 세로선(테두리·배경 선·위를 띄운 배경 선)을 모아 두었다가 아래에서 한 줄로 잇는다.
+        const part = partialLine(td, cs), border = bordersOf(cs);
+        lines[c] = part && part.w <= 2 ? { x: part.left, top: part.top, bottom: part.top + part.h, color: part.color }
+          : border?.right ? { x: tr_.right - border.right.size / 6, top: tr_.top, bottom: (trs[index + 1]?.getBoundingClientRect().top ?? tr_.bottom), color: border.right.color } : undefined;
         return {
-          width: td.getBoundingClientRect().width, shade: colorOf(cs.backgroundColor) ?? trBg, border: bordersOf(cs), span: td.colSpan > 1 ? td.colSpan : undefined,
+          width: tr_.width, shade: colorOf(cs.backgroundColor) ?? trBg, border, span: td.colSpan > 1 ? td.colSpan : undefined,
           pad: [px(cs.paddingTop), px(cs.paddingRight), px(cs.paddingBottom), px(cs.paddingLeft)], vAlign: cs.verticalAlign === 'middle' ? 'center' : cs.verticalAlign === 'bottom' ? 'bottom' : 'top',
           blocks,
         };
       }),
     };
   }).filter(row => row.cells.length);
+  // 같은 열의 세로선은 표 위에서 아래까지 하나의 선(0.5pt)으로: 줄마다 따로 그리면 이음매가 끊겨 보인다.
+  const columns = Math.max(0, ...vlines.map(l => l.length));
+  for (let c = 0; c < columns; c++) {
+    const segs = vlines.map((l, row) => ({ line: l[c], row })).filter((v): v is { line: VLine; row: number } => !!v.line);
+    if (!segs.length) continue;
+    const top = Math.min(...segs.map(v => v.line.top)), bottom = Math.max(...segs.map(v => v.line.bottom)), first = rows[segs[0].row]?.cells[c];
+    const anchor = first?.blocks.find((b): b is Para => b.k === 'p');
+    if (!first || !anchor) continue;
+    for (const v of segs) { const cell = rows[v.row]?.cells[c]; if (cell?.border?.right) cell.border = { ...cell.border, right: undefined }; }
+    const td = trs[segs[0].row].cells[c], box = contentBox(td);
+    anchor.runs.push({ t: 'img', el: td, w: 2 / 3, h: bottom - top, fill: segs[0].line.color, at: { x: segs[0].line.x - box.left, y: top - anchor.top } });
+  }
   return { k: 't', rows, width: r.width, left: Math.max(0, r.left - frame.left), top: r.top, bottom: r.bottom };
 }
 
