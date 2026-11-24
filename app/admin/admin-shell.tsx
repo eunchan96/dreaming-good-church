@@ -83,7 +83,7 @@ export default function AdminShell({ children, intro, active, authenticated = fa
     {authenticated || onLogout ? <footer className={styles.footer} aria-label="관리자 계정">
       <div className={styles.footerInner}>
         <a href="/" target="_blank" rel="noreferrer" className={styles.footerBrand}>
-          <ChurchBrand /><span className={styles.srOnly}> 홈페이지 새 탭에서 열기</span>
+          <ChurchBrand onDark /><span className={styles.srOnly}> 홈페이지 새 탭에서 열기</span>
         </a>
         <div className={styles.footerActions}>
           {authenticated ? <AdminInvitation disabled={busy} /> : null}

@@ -13,8 +13,9 @@ import ChurchContentProvider,{useChurchContent,publicChurchField} from './church
 export function SiteLogo({ onDark = false }: { onDark?: boolean }) {
   return <Image className={styles.siteLogo} src={onDark ? '/brand/church-logo-wide-light.png' : '/brand/church-logo-wide.png'} width={720} height={241} alt="꿈꾸는좋은교회" unoptimized priority={!onDark} />;
 }
-export function ChurchBrand() {
-  return <><Image src="/brand/church-logo-140.png" width={46} height={46} alt="" unoptimized /><span className={styles.brandText}><span>꿈꾸는</span><strong>좋은교회</strong></span></>;
+/** 관리자 화면 로고(같은 새 로고, 크기는 관리자 화면 CSS가 정한다) */
+export function ChurchBrand({ onDark = false }: { onDark?: boolean }) {
+  return <Image src={onDark ? '/brand/church-logo-wide-light.png' : '/brand/church-logo-wide.png'} width={720} height={241} alt="꿈꾸는좋은교회" unoptimized />;
 }
 export default function PublicShell({ children }: { children: ReactNode }) {
   return <ChurchContentProvider><ShellContent>{children}</ShellContent></ChurchContentProvider>;

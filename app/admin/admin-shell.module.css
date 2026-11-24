@@ -31,10 +31,7 @@
 .header { position: sticky; top: 0; z-index: 50; background: #fbfaf7f5; backdrop-filter: blur(18px); border-bottom: 1px solid var(--line); }
 .headerInner { max-width: 1440px; height: var(--header-h); margin: 0 auto; padding: 0 40px; display: flex; align-items: center; gap: 28px; }
 .brand { display: inline-flex; align-items: center; gap: 9px; flex-shrink: 0; color: var(--ink); }
-.brand img { width: 40px; height: 40px; }
-.brand > span:first-of-type { display: flex; flex-direction: column; line-height: 1.2; }
-.brand > span:first-of-type > span { font-size: 11px; letter-spacing: .18em; margin-bottom: 2px; }
-.brand > span:first-of-type strong { font-size: 21px; font-weight: 700; letter-spacing: -.07em; }
+.brand img { display: block; width: auto; height: 46px; }
 .badge { align-self: center; margin-left: 4px; font-size: 11px; font-weight: 600; color: #6f5420; background: #f3ead6; border-radius: 999px; padding: 2px 9px; line-height: 1.6; }
 
 .managementNav { display: flex; align-items: stretch; justify-content: center; gap: 4px; flex: 1; height: 100%; }
@@ -81,10 +78,7 @@
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; column-gap: 12px;
 }
 .footerBrand { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: inherit; }
-.footerBrand img { width: 22px; height: 22px; }
-.footerBrand > span { flex-direction: row; align-items: baseline; gap: 2px; }
-.footerBrand > span > span { font-size: 11px; letter-spacing: 0; margin: 0; }
-.footerBrand > span > strong { font-size: 13px; }
+.footerBrand img { display: block; width: auto; height: 30px; }
 .footerBrand:hover { color: #edcd72; }
 .footerActions { display: flex; flex-wrap: wrap; align-items: center; gap: 0 22px; }
 .footerActions > button {
@@ -126,8 +120,7 @@
 
 @media (max-width: 540px) {
   .badge { display: none; }
-  .brand img { width: 34px; height: 34px; }
-  .brand > span:first-of-type strong { font-size: 19px; }
+  .brand img { height: 40px; }
   .headerActions { gap: 8px; }
   .headerActions > a > span { display: none; }
 }
