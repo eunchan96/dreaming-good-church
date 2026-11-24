@@ -241,8 +241,8 @@ function pseudoRun(el: Element, which: '::before' | '::after'): TextRunModel | u
 function paragraph(el: Element, frame: Frame, nodes?: Node[], align?: Align, given?: Run[]): Para | null {
   const box = contentBox(el), cs = box.cs;
   const size = px(cs.fontSize), lh = cs.lineHeight === 'normal' ? size * 1.4 : px(cs.lineHeight);
-  // 줄바꿈은 Word에 맡긴다(같은 글꼴을 넣어 폭이 같다). 화면 줄바꿈 자리를 옮기면 확대 배율에 따라 단어 중간이 끊긴다.
-  lineTop = undefined; wrapLines = false;
+  // 줄바꿈은 미리보기(브라우저)가 실제로 바꾼 자리 그대로: 한글은 글자 단위로 줄이 바뀌어 Word와 다르다.
+  lineTop = undefined; wrapLines = !given && !/nowrap|pre$/.test(cs.whiteSpace);
   const collected = given ?? (() => { const out: Run[] = []; for (const n of nodes ?? el.childNodes) collectRuns(n, out); return out; })();
   wrapLines = false;
   if (!given && !nodes) { const before = pseudoRun(el, '::before'), after = pseudoRun(el, '::after'); if (before && collected.length) collected.unshift(before); if (after && collected.length) collected.push(after); }
@@ -657,23 +657,42 @@ export async function buildDocx(panels: WordPanel[], title: string, fonts?: Word
       layout: uniform ? d.TableLayoutType.FIXED : d.TableLayoutType.AUTOFIT, columnWidths: uniform ? t.rows[0].cells.map(c => twips(c.width)) : undefined,
       borders: d.TableBorders.NONE, margins: { top: 0, bottom: 0, left: 0, right: 0 },
       rows: t.rows.map(row => new d.TableRow({
-        cantSplit: true, height: { value: Math.max(20, twips(row.height)), rule: row.exact === false ? d.HeightRule.ATLEAST : d.HeightRule.EXACT },
+        // Word는 고정 줄 높이에 칸 위아래 테두리 두께를 더 얹는다 → 그만큼 뺀다.
+        cantSplit: true, height: { value: Math.max(20, twips(row.height - Math.max(0, ...row.cells.map(c => (c.border?.top?.size ?? 0) / 6)) - Math.max(0, ...row.cells.map(c => (c.border?.bottom?.size ?? 0) / 6)))), rule: row.exact === false ? d.HeightRule.ATLEAST : d.HeightRule.EXACT },
         children: row.cells.map(c => new d.TableCell({
           width: { size: twips(c.width), type: d.WidthType.DXA }, columnSpan: c.span,
-          margins: { top: twips(c.pad[0]), right: twips(c.pad[1]), bottom: twips(c.pad[2]), left: twips(c.pad[3]) },
+          // Word는 고정 줄 높이에 칸 위아래 여백을 더 얹는다 → 위아래 여백은 쓰지 않고, 위쪽은 첫 문단 앞 간격으로 옮긴다.
+          margins: { top: 0, right: twips(c.pad[1]), bottom: 0, left: twips(c.pad[3]) },
           verticalAlign: c.vAlign === 'center' ? d.VerticalAlign.CENTER : c.vAlign === 'bottom' ? d.VerticalAlign.BOTTOM : d.VerticalAlign.TOP,
           shading: c.shade ? { type: d.ShadingType.CLEAR, fill: c.shade, color: 'auto' } : undefined,
           borders: { top: border(c.border?.top) ?? none, bottom: border(c.border?.bottom) ?? none, left: border(c.border?.left) ?? none, right: border(c.border?.right) ?? none },
-          children: flow(c.blocks, c.width - c.pad[1] - c.pad[3], true),
+          children: flow(c.vAlign === 'top' && c.pad[0] > 0 && c.blocks.length ? [{ ...c.blocks[0], before: (c.blocks[0].before ?? 0) + c.pad[0] }, ...c.blocks.slice(1)] : c.blocks, c.width - c.pad[1] - c.pad[3], true, c.vAlign === 'center'),
         })),
       })),
     });
   }
-  function flow(blocks: Block[], width: number, inCell = false): (InstanceType<typeof d.Paragraph> | InstanceType<typeof d.Table>)[] {
+  /** 고정 줄 높이 문단에서 Word가 브라우저보다 아래에 두는 양(반쪽 줄 간격, px) */
+  const halfLeading = (b: Para, centred: boolean) => {
+    const tallest = Math.max(0, ...b.runs.map(r => r.t === 'text' ? r.size : r.t === 'tab' ? r.style.size : 0)) / 1.5; // 반포인트 → px
+    const picturesOnly = b.runs.some(r => r.t === 'img' && !r.behind) && !b.runs.some(r => r.t === 'text');
+    return b.exact && !centred && !picturesOnly && tallest ? Math.max(0, (b.line - tallest * (embedded ? 1.448 : 1.33)) / 2) : 0;
+  };
+  /** 표 첫 줄 칸들의 첫 문단이 앞 간격만으로 다 올라가지 못하는 양 → 표 전체를 그만큼 올린다 */
+  const tableLift = (t: Tbl) => Math.max(0, ...(t.rows[0]?.cells ?? []).map(c => { const first = c.blocks[0]; return first?.k === 'p' ? Math.max(0, halfLeading(first, c.vAlign === 'center') - (first.before ?? 0) - (c.vAlign === 'top' ? c.pad[0] : 0)) : 0; }));
+  function flow(blocks: Block[], width: number, inCell = false, centred = false, startCarry = 0): (InstanceType<typeof d.Paragraph> | InstanceType<typeof d.Table>)[] {
     const out: (InstanceType<typeof d.Paragraph> | InstanceType<typeof d.Table>)[] = [];
-    for (const b of blocks) {
-      if (b.k === 'p') out.push(para(b, width));
-      else { if ((b.before ?? 0) >= 1 || out.at(-1) instanceof d.Table) out.push(spacer(Math.max(0.2, b.before ?? 0))); out.push(table(b)); }
+    let carry = startCarry;
+    for (let b of blocks) {
+      if (b.k === 'p') {
+        // 고정 줄 높이에서 Word는 남는 줄 간격을 모두 글자 위에 두고, 브라우저는 위아래로 반씩 나눈다.
+        // → 이 문단을 반쪽 간격만큼 올리고(앞 간격에서 빼고), 뺀 만큼은 다음 덩어리 앞에 돌려준다. 가운데 정렬 칸은 Word가 이미 가운데에 둔다.
+        const half = halfLeading(b, centred);
+        const available = (b.before ?? 0) + carry, shift = Math.min(half, available);
+        out.push(para({ ...b, before: available - shift }, width)); carry = shift;
+        continue;
+      }
+      { const available = (b.before ?? 0) + carry, shift = Math.min(tableLift(b), available); b = { ...b, before: available - shift }; carry = shift; }
+      if ((b.before ?? 0) >= 1 || out.at(-1) instanceof d.Table) out.push(spacer(Math.max(0.2, b.before ?? 0))); out.push(table(b));
     }
     // Word 표 칸은 문단으로 끝나야 한다.
     if (inCell && (!out.length || out.at(-1) instanceof d.Table)) out.push(spacer(0.2));
@@ -684,9 +703,11 @@ export async function buildDocx(panels: WordPanel[], title: string, fonts?: Word
    * 옆 면·다음 쪽으로 밀리지 않는다(단·단 나누기를 쓰면 몇 mm 차이로 전체가 밀린다).
    * 시트: 297×210mm, 안쪽 여백 7mm(위아래)·6mm(좌우), 면마다 좌우 5mm 여백.
    */
-  const panelWidth = 142.5, panelPad = 5, panelHeight = 196, contentPx = (panelWidth - panelPad * 2) * 3.7795;
+  const panelWidth = 142.5, panelPad = 5, panelHeight = 197.5 /* 196mm + 맨 아래 글자 꼬리 여유(쪽 아래 여백 안) */, contentPx = (panelWidth - panelPad * 2) * 3.7795;
   const none4 = { top: none, bottom: none, left: none, right: none };
-  const sheet = (pages: WordPanel[]) => new d.Table({
+  /** 면 맨 위 덩어리가 올라가야 하는 양(위로 올릴 앞 간격이 없을 때) */
+  const topLift = (page: WordPanel) => { const first = page.blocks[0]; if (!first) return 0; return Math.max(0, (first.k === 'p' ? halfLeading(first, false) : tableLift(first)) - (first.before ?? 0)); };
+  const sheet = (pages: WordPanel[], lift: number) => new d.Table({
     width: { size: Math.round(panelWidth * 2 * MM), type: d.WidthType.DXA }, layout: d.TableLayoutType.FIXED, columnWidths: [Math.round(panelWidth * MM), Math.round(panelWidth * MM)],
     borders: d.TableBorders.NONE, margins: { top: 0, bottom: 0, left: 0, right: 0 },
     rows: [new d.TableRow({
@@ -694,18 +715,21 @@ export async function buildDocx(panels: WordPanel[], title: string, fonts?: Word
       children: pages.map(page => new d.TableCell({
         width: { size: Math.round(panelWidth * MM), type: d.WidthType.DXA }, borders: none4, verticalAlign: d.VerticalAlign.TOP,
         margins: { top: 0, bottom: 0, left: Math.round(panelPad * MM), right: Math.round(panelPad * MM) },
-        children: flow(page.blocks, contentPx, true),
+        children: flow(page.blocks, contentPx, true, false, lift), // 쪽 위 여백을 lift만큼 줄였으니 그만큼 되돌려 받는다
       })),
     })],
   });
   // 표 뒤에 Word가 요구하는 빈 문단은 아주 낮게(빈 쪽이 생기지 않도록).
   const tail = () => new d.Paragraph({ ...browserLike, children: [new d.TextRun({ text: '', size: 2 })], spacing: { before: 0, after: 0, line: 20, lineRule: d.LineRuleType.EXACT } });
-  const section = (pages: WordPanel[]) => ({
-    properties: {
-      page: { size: { width: 11906, height: 16838, orientation: d.PageOrientation.LANDSCAPE }, margin: { top: Math.round(7 * MM), bottom: Math.round(5 * MM), left: Math.round(6 * MM), right: Math.round(6 * MM), header: 0, footer: 0, gutter: 0 } },
-    },
-    children: [sheet(pages), tail()],
-  });
+  const section = (pages: WordPanel[]) => {
+    const lift = Math.max(...pages.map(topLift)); // 두 면 중 맨 위가 더 올라가야 하는 만큼 쪽 위 여백을 줄인다
+    return {
+      properties: {
+        page: { size: { width: 11906, height: 16838, orientation: d.PageOrientation.LANDSCAPE }, margin: { top: Math.round(7 * MM - lift * PX), bottom: Math.round(5 * MM), left: Math.round(6 * MM), right: Math.round(6 * MM), header: 0, footer: 0, gutter: 0 } },
+      },
+      children: [sheet(pages, lift), tail()],
+    };
+  };
   const byPage = (n: number) => panels.find(p => p.page === n) ?? { page: n, blocks: [] };
   const doc = new d.Document({
     title, creator: '꿈꾸는좋은교회',
