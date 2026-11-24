@@ -21,7 +21,7 @@ type TextRunModel = { t: 'text'; text: string; size: number; weight: number; ita
 type Glyphs = { text: string; font: string; color: string; letterSpacing: string };
 type Run = TextRunModel | { t: 'br' } | { t: 'tab'; style: TextRunModel } | { t: 'img'; el: Element; w: number; h: number; glyphs?: Glyphs; behind?: boolean; abs?: { left: number; top: number }; at?: { x: number; y: number }; fill?: string };
 type Align = 'left' | 'center' | 'right' | 'both' | 'distribute';
-type Para = { k: 'p'; runs: Run[]; align: Align; left: number; right: number; line: number; exact: boolean; top: number; bottom: number; before?: number; tabs?: { type: 'center' | 'right'; pos: number }[]; border?: Borders; size: number };
+type Para = { k: 'p'; runs: Run[]; align: Align; left: number; right: number; line: number; exact: boolean; top: number; bottom: number; before?: number; tabs?: { type: 'left' | 'center' | 'right'; pos: number }[]; border?: Borders; size: number };
 type Cell = { width: number; blocks: Block[]; shade?: string; border?: Borders; pad: [number, number, number, number]; vAlign: 'top' | 'center' | 'bottom'; span?: number };
 type Row = { height: number; cells: Cell[] }; // 높이: 미리보기에서 잰 값(줄 사이 간격 포함)을 Word의 최소 높이로
 type Tbl = { k: 't'; rows: Row[]; width: number; left: number; top: number; bottom: number; before?: number };
@@ -504,7 +504,11 @@ function orderTable(rows: Element[], frame: Frame): Tbl {
             const runs: Run[] = [{ t: 'tab', style }];
             if (text.length) { for (const t of text) collectRuns(t, runs); runs.push({ t: 'tab', style }); }
             const cs = getComputedStyle(kid), lh = cs.lineHeight === 'normal' ? px(cs.fontSize) * 1.4 : px(cs.lineHeight);
-            blocks = [{ k: 'p', runs: trimRuns(runs), align: 'left', left: 0, right: 0, line: lh, exact: true, top: kr.top, bottom: kr.bottom, size: px(cs.fontSize), tabs: text.length ? [{ type: 'center', pos: width / 2 }, { type: 'right', pos: width - 1 }] : [{ type: 'right', pos: width - 1 }] }];
+            // 가운데 글자: 점선 사이 가운데면 가운데 탭, 여러 줄이 같은 자리에서 시작하도록 놓였으면 그 자리의 왼쪽 탭.
+            const tr = text.length ? text[0].getBoundingClientRect() : undefined, from = tr ? tr.left - edges[i] : 0;
+            const centred = !tr || Math.abs(tr.left + tr.width / 2 - (kr.left + kr.width / 2)) < 2;
+            const middle = centred ? { type: 'center' as const, pos: width / 2 } : { type: 'left' as const, pos: from };
+            blocks = [{ k: 'p', runs: trimRuns(runs), align: 'left', left: 0, right: 0, line: lh, exact: true, top: kr.top, bottom: kr.bottom, size: px(cs.fontSize), tabs: text.length ? [middle, { type: 'right', pos: width - 1 }] : [{ type: 'right', pos: width - 1 }] }];
           } else blocks = stack(walk(kid, cellFrame), kr.top);
           return { width, pad: [0, 0, 0, Math.max(0, kr.left - edges[i])], vAlign: 'center', border: rowBorder ? { bottom: rowBorder.bottom, top: rowBorder.top } : undefined, blocks };
         }),
@@ -664,7 +668,7 @@ export async function buildDocx(panels: WordPanel[], title: string, fonts?: Word
       ...(pictures && !p.runs.some(r => r.t === 'text') ? { run: { size: 2 } } : {}),
       indent: { left: twips(p.left), right: twips(p.right) },
       spacing: { before: twips(p.before ?? 0), after: 0, ...(p.exact && !pictures ? { line: Math.max(2, twips(p.line)), lineRule: d.LineRuleType.EXACT } : { line: 240, lineRule: d.LineRuleType.AUTO }) },
-      tabStops: p.tabs?.map(t => ({ type: t.type === 'center' ? d.TabStopType.CENTER : d.TabStopType.RIGHT, position: Math.min(twips(width), twips(t.pos)), leader: d.LeaderType.MIDDLE_DOT })),
+      tabStops: p.tabs?.map(t => ({ type: t.type === 'center' ? d.TabStopType.CENTER : t.type === 'left' ? d.TabStopType.LEFT : d.TabStopType.RIGHT, position: Math.min(twips(width), twips(t.pos)), leader: d.LeaderType.MIDDLE_DOT })),
       border: p.border ? { top: border(p.border.top), bottom: border(p.border.bottom), left: border(p.border.left), right: border(p.border.right) } : undefined,
     });
   }
