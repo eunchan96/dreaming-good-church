@@ -5,16 +5,21 @@
  * 쪽: A4 가로 2단. 1쪽 = 바깥면(4면 | 1면), 2쪽 = 안쪽면(2면 | 3면).
  */
 import paper from './paper.module.css';
+import { makeBrowserClient } from '@/lib/bulletin-store';
 
 const PX = 15; // 1px(=0.75pt) → 15 twips
 const twips = (px: number) => Math.max(0, Math.round(px * PX));
 const MM = 56.6929; // 1mm → twips
-const SANS = 'Malgun Gothic', SERIF = 'Batang';
+/** 글꼴: 미리보기와 같은 Noto Sans KR을 파일에 넣는다(embedded). 넣지 못하면 맑은 고딕으로 열리고 폭만 보정한다. */
+const NOTO = 'Noto Sans KR', NOTO_SEMIBOLD = 'Noto Sans KR SemiBold', MALGUN = 'Malgun Gothic', BATANG = 'Batang';
+let embedded = false;
 
-type Side = { color: string; size: number; style: 'single' | 'dashed' | 'dotted' | 'double' };
+type Side = { color: string; size: number; style: 'single' | 'dashed' | 'dotted' | 'double'; space?: number };
 type Borders = Partial<Record<'top' | 'bottom' | 'left' | 'right', Side>>;
-type TextRunModel = { t: 'text'; text: string; size: number; bold: boolean; italic: boolean; underline: boolean; color: string; serif: boolean; spacing: number; shade?: string };
-type Run = TextRunModel | { t: 'br' } | { t: 'tab'; style: TextRunModel } | { t: 'img'; el: Element; w: number; h: number };
+type TextRunModel = { t: 'text'; text: string; size: number; weight: number; italic: boolean; underline: boolean; color: string; serif: boolean; spacing: number; shade?: string };
+/** 그림: 화면의 img/svg, 또는 글자를 그대로 그린 그림(로고 글씨) */
+type Glyphs = { text: string; font: string; color: string; letterSpacing: string };
+type Run = TextRunModel | { t: 'br' } | { t: 'tab'; style: TextRunModel } | { t: 'img'; el: Element; w: number; h: number; glyphs?: Glyphs; behind?: boolean };
 type Align = 'left' | 'center' | 'right' | 'both' | 'distribute';
 type Para = { k: 'p'; runs: Run[]; align: Align; left: number; right: number; line: number; exact: boolean; top: number; bottom: number; before?: number; tabs?: { type: 'center' | 'right'; pos: number }[]; border?: Borders; size: number };
 type Cell = { width: number; blocks: Block[]; shade?: string; border?: Borders; pad: [number, number, number, number]; vAlign: 'top' | 'center' | 'bottom'; span?: number };
@@ -99,30 +104,30 @@ function hasBlockChild(el: Element): boolean {
 function runStyle(el: Element): TextRunModel {
   const cs = getComputedStyle(el);
   return {
-    t: 'text', text: '', size: Math.max(2, Math.round(px(cs.fontSize) * 1.5)), bold: Number(cs.fontWeight) >= 600, italic: cs.fontStyle === 'italic',
+    t: 'text', text: '', size: Math.max(2, Math.round(px(cs.fontSize) * 1.5)), weight: Number(cs.fontWeight) || 400, italic: cs.fontStyle === 'italic',
     underline: cs.textDecorationLine.includes('underline'), color: colorOf(cs.color) ?? '342B25', serif: /serif/i.test(cs.fontFamily) && !/sans/i.test(cs.fontFamily.split(',')[0]),
     spacing: cs.letterSpacing === 'normal' ? 0 : Math.round(px(cs.letterSpacing) * PX), shade: isInlineDisplay(cs.display) ? colorOf(cs.backgroundColor) : undefined,
   };
 }
 
 /*
- * 글꼴 폭 맞추기: Word는 맑은 고딕(화면의 Noto Sans KR보다 약 6% 넓음)으로 열린다.
- * 글자 조각마다 두 글꼴의 폭을 재서, 차이만큼 Word 글자 간격을 줄여 줄바꿈 위치를 미리보기와 같게 한다.
+ * 글자 폭 맞추기. Word 글자 크기는 0.5pt 단위라 반올림만큼 폭이 달라지고(예: 7.81pt → 8pt),
+ * Noto Sans KR을 넣지 못한 경우엔 맑은 고딕(약 6% 넓음)으로 열린다. 글자 조각마다 폭 차이를 재서 Word 글자 간격으로 보정한다.
  */
-let ruler: CanvasRenderingContext2D | null = null, wordFontReady: boolean | undefined;
+let ruler: CanvasRenderingContext2D | null = null, malgunReady: boolean | undefined;
 function measure(font: string, text: string) { ruler ??= document.createElement('canvas').getContext('2d'); ruler!.font = font; return ruler!.measureText(text).width; }
-function hasWordFont() {
-  if (wordFontReady === undefined) { const probe = '가나다라마바사 abc 123'; wordFontReady = measure(`40px "${SANS}", monospace`, probe) !== measure('40px monospace', probe); }
-  return wordFontReady;
+function hasMalgun() {
+  if (malgunReady === undefined) { const probe = '가나다라마바사 abc 123'; malgunReady = measure(`40px "${MALGUN}", monospace`, probe) !== measure('40px monospace', probe); }
+  return malgunReady;
 }
 function fitSpacing(el: Element, style: TextRunModel, text: string, squeeze = 0) {
   const chars = [...text].length; if (!chars) return;
-  const cs = getComputedStyle(el), base = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize}`;
-  const screen = measure(`${base} ${cs.fontFamily}`, text);
-  const word = hasWordFont() ? measure(`${base} "${style.serif ? SERIF : SANS}"`, text) : screen * 1.063;
-  // 글자당 px(음수 = 좁히기). Word 줄 맞춤 오차에 대비해 조금 더 좁히고, 줄바꿈 금지(nowrap) 글자는 더 여유를 둔다.
-  const nowrap = /nowrap|pre$/.test(cs.whiteSpace) ? .3 : 0;
-  const extra = Math.max(-2.4, Math.min(1.5, (screen - word) / chars - .12 - nowrap - squeeze));
+  const cs = getComputedStyle(el), base = `${cs.fontStyle} ${cs.fontWeight}`, size = px(cs.fontSize), wordSize = style.size / 1.5;
+  const screen = measure(`${base} ${size}px ${cs.fontFamily}`, text);
+  const word = embedded ? screen * wordSize / size : hasMalgun() ? measure(`${base} ${wordSize}px "${style.serif ? BATANG : MALGUN}"`, text) : screen * wordSize / size * 1.063;
+  // 글자당 px(음수 = 좁히기). 같은 글꼴이면 아주 작은 여유만, 다른 글꼴이면 Word 줄 맞춤 오차와 줄바꿈 금지(nowrap) 글자에 여유를 더 둔다.
+  const nowrap = /nowrap|pre$/.test(cs.whiteSpace) ? (embedded ? .05 : .3) : 0;
+  const extra = Math.max(-2.4, Math.min(1.5, (screen - word) / chars - (embedded ? .02 : .12) - nowrap - squeeze));
   style.spacing += Math.round(extra * PX);
 }
 
@@ -132,6 +137,12 @@ function collectRuns(node: Node, out: Run[]) {
     const keepBreaks = /pre|break-spaces/.test(ws);
     const raw = (node.textContent ?? '').replace(/ /g, ' ');
     const style = runStyle(parent);
+    if (style.serif && raw.trim()) {
+      // 명조 로고 글씨(좋은교회)는 글꼴을 넣지 않고, 화면 글꼴로 그린 그림으로 옮긴다.
+      const range = document.createRange(); range.selectNodeContents(node); const r = range.getBoundingClientRect(), pcs = getComputedStyle(parent);
+      out.push({ t: 'img', el: parent, w: r.width, h: r.height, glyphs: { text: raw.trim(), font: `${pcs.fontStyle} ${pcs.fontWeight} ${pcs.fontSize} ${pcs.fontFamily}`, color: pcs.color, letterSpacing: pcs.letterSpacing === 'normal' ? '0px' : pcs.letterSpacing } });
+      return;
+    }
     const parts = keepBreaks ? raw.split('\n') : [raw.replace(/\s+/g, ' ')];
     parts.forEach((part, i) => { if (i) out.push({ t: 'br' }); if (part) { const run = { ...style, text: part }; fitSpacing(parent, run, part); out.push(run); } });
     return;
@@ -179,12 +190,14 @@ function paragraph(el: Element, frame: Frame, nodes?: Node[], align?: Align, giv
   const size = px(cs.fontSize), lh = cs.lineHeight === 'normal' ? size * 1.4 : px(cs.lineHeight);
   const bullet = bulletOf(cs);
   if (bullet) {
-    const style = { ...runStyle(el), color: bullet, text: '• ', bold: false };
+    const style = { ...runStyle(el), color: bullet, text: '• ', weight: 400 };
     for (let i = runs.length - 1; i >= 0; i--) if (runs[i].t === 'br') runs.splice(i + 1, 0, { ...style });
     runs.unshift({ ...style });
   }
-  const hasImage = runs.some(r => r.t === 'img');
+  const imageHeight = Math.max(0, ...runs.map(r => r.t === 'img' ? r.h : 0));
   const border = bordersOf(cs) ?? {};
+  // 선과 글자 사이 간격 = 화면의 안쪽 여백(pt)
+  for (const [key, name] of [['top', 'Top'], ['bottom', 'Bottom'], ['left', 'Left'], ['right', 'Right']] as const) if (border[key]) border[key] = { ...border[key]!, space: Math.min(31, px(cs.getPropertyValue(`padding-${name.toLowerCase()}`)) * .75) };
   const bar = accentBar(el); if (bar) border.left = bar;
   // Word 글꼴(맑은 고딕)은 화면 글꼴보다 넓을 수 있어, 정렬 반대쪽 여백은 비워 줄바꿈을 막는다.
   // 가운데 정렬은 가운데 위치를 지키면서 양쪽에 여유를 둔다.
@@ -193,7 +206,7 @@ function paragraph(el: Element, frame: Frame, nodes?: Node[], align?: Align, giv
   const lined = Object.keys(border).length > 0; // 밑줄·테두리가 있는 문단은 화면 폭 그대로(선 길이 유지)
   return {
     k: 'p', runs, align: a, left: a === 'right' && !lined ? 0 : L - slack, right: (a === 'left' || a === 'both') && !lined ? 0 : (lined ? Math.max(0, frame.right - box.rect.right) : R - slack),
-    line: lh, exact: !hasImage, top: box.top, bottom: box.bottom, border: Object.keys(border).length ? border : undefined, size,
+    line: Math.max(lh, imageHeight + 1), exact: true, top: box.top, bottom: box.bottom, border: Object.keys(border).length ? border : undefined, size,
   };
 }
 
@@ -211,6 +224,8 @@ function walk(el: Element, frame: Frame): Block[] {
   const marker = listMarker(el, cs);
   if (marker) return [markerTable(el, cs, marker, frame)];
   if (decorated(el, cs)) return [boxTable(el, cs, frame)];
+  // 한쪽에만 선이 있는 묶음(칸 사이 세로선, 항목 사이 가로선)도 선을 살리려고 상자로 둔다. 글줄 하나면 문단 테두리로 충분하다.
+  if (bordersOf(cs) && (hasBlockChild(el) || rowLayout(el, cs))) return [boxTable(el, cs, frame)];
   return inner(el, frame);
 }
 
@@ -318,7 +333,7 @@ function layoutTable(el: Element, frame: Frame): Tbl {
     const edges = [box.left, ...row.columns.slice(lead ? 0 : 1).map(c => c.left), box.right];
     const leadCell: Cell[] = lead ? [(() => {
       const size = px(lead.cs.fontSize), lh = lead.cs.lineHeight === 'normal' ? size * 1.4 : px(lead.cs.lineHeight);
-      const style: TextRunModel = { ...runStyle(el), text: lead.text, color: colorOf(lead.cs.color) ?? '342B25', size: Math.round(size * 1.5), bold: Number(lead.cs.fontWeight) >= 600 };
+      const style: TextRunModel = { ...runStyle(el), text: lead.text, color: colorOf(lead.cs.color) ?? '342B25', size: Math.round(size * 1.5), weight: Number(lead.cs.fontWeight) || 400 };
       return { width: edges[1] - edges[0], pad: [0, 0, 0, 0], vAlign: 'top', blocks: [{ k: 'p', runs: [style], align: 'left', left: 0, right: 0, line: lh, exact: true, top: row.top, bottom: row.top + lh, size }] } satisfies Cell;
     })()] : [];
     const offset = lead ? 1 : 0;
@@ -341,12 +356,10 @@ function boxTable(el: Element, cs: CSSStyleDeclaration, frame: Frame): Tbl {
   const content = stack(inner(el, { left: box.left, right: box.right, top: box.top }), box.top);
   const border = bordersOf(cs), segments = !colorOf(cs.backgroundColor) ? fullGradient(cs) : undefined;
   if (segments && segments.length > 1) {
-    // 3색 띠: 글자는 첫 칸, 나머지는 색만 칠한 칸. 글자가 첫 칸보다 길면(좁은 칸) 첫 칸을 넓힌다.
-    const widths = segments.map((s, i) => (s.until - (i ? segments[i - 1].until : 0)) * r.width);
-    const range = document.createRange(); range.selectNodeContents(el);
-    const need = Math.min(r.width, (range.getBoundingClientRect().right - r.left) * 1.15 + pad[1] + 4);
-    if (widths[0] < need) { const rest = r.width - widths[0], left = r.width - need; widths.forEach((w, i) => { widths[i] = i ? (rest > 0 ? w / rest * left : 0) : need; }); }
-    return { k: 't', left: Math.max(0, r.left - frame.left), width: r.width, top: r.top, bottom: r.bottom, rows: [{ height: r.height, cells: segments.map((s, i) => ({ width: widths[i], shade: s.color, pad: i ? [0, 0, 0, 0] : pad, vAlign: 'center', blocks: i ? [] : content })) }] };
+    // 사선 3색 띠: 화면과 똑같이 그린 배경 그림을 칸 맨 위 빈 문단에 '글자 뒤'로 고정하고, 글자는 그 위에 둔다.
+    const own = stack(inner(el, { left: r.left, right: r.right, top: r.top }), r.top);
+    const anchor: Para = { k: 'p', runs: [{ t: 'img', el, w: r.width, h: r.height, behind: true }], align: 'left', left: 0, right: 0, line: .15, exact: true, top: r.top, bottom: r.top, size: 1 };
+    return { k: 't', left: Math.max(0, r.left - frame.left), width: r.width, top: r.top, bottom: r.bottom, rows: [{ height: r.height, cells: [{ width: r.width, pad: [0, 0, 0, 0], vAlign: 'top', blocks: [anchor, ...own] }] }] };
   }
   return { k: 't', left: Math.max(0, r.left - frame.left), width: r.width, top: r.top, bottom: r.bottom, rows: [{ height: r.height, cells: [{ width: r.width, shade: backgroundOf(cs), border, pad, vAlign: 'top', blocks: content }] }] };
 }
@@ -408,7 +421,7 @@ function mediaParagraph(el: Element, frame: Frame): Para | null {
   const r = el.getBoundingClientRect(), parent = el.parentElement ? getComputedStyle(el.parentElement) : null;
   const left = Math.max(0, r.left - frame.left), right = Math.max(0, frame.right - r.right);
   const align: Align = parent && alignOf(parent) !== 'left' ? alignOf(parent) : Math.abs(left - right) < 4 && left > 4 ? 'center' : 'left';
-  return { k: 'p', runs: [{ t: 'img', el, w: r.width, h: r.height }], align, left: align === 'left' ? left : 0, right: 0, line: r.height, exact: false, top: r.top, bottom: r.bottom, size: 11 };
+  return { k: 'p', runs: [{ t: 'img', el, w: r.width, h: r.height }], align, left: align === 'left' ? left : 0, right: 0, line: r.height + 1, exact: true, top: r.top, bottom: r.bottom, size: 11 };
 }
 
 /** 위아래 간격은 화면의 실제 위치 차이로 정한다(여백·마진·flex 간격 모두 포함). */
@@ -420,7 +433,8 @@ function stack(blocks: Block[], start: number): Block[] {
 }
 
 /** 화면에서 인쇄 시트를 읽는다. 미리보기 확대·축소(zoom)는 잠시 1로 되돌려 실제 크기로 잰다. */
-export function measurePanels(root: HTMLElement): WordPanel[] {
+export function measurePanels(root: HTMLElement, withFonts = false): WordPanel[] {
+  embedded = withFonts;
   const zoomed = root.querySelector<HTMLElement>('[role="document"]');
   const zoom = zoomed?.style.zoom ?? '';
   if (zoomed) zoomed.style.zoom = '1';
@@ -437,27 +451,52 @@ export function measurePanels(root: HTMLElement): WordPanel[] {
 }
 
 /* ---------- 그림 ---------- */
-async function rasterize(el: Element, w: number, h: number): Promise<{ data: Uint8Array; type: 'png' | 'jpg' }> {
+const png = async (canvas: HTMLCanvasElement) => ({ data: new Uint8Array(await (await new Promise<Blob>((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error('image')), 'image/png'))).arrayBuffer()), type: 'png' as const });
+/** CSS linear-gradient(각도, 색 위치…)를 캔버스에 같은 모양으로 그린다(띠 제목의 사선 경계 포함). */
+function paintGradient(ctx: CanvasRenderingContext2D, css: string, w: number, h: number) {
+  const body = css.slice(css.indexOf('(') + 1, css.lastIndexOf(')'));
+  const deg = body.match(/^\s*(-?[\d.]+)deg/)?.[1], to = body.match(/^\s*to ([a-z ]+)/)?.[1];
+  const angle = (deg !== undefined ? Number(deg) : to ? ({ top: 0, right: 90, bottom: 180, left: 270 } as Record<string, number>)[to.trim()] ?? 180 : 180) * Math.PI / 180;
+  const dx = Math.sin(angle), dy = -Math.cos(angle), length = Math.abs(w * dx) + Math.abs(h * dy);
+  const g = ctx.createLinearGradient(w / 2 - dx * length / 2, h / 2 - dy * length / 2, w / 2 + dx * length / 2, h / 2 + dy * length / 2);
+  const stops = [...body.matchAll(/(rgba?\([^)]*\))\s*([\d.]+%)?/g)];
+  stops.forEach((m, i) => g.addColorStop(Math.min(1, Math.max(0, m[2] ? parseFloat(m[2]) / 100 : i / Math.max(1, stops.length - 1))), m[1]));
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+}
+async function rasterize(run: Extract<Run, { t: 'img' }>): Promise<{ data: Uint8Array; type: 'png' | 'jpg' }> {
+  const { el, w, h } = run;
   const scale = 3, canvas = document.createElement('canvas');
   canvas.width = Math.max(1, Math.round(w * scale)); canvas.height = Math.max(1, Math.round(h * scale));
   const ctx = canvas.getContext('2d')!;
+  if (run.behind) { ctx.scale(scale, scale); paintGradient(ctx, getComputedStyle(el).backgroundImage, w, h); return png(canvas); }
+  if (run.glyphs) {
+    // 로고 글씨: 화면과 같은 글꼴·간격으로 그린다.
+    ctx.scale(scale, scale); ctx.font = run.glyphs.font; ctx.fillStyle = run.glyphs.color; ctx.textBaseline = 'alphabetic';
+    (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = run.glyphs.letterSpacing;
+    const m = ctx.measureText(run.glyphs.text), ascent = m.fontBoundingBoxAscent, descent = m.fontBoundingBoxDescent;
+    ctx.fillText(run.glyphs.text, 0, (h - ascent - descent) / 2 + ascent);
+    return png(canvas);
+  }
   let source: CanvasImageSource, sw: number, sh: number;
   if (el instanceof HTMLImageElement) {
     const blob = await (await fetch(el.currentSrc || el.src)).blob();
+    // 사진(JPEG·WebP)은 JPEG로, 크기는 인쇄에 충분한 만큼만(가로·세로 최대 2400px).
+    const photo = blob.type === 'image/jpeg' || blob.type === 'image/webp';
+    const k = Math.min(photo ? 2 : scale, 2400 / Math.max(w, h));
+    canvas.width = Math.max(1, Math.round(w * k)); canvas.height = Math.max(1, Math.round(h * k));
     const bitmap = await createImageBitmap(blob); source = bitmap; sw = bitmap.width; sh = bitmap.height;
     const fit = getComputedStyle(el).objectFit;
     if (fit === 'cover' || fit === 'contain') {
       const k = fit === 'cover' ? Math.max(canvas.width / sw, canvas.height / sh) : Math.min(canvas.width / sw, canvas.height / sh);
       const dw = sw * k, dh = sh * k;
-      if (blob.type === 'image/jpeg') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+      if (photo) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
       ctx.drawImage(source, (canvas.width - dw) / 2, (canvas.height - dh) / 2, dw, dh);
     } else {
-      if (blob.type === 'image/jpeg') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+      if (photo) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
       ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
     }
-    const jpeg = blob.type === 'image/jpeg';
-    const out = await new Promise<Blob>((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error('image')), jpeg ? 'image/jpeg' : 'image/png', .9));
-    return { data: new Uint8Array(await out.arrayBuffer()), type: jpeg ? 'jpg' : 'png' };
+    const out = await new Promise<Blob>((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error('image')), photo ? 'image/jpeg' : 'image/png', .9));
+    return { data: new Uint8Array(await out.arrayBuffer()), type: photo ? 'jpg' : 'png' };
   }
   // 인라인 SVG(아이콘·하트): 화면 크기를 박아 넣고 PNG로.
   const clone = el.cloneNode(true) as SVGSVGElement;
@@ -472,20 +511,26 @@ async function rasterize(el: Element, w: number, h: number): Promise<{ data: Uin
 }
 
 /* ---------- docx 만들기 ---------- */
-export async function buildDocx(panels: WordPanel[], title: string): Promise<Blob> {
+export type WordFonts = { regular: string; semibold: string; bold: string };
+export async function buildDocx(panels: WordPanel[], title: string, fonts?: WordFonts | null): Promise<Blob> {
   const d = await import('docx');
-  const images = new Map<Element, Promise<{ data: Uint8Array; type: 'png' | 'jpg' }>>();
-  const visit = (blocks: Block[]) => blocks.forEach(b => b.k === 'p' ? b.runs.forEach(r => { if (r.t === 'img' && !images.has(r.el)) images.set(r.el, rasterize(r.el, r.w, r.h)); }) : b.rows.forEach(row => row.cells.forEach(c => visit(c.blocks))));
+  type ImageRunModel = Extract<Run, { t: 'img' }>;
+  const images = new Map<ImageRunModel, Promise<{ data: Uint8Array; type: 'png' | 'jpg' }>>();
+  const visit = (blocks: Block[]) => blocks.forEach(b => b.k === 'p' ? b.runs.forEach(r => { if (r.t === 'img') images.set(r, rasterize(r)); }) : b.rows.forEach(row => row.cells.forEach(c => visit(c.blocks))));
   panels.forEach(p => visit(p.blocks));
-  const ready = new Map<Element, { data: Uint8Array; type: 'png' | 'jpg' } | null>();
+  const ready = new Map<ImageRunModel, { data: Uint8Array; type: 'png' | 'jpg' } | null>();
   await Promise.all([...images].map(async ([el, job]) => { try { ready.set(el, await job); } catch { ready.set(el, null); } }));
 
   const borderStyle = (s: Side['style']) => s === 'dashed' ? d.BorderStyle.DASHED : s === 'dotted' ? d.BorderStyle.DOTTED : s === 'double' ? d.BorderStyle.DOUBLE : d.BorderStyle.SINGLE;
-  const border = (s?: Side) => s ? { style: borderStyle(s.style), size: s.size, color: s.color, space: 1 } : undefined;
+  const border = (s?: Side) => s ? { style: borderStyle(s.style), size: s.size, color: s.color, space: Math.round(s.space ?? 0) } : undefined;
   const none = { style: d.BorderStyle.NONE, size: 0, color: 'auto' };
-  const font = (serif: boolean) => { const name = serif ? SERIF : SANS; return { ascii: name, eastAsia: name, hAnsi: name, cs: name }; };
+  const family = (name: string) => ({ ascii: name, eastAsia: name, hAnsi: name, cs: name });
+  // 굵기 → 글꼴: 400 = Noto Sans KR, 600 = Noto Sans KR SemiBold, 700 = Noto Sans KR 굵게(넣은 Bold 글꼴)
+  const face = (r: TextRunModel) => r.serif ? { font: family(BATANG), bold: r.weight >= 600 }
+    : embedded ? (r.weight >= 650 ? { font: family(NOTO), bold: true } : r.weight >= 550 ? { font: family(NOTO_SEMIBOLD), bold: false } : { font: family(NOTO), bold: false })
+    : { font: family(MALGUN), bold: r.weight >= 600 };
   const textRun = (r: TextRunModel, extra: Record<string, unknown> = {}) => new d.TextRun({
-    text: r.text, size: r.size, bold: r.bold, italics: r.italic, underline: r.underline ? {} : undefined, color: r.color, font: font(r.serif),
+    text: r.text, ...face(r), italics: r.italic, size: r.size, underline: r.underline ? {} : undefined, color: r.color,
     characterSpacing: r.spacing || undefined, shading: r.shade ? { type: d.ShadingType.CLEAR, fill: r.shade, color: 'auto' } : undefined, ...extra,
   });
   const alignment = { left: d.AlignmentType.LEFT, center: d.AlignmentType.CENTER, right: d.AlignmentType.RIGHT, both: d.AlignmentType.BOTH, distribute: d.AlignmentType.DISTRIBUTE } as const;
@@ -500,7 +545,13 @@ export async function buildDocx(panels: WordPanel[], title: string): Promise<Blo
       const brk = pendingBreak ? { break: 1 } : {}; pendingBreak = false;
       if (r.t === 'text') children.push(textRun(r, brk));
       else if (r.t === 'tab') children.push(textRun({ ...r.style, text: '' }, { ...brk, children: [new d.Tab()] }));
-      else { const img = ready.get(r.el); if (img) { if (Object.keys(brk).length) children.push(new d.TextRun({ break: 1 })); children.push(new d.ImageRun({ type: img.type, data: img.data, transformation: { width: Math.round(r.w), height: Math.round(r.h) } })); } }
+      else {
+        const img = ready.get(r); if (!img) continue;
+        if (Object.keys(brk).length) children.push(new d.TextRun({ break: 1 }));
+        // 배경 그림은 칸 왼쪽 위(0,0)에 글자 뒤로 띄운다.
+        const floating = r.behind ? { horizontalPosition: { relative: d.HorizontalPositionRelativeFrom.COLUMN, offset: 0 }, verticalPosition: { relative: d.VerticalPositionRelativeFrom.PARAGRAPH, offset: 0 }, behindDocument: true, allowOverlap: true, lockAnchor: true, layoutInCell: true, wrap: { type: d.TextWrappingType.NONE } } : undefined;
+        children.push(new d.ImageRun({ type: img.type, data: img.data, transformation: { width: r.w, height: r.h }, ...(floating ? { floating } : {}) }));
+      }
     }
     if (pendingBreak) children.push(new d.TextRun({ break: 1 }));
     const firstText = p.runs.find(r => r.t === 'text') as TextRunModel | undefined;
@@ -508,7 +559,7 @@ export async function buildDocx(panels: WordPanel[], title: string): Promise<Blo
     return new d.Paragraph({
       ...browserLike, children, alignment: alignment[p.align],
       indent: { left: twips(p.left), right: twips(p.right) },
-      spacing: { before: twips(p.before ?? 0), after: 0, ...(p.exact ? { line: Math.max(20, twips(p.line)), lineRule: d.LineRuleType.EXACT } : { line: 240, lineRule: d.LineRuleType.AUTO }) },
+      spacing: { before: twips(p.before ?? 0), after: 0, ...(p.exact ? { line: Math.max(2, twips(p.line)), lineRule: d.LineRuleType.EXACT } : { line: 240, lineRule: d.LineRuleType.AUTO }) },
       tabStops: p.tabs?.map(t => ({ type: t.type === 'center' ? d.TabStopType.CENTER : d.TabStopType.RIGHT, position: Math.min(twips(width), twips(t.pos)), leader: d.LeaderType.MIDDLE_DOT })),
       border: p.border ? { top: border(p.border.top), bottom: border(p.border.bottom), left: border(p.border.left), right: border(p.border.right) } : undefined,
     });
@@ -574,8 +625,31 @@ export async function buildDocx(panels: WordPanel[], title: string): Promise<Blo
   const byPage = (n: number) => panels.find(p => p.page === n) ?? { page: n, blocks: [] };
   const doc = new d.Document({
     title, creator: '꿈꾸는좋은교회',
-    styles: { default: { document: { run: { font: font(false), size: 17, color: '3D342B' }, paragraph: { spacing: { before: 0, after: 0 } } } } },
+    styles: { default: { document: { run: { font: family(embedded ? NOTO : MALGUN), size: 17, color: '3D342B' }, paragraph: { spacing: { before: 0, after: 0 } } } } },
+    // 미리보기와 같은 글꼴(주보에 쓰인 글자만)을 파일에 넣는다: 어느 컴퓨터에서 열어도 굵기·폭이 같다.
+    ...(embedded && fonts ? { fonts: [
+      { name: NOTO, data: bytes(fonts.regular), bold: bytes(fonts.bold), characterSet: d.CharacterSet.HANGUL },
+      { name: NOTO_SEMIBOLD, data: bytes(fonts.semibold), characterSet: d.CharacterSet.HANGUL },
+    ] } : {}),
     sections: [section([byPage(4), byPage(1)]), section([byPage(2), byPage(3)])],
   });
   return d.Packer.toBlob(doc);
+}
+
+const bytes = (base64: string) => Uint8Array.from(atob(base64), c => c.charCodeAt(0)) as unknown as Buffer;
+
+/**
+ * 인쇄 미리보기 → Word 파일. 주보에 쓰인 글자로 Noto Sans KR을 잘라 받아(관리자 전용 API) 파일에 넣는다.
+ * 글꼴을 받지 못하면 맑은 고딕으로 열리도록 만들고 폭만 보정한다.
+ */
+export async function exportWordBulletin(root: HTMLElement, title: string): Promise<{ blob: Blob; embedded: boolean }> {
+  const text = [...root.querySelectorAll<HTMLElement>('[data-sheet]')].map(sheet => sheet.innerText).join('') + '0123456789.,·•';
+  let fonts: WordFonts | null = null;
+  try {
+    const token = (await makeBrowserClient()?.auth.getSession())?.data.session?.access_token;
+    const response = token ? await fetch('/api/bulletins/word-fonts', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ text }) }) : null;
+    if (response?.ok) fonts = await response.json() as WordFonts;
+  } catch { fonts = null; }
+  const panels = measurePanels(root, !!fonts);
+  return { blob: await buildDocx(panels, title, fonts), embedded: !!fonts };
 }

@@ -33,7 +33,7 @@ test('print preview downloads a two-sheet A4 landscape Word bulletin with the pr
   const zoom=await print.getByRole('document',{name:'인쇄 주보'}).evaluate(el=>(el as HTMLElement).style.zoom);
   const download=page.waitForEvent('download');await print.getByRole('button',{name:'Word로 내려받기',exact:true}).click();const file=await download;
   expect(file.suggestedFilename()).toBe('890304 주일 주보.docx');
-  await expect(print.getByText('Word 파일을 내려받았습니다. 글꼴은 맑은 고딕으로 열립니다.',{exact:true})).toBeVisible();
+  await expect(print.getByText('Word 파일을 내려받았습니다.',{exact:true})).toBeVisible();
   // Measuring resets the preview zoom only for a moment.
   expect(await print.getByRole('document',{name:'인쇄 주보'}).evaluate(el=>(el as HTMLElement).style.zoom)).toBe(zoom);
   const xml=unzip(await readFile(await file.path()),'word/document.xml'),text=xml.replace(/<w:br\/>|<\/w:p>/g,'\n').replace(/<[^>]+>/g,'');

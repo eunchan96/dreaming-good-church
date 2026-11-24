@@ -124,12 +124,12 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
     if (exporting || !root.current || !await ready()) return;
     setExporting(true); setMessage("Word 파일을 만드는 중입니다…");
     try {
-      const { measurePanels, buildDocx } = await import("./word-export");
-      const blob = await buildDocx(measurePanels(root.current), fileTitle);
+      const { exportWordBulletin } = await import("./word-export");
+      const { blob, embedded } = await exportWordBulletin(root.current, fileTitle);
       const url = URL.createObjectURL(blob), link = document.createElement("a");
       link.href = url; link.download = `${fileTitle}.docx`; document.body.appendChild(link); link.click(); link.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 10000);
-      setMessage(""); setToast("Word 파일을 내려받았습니다. 글꼴은 맑은 고딕으로 열립니다.");
+      setMessage(""); setToast(embedded ? "Word 파일을 내려받았습니다." : "Word 파일을 내려받았습니다. 글꼴은 맑은 고딕으로 열립니다.");
     } catch { setMessage("Word 파일을 만들지 못했습니다. 잠시 뒤 다시 시도해 주세요."); }
     finally { setExporting(false); }
   }
