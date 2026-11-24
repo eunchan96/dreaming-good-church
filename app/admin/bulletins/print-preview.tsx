@@ -12,6 +12,7 @@ import {presentationItems,sectionFor,isPrayerGuide,displayTitle,isNewsItem} from
 import styles from "./print-preview.module.css";
 import { themeOf } from "@/lib/bulletin-themes";
 import AdminIcon from "../admin-icons";
+import StatusMessage from "../status-message";
 
 /** 헌금 내역 always prints on 4면, like the Word bulletin. */
 export function defaultPage(item: SavedBulletin["items"][number]) {
@@ -118,7 +119,7 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
     if (!await ready()) return;
     setMessage(""); const title = document.title; document.title = fileTitle; const restore = () => { document.title = title; window.removeEventListener("afterprint", restore); }; window.addEventListener("afterprint", restore); window.print(); window.setTimeout(restore, 1000);
   }
-  const [exporting, setExporting] = useState(false);
+  const [exporting, setExporting] = useState(false), [toast, setToast] = useState("");
   async function downloadWord() {
     if (exporting || !root.current || !await ready()) return;
     setExporting(true); setMessage("Word 파일을 만드는 중입니다…");
@@ -128,7 +129,7 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
       const url = URL.createObjectURL(blob), link = document.createElement("a");
       link.href = url; link.download = `${fileTitle}.docx`; document.body.appendChild(link); link.click(); link.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 10000);
-      setMessage("Word 파일을 내려받았습니다. 글꼴은 맑은 고딕으로 열립니다.");
+      setMessage(""); setToast("Word 파일을 내려받았습니다. 글꼴은 맑은 고딕으로 열립니다.");
     } catch { setMessage("Word 파일을 만들지 못했습니다. 잠시 뒤 다시 시도해 주세요."); }
     finally { setExporting(false); }
   }
@@ -151,6 +152,7 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
       </div>
     </header>
     <PrintFormatToolbar/>
+    <StatusMessage message={toast} onDone={() => setToast("")}/>
     <div className={styles.notice} role="status" data-empty={!message&&!overflowPages.length&&settingsStatus!=="error"}>{overflowPages.length?`${overflowPages.join("·")}면 넘침: 면 배치나 글자 크기를 조절해 주세요. `:""}{message}{settingsStatus==="error"?<button type="button" className={styles.tool} onClick={retry}>예배시간 다시 불러오기</button>:null}</div>
     <p className={styles.blockedPrint}>내용이 면을 넘쳐 인쇄를 중단했습니다. 미리보기에서 면 배치를 조정한 뒤 다시 인쇄해 주세요.</p>
     <div className={styles.stage} data-panel={panel}>

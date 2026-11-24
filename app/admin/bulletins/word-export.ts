@@ -478,6 +478,8 @@ export async function buildDocx(panels: WordPanel[], title: string): Promise<Blo
   });
   const alignment = { left: d.AlignmentType.LEFT, center: d.AlignmentType.CENTER, right: d.AlignmentType.RIGHT, both: d.AlignmentType.BOTH, distribute: d.AlignmentType.DISTRIBUTE } as const;
 
+  // 브라우저처럼: 한글·영문/숫자 사이 자동 간격 끔, 한글은 글자 단위 줄바꿈, 줄 옮김(과부·고아) 조정 끔.
+  const browserLike = { autoSpaceLatinAndEastAsianText: false, autoSpaceEastAsianText: false, wordWrap: false, widowControl: false } as const;
   function para(p: Para, width: number): InstanceType<typeof d.Paragraph> {
     const children: (InstanceType<typeof d.TextRun> | InstanceType<typeof d.ImageRun>)[] = [];
     let pendingBreak = false;
@@ -492,7 +494,7 @@ export async function buildDocx(panels: WordPanel[], title: string): Promise<Blo
     const firstText = p.runs.find(r => r.t === 'text') as TextRunModel | undefined;
     if (!children.length) children.push(new d.TextRun({ text: '', size: firstText?.size ?? Math.round(p.size * 1.5) }));
     return new d.Paragraph({
-      children, alignment: alignment[p.align],
+      ...browserLike, children, alignment: alignment[p.align],
       indent: { left: twips(p.left), right: twips(p.right) },
       spacing: { before: twips(p.before ?? 0), after: 0, ...(p.exact ? { line: Math.max(20, twips(p.line)), lineRule: d.LineRuleType.EXACT } : { line: 240, lineRule: d.LineRuleType.AUTO }) },
       tabStops: p.tabs?.map(t => ({ type: t.type === 'center' ? d.TabStopType.CENTER : d.TabStopType.RIGHT, position: Math.min(twips(width), twips(t.pos)), leader: d.LeaderType.DOT })),
@@ -500,7 +502,7 @@ export async function buildDocx(panels: WordPanel[], title: string): Promise<Blo
     });
   }
   /** 표 앞 간격은 표에 줄 수 없어서 아주 낮은 빈 문단으로 띄운다. */
-  const spacer = (px: number) => new d.Paragraph({ children: [new d.TextRun({ text: '', size: 2 })], spacing: { before: 0, after: 0, line: Math.max(2, twips(px)), lineRule: d.LineRuleType.EXACT } });
+  const spacer = (px: number) => new d.Paragraph({ ...browserLike, children: [new d.TextRun({ text: '', size: 2 })], spacing: { before: 0, after: 0, line: Math.max(2, twips(px)), lineRule: d.LineRuleType.EXACT } });
   function table(t: Tbl): InstanceType<typeof d.Table> {
     const cols = t.rows[0]?.cells.length ?? 1, uniform = t.rows.every(r => r.cells.length === cols && !r.cells.some(c => c.span));
     return new d.Table({
