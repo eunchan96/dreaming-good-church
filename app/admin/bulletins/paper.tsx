@@ -53,7 +53,7 @@ function Cover({items,meta}:{items:BulletinItem[];meta:PaperMeta}){
    <div className={css.coverMeta}><p>{longDate(meta.serviceDate)}</p><p>{meta.issueNumber}호</p></div>
   </div>
   <div className={css.coverImages}>{images.map(item=><Scope key={item.id} item={item}><BulletinImageView key={item.content!.assetId} id={item.content!.assetId!} alt={item.content?.alt??''} editor/></Scope>)}</div>
-  <div className={css.coverMark}><Image src="/brand/church-logo-192.png" width={56} height={56} alt="" unoptimized/><span><small>꿈 꾸 는</small><strong>좋은교회</strong></span></div>
+  <div className={css.coverMark}><Image className={css.coverLogo} src="/brand/church-logo-wide-print.png" width={1400} height={468} alt="꿈꾸는좋은교회" unoptimized/></div>
  </div>;
 }
 function CoverTitle({item}:{item:BulletinItem}){
