@@ -122,7 +122,7 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
   const [exporting, setExporting] = useState(false), [toast, setToast] = useState("");
   async function downloadWord() {
     if (exporting || !root.current || !await ready()) return;
-    setExporting(true); setMessage("Word 파일을 만드는 중입니다…");
+    setExporting(true); setMessage(""); setToast("Word 파일을 만드는 중입니다…");
     try {
       const { exportWordBulletin } = await import("./word-export");
       const { blob, embedded } = await exportWordBulletin(root.current, fileTitle);
@@ -130,7 +130,7 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
       link.href = url; link.download = `${fileTitle}.docx`; document.body.appendChild(link); link.click(); link.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 10000);
       setMessage(""); setToast(embedded ? "Word 파일을 내려받았습니다." : "Word 파일을 내려받았습니다. 글꼴은 맑은 고딕으로 열립니다.");
-    } catch { setMessage("Word 파일을 만들지 못했습니다. 잠시 뒤 다시 시도해 주세요."); }
+    } catch { setToast(""); setMessage("Word 파일을 만들지 못했습니다. 잠시 뒤 다시 시도해 주세요."); }
     finally { setExporting(false); }
   }
   const pageOf = (item: BulletinItem) => item.kind === "offering" ? 4 : (pages[item.id] ?? defaultPage(item));
