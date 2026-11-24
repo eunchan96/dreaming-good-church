@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { publicClient } from "@/lib/server-access";
 import PublicShell from "../../public-shell";
 import PublicBulletins from "../public-bulletins";
+import { pageMeta } from "@/lib/site";
 
 export const instant = false;
 
@@ -16,10 +17,9 @@ export async function generateMetadata({ params }: { params: Promise<{ date: str
       if (!error && data) issue = data.issue_number;
     } catch { /* Public metadata stays generic on lookup failure. */ }
   }
-  if (issue === undefined) return { title: "주보를 확인해 주세요 | 꿈꾸는좋은교회", description: "현재 공개된 주보를 확인해 주세요.", robots: { index: false, follow: false } };
-  const title = `${date} · ${issue}호 주보 | 꿈꾸는좋은교회`;
-  const description = "꿈꾸는좋은교회의 예배 순서와 말씀, 공개된 교회 소식을 만나보세요.";
-  return { title, description, openGraph: { title, description, type: "article", locale: "ko_KR", siteName: "꿈꾸는좋은교회" }, twitter: { card: "summary", title, description } };
+  if (issue === undefined) return { title: "주보를 확인해 주세요", description: "현재 공개된 주보를 확인해 주세요.", robots: { index: false, follow: false } };
+  const meta = pageMeta(`${date} · ${issue}호 주보`, "꿈꾸는좋은교회의 예배 순서와 말씀, 공개된 교회 소식을 만나보세요.", `/bulletins/${date}`);
+  return { ...meta, openGraph: { ...meta.openGraph, type: "article" } };
 }
 
 export default async function Page({ params }: { params: Promise<{ date: string }> }) {
