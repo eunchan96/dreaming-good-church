@@ -1,5 +1,6 @@
 "use client";
 import {bulletinSections,initialBulletinItems,printOnlyItem,sectionFor,presentationItems,renderedItems,type BulletinSection} from '@/lib/bulletin-editor';
+import { useViewMemory } from "../view-memory";
 import StatusMessage from '../status-message';
 import SaveButton from '../save-button';
 import polish from './editor.module.css';
@@ -253,6 +254,13 @@ export default function BulletinWorkspace() {
     if(!(await mayLeave()))return;
     setView('library');setDirty(false);setDraft(null);setSavePaused(false);setMessage('');
   }
+  // 새로고침해도 보던 화면(주보 상세·작성·설정)으로 돌아온다. 아직 한 번도 저장하지 않은 새 주보는 새 작성 화면으로.
+  useViewMemory<{view:typeof view;id:string|null}>('church-admin:bulletins',session==='editor',{view,id:draft?.id??null},saved=>{
+    if(saved.view==='settings'){openSettings();return;}
+    const row=saved.id?rows.find(entry=>entry.id===saved.id):undefined;
+    if(row){void open(row).then(()=>{if((saved.view==='edit'||saved.view==='register')&&row.status==='draft')setView('edit');});return;}
+    if(saved.view==='register')void createNew();
+  });
   const editing=view==='register'||view==='edit';
   const restore=useCallback((next:Pick<SavedBulletin,'serviceDate'|'issueNumber'|'items'>)=>{setDraft(current=>current&&current.status==='draft'?{...current,...next}:current);version.current+=1;setDirty(true);},[]);
   useEditHistory(draft,editing&&!preview&&!printPreview,restore);

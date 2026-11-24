@@ -241,7 +241,8 @@ function pseudoRun(el: Element, which: '::before' | '::after'): TextRunModel | u
 function paragraph(el: Element, frame: Frame, nodes?: Node[], align?: Align, given?: Run[]): Para | null {
   const box = contentBox(el), cs = box.cs;
   const size = px(cs.fontSize), lh = cs.lineHeight === 'normal' ? size * 1.4 : px(cs.lineHeight);
-  lineTop = undefined; wrapLines = !given && !/nowrap|pre$/.test(cs.whiteSpace);
+  // 줄바꿈은 Word에 맡긴다(같은 글꼴을 넣어 폭이 같다). 화면 줄바꿈 자리를 옮기면 확대 배율에 따라 단어 중간이 끊긴다.
+  lineTop = undefined; wrapLines = false;
   const collected = given ?? (() => { const out: Run[] = []; for (const n of nodes ?? el.childNodes) collectRuns(n, out); return out; })();
   wrapLines = false;
   if (!given && !nodes) { const before = pseudoRun(el, '::before'), after = pseudoRun(el, '::after'); if (before && collected.length) collected.unshift(before); if (after && collected.length) collected.push(after); }
@@ -252,7 +253,10 @@ function paragraph(el: Element, frame: Frame, nodes?: Node[], align?: Align, giv
   const rects = [...range.getClientRects()].filter(r => r.height > 0);
   const textTop = rects.length ? Math.min(...rects.map(r => r.top)) : box.top, textBottom = rects.length ? Math.max(...rects.map(r => r.bottom)) : box.bottom;
   const first = rects.find(r => r.top === textTop), half = first ? Math.max(0, (lh - first.height) / 2) : 0;
-  const top = Math.max(box.top, textTop - half), bottom = Math.min(Math.max(box.bottom, top), textBottom + half);
+  let top = Math.max(box.top, textTop - half), bottom = Math.min(Math.max(box.bottom, top), textBottom + half);
+  const ownBorder = bordersOf(cs);
+  if (ownBorder?.top) top = box.rect.top;
+  if (ownBorder?.bottom) bottom = box.rect.bottom;
   const bullet = bulletOf(cs);
   if (bullet) {
     const style = { ...runStyle(el), color: bullet, text: '• ', weight: 400 };
@@ -271,7 +275,7 @@ function paragraph(el: Element, frame: Frame, nodes?: Node[], align?: Align, giv
   const lined = Object.keys(border).length > 0; // 밑줄·테두리가 있는 문단은 화면 폭 그대로(선 길이 유지)
   return {
     k: 'p', runs, align: a, left: a === 'right' && !lined ? 0 : L - slack, right: (a === 'left' || a === 'both') && !lined ? 0 : (lined ? Math.max(0, frame.right - box.rect.right) : R - slack),
-    line: Math.max(lh, imageHeight + 1), exact: imageHeight === 0, top, bottom, border: Object.keys(border).length ? border : undefined, size,
+    line: Math.max(lh, imageHeight + 1), exact: true, top, bottom, border: Object.keys(border).length ? border : undefined, size,
   };
 }
 
@@ -436,7 +440,9 @@ function boxTable(el: Element, cs: CSSStyleDeclaration, frame: Frame): Tbl {
     const anchor: Para = { k: 'p', runs: [{ t: 'img', el, w: r.width, h: r.height, behind: true }], align: 'left', left: 0, right: 0, line: .15, exact: true, top: r.top, bottom: r.top, size: 1 };
     return { k: 't', left: Math.max(0, r.left - frame.left), width: r.width, top: r.top, bottom: r.bottom, rows: [{ height: r.height, cells: [{ width: r.width, pad: [0, 0, 0, 0], vAlign: 'top', blocks: [anchor, ...own] }] }] };
   }
-  return { k: 't', left: Math.max(0, r.left - frame.left), width: r.width, top: r.top, bottom: r.bottom, rows: [{ height: r.height, cells: [{ width: r.width, shade: backgroundOf(cs), border, pad, vAlign: 'top', blocks: content }] }] };
+  // 화면에서 내용이 상자 밖으로 조금 넘치는 경우(섬기는 이들 마지막 줄)에도 Word 칸이 내용을 자르지 않게 한다.
+  const contentBottom = Math.max(r.bottom, ...content.map(b => b.bottom + pad[2]));
+  return { k: 't', left: Math.max(0, r.left - frame.left), width: r.width, top: r.top, bottom: contentBottom, rows: [{ height: contentBottom - r.top, cells: [{ width: r.width, shade: backgroundOf(cs), border, pad, vAlign: 'top', blocks: content }] }] };
 }
 
 function htmlTable(table: HTMLTableElement, frame: Frame): Tbl {
@@ -631,7 +637,7 @@ export async function buildDocx(panels: WordPanel[], title: string, fonts?: Word
     if (pendingBreak) children.push(new d.TextRun({ break: 1 }));
     const firstText = p.runs.find(r => r.t === 'text') as TextRunModel | undefined;
     if (!children.length) children.push(new d.TextRun({ text: '', size: firstText?.size ?? Math.round(p.size * 1.5) }));
-    const pictures = p.runs.some(r => r.t === 'img' && !r.behind);
+    const pictures = p.runs.some(r => r.t === 'img' && !r.behind) && !p.runs.some(r => r.t === 'text');
     return new d.Paragraph({
       ...browserLike, children, alignment: alignment[p.align],
       // 그림 줄: 고정 줄 높이면 Word가 그림을 자르거나 위로 올린다 → 보통 줄 높이 + 아주 작은 문단 기호

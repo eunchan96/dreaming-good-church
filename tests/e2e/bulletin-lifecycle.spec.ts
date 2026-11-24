@@ -1,3 +1,4 @@
+import {reloadToList} from './bulletin-helpers';
 import {saveAndEdit} from './bulletin-helpers';
 import {showBulletinVisibility} from './bulletin-helpers';
 import {calendarControl,selectCalendar} from './calendar-helpers';
@@ -44,7 +45,7 @@ test("one bulletin travels from published source through copy, print, public PDF
       await page.getByRole("textbox",{name:"인쇄 전용 안내 내용",exact:true}).fill("이번 주 인쇄 전용 비공개 내용");
       await saveAndEdit(page);
 
-      await page.reload(); await page.getByRole("button", { name: /2086-11-10/ }).click();await page.getByRole("button",{name:"수정",exact:true}).click();await showBulletinVisibility(page);
+      await reloadToList(page); await page.getByRole("button", { name: /2086-11-10/ }).click();await page.getByRole("button",{name:"수정",exact:true}).click();await showBulletinVisibility(page);
       await expect(page.getByRole("textbox",{name:"인쇄 전용 안내 내용",exact:true})).toHaveValue("이번 주 인쇄 전용 비공개 내용");
       await expect(page.getByRole("checkbox", {name:"인쇄 전용 안내 웹에 공개",exact:true})).not.toBeChecked();
       await expect(page.getByText("0개 항목 확인 필요", { exact: true })).toHaveCount(0);
