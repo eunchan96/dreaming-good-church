@@ -39,7 +39,7 @@ function TocLinks({ toc, onPick }: { toc: ContentsSection[]; onPick: (id: string
   </div>)}</>;
 }
 
-export default function AdminShell({ children, intro, active, authenticated = false, canLeave = () => true, onLogout, busy = false, sections = [], pages = [] }: { children: ReactNode; intro?: ReactNode; active: 'bulletins' | 'community' | 'church' | 'account' | 'worship' | 'home'; authenticated?: boolean; canLeave?: () => boolean | Promise<boolean>; onLogout?: () => void | Promise<void>; busy?: boolean; sections?: ContentsSection[]; pages?: WorkspacePage[] }) {
+export default function AdminShell({ children, intro, active, authenticated = false, canLeave = () => true, onLogout, busy = false, sections = [], pages = [] }: { children: ReactNode; intro?: ReactNode; active: 'bulletins' | 'community' | 'church' | 'account' | 'worship' | 'home' | 'guide'; authenticated?: boolean; canLeave?: () => boolean | Promise<boolean>; onLogout?: () => void | Promise<void>; busy?: boolean; sections?: ContentsSection[]; pages?: WorkspacePage[] }) {
   const [menu, setMenu] = useState(false);
   // Animate only menus the user opens or closes, not ones that appear or vanish when the window width crosses the mobile breakpoint.
   const [menuMotion, setMenuMotion] = useState(false);
@@ -86,6 +86,8 @@ export default function AdminShell({ children, intro, active, authenticated = fa
           <ChurchBrand onDark /><span className={styles.srOnly}> 홈페이지 새 탭에서 열기</span>
         </a>
         <div className={styles.footerActions}>
+          {/* 쓰던 내용을 잃지 않게 사용 안내는 새 탭으로 연다. */}
+          <a href="/admin/guide" target="_blank" rel="noreferrer" aria-label="사용 안내 (새 탭)">사용 안내</a>
           {authenticated ? <AdminInvitation disabled={busy} /> : null}
           {onLogout ? <button type="button" onClick={() => void onLogout()} disabled={busy}>로그아웃</button> : null}
         </div>
