@@ -26,6 +26,7 @@ export function defaultPage(item: SavedBulletin["items"][number]) {
 const pageTitles = ["표지", "예배", "묵상과 기도", "교회 소식"];
 function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onReplace,onEdit }: { draft: SavedBulletin; dirty: boolean; onClose: () => void; pages: Record<string, number>; onPagesChange: (pages: Record<string, number>) => void;onReplace:(item:BulletinItem)=>void;onEdit?:()=>void }) {
   const {fields,settings,settingsStatus,retry}=useChurchContent();
+  const statusRef=useRef(settingsStatus);useEffect(()=>{statusRef.current=settingsStatus;},[settingsStatus]);
   const items=useScheduledItems(presentationItems(draft.items),true);
   const root = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState("");
@@ -101,7 +102,10 @@ function PrintPreviewContent({ draft, dirty, onClose, pages, onPagesChange,onRep
   }
   /** 인쇄·Word 공통 확인: 예배시간, 사진, 글꼴, 넘침. 문제가 있으면 안내하고 false. */
   async function ready() {
-    if(settingsStatus!=="ready"){setMessage("교회 예배시간을 불러온 뒤 다시 눌러 주세요.");return false;}
+    // 교회 예배시간(4면)을 아직 불러오는 중이면 끝날 때까지 기다렸다가 이어서 한다(다시 누르지 않아도 되게).
+    if(statusRef.current==="loading"){setMessage("교회 예배시간을 불러오는 중입니다…");for(let n=0;statusRef.current==="loading"&&n<150;n++)await new Promise(resolve=>setTimeout(resolve,100));
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));setMessage("");}
+    if(statusRef.current!=="ready"){setMessage("교회 예배시간을 불러오지 못했습니다. 연결을 확인하고 다시 눌러 주세요.");return false;}
     // Only photos count here (decorative wings/map are <img> too); each must have finished loading.
     const photos = Array.from(root.current?.querySelectorAll<HTMLImageElement>("img[data-asset-id]") ?? []);
     const expected = new Set(items.filter(item => item.kind === "image" && item.content?.assetId&&!item.content.disabled).map(item=>item.content!.assetId)).size;
