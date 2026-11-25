@@ -10,6 +10,7 @@ import PrintPreview from "./print-preview";
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { confirmItem, createBulletin, copyBulletin, createItem, editItem, publicationIssues, type BulletinItem } from "@/lib/bulletins";
+import { applyMonthlyRules, worshipNewsBody } from "@/lib/bulletin-defaults.mjs";
 import { errorMessage, loadBulletins, makeBrowserClient, saveDraft, type SavedBulletin } from "@/lib/bulletin-store";
 import {PaperView} from "./paper";
 import ThemePicker from "./theme-picker";
@@ -187,7 +188,7 @@ export default function BulletinWorkspace() {
     setBusy(true);setMessage('');
     try{const fresh=await loadBulletins(client);setRows(fresh);const source=fresh.filter(row=>row.serviceDate<draft.serviceDate).sort((a,b)=>b.serviceDate.localeCompare(a.serviceDate))[0];
       if(!source){setMessage('가져올 지난 주 주보가 없습니다.');return;}
-      const base=copyBulletin(source,{id:draft.id,serviceDate:draft.serviceDate,issueNumber:draft.issueNumber},()=>crypto.randomUUID());const copied={...base,items:base.items.map(tidyOrder),revision:0};
+      const base=copyBulletin(source,{id:draft.id,serviceDate:draft.serviceDate,issueNumber:draft.issueNumber},()=>crypto.randomUUID());const copied={...base,items:applyMonthlyRules(base.items.map(tidyOrder),draft.serviceDate),revision:0};
       setDraft(copied);setGroups(Object.fromEntries(copied.items.map(item=>[item.id,sectionFor(item)])));initialItems.current=JSON.stringify(copied.items);markDirty();setSavePaused(false);setMessage('지난 주 정보를 가져왔습니다.');
     }catch(error){setMessage(errorMessage(error));}finally{setBusy(false);}
   }
@@ -236,7 +237,7 @@ export default function BulletinWorkspace() {
     if(!draft)return;const previous=previousFor(value),oldPrevious=previousFor(draft.serviceDate),wasPristine=JSON.stringify(draft.items)===initialItems.current;
     const oldDefaults=initialBulletinItems(draft.serviceDate,oldPrevious),nextDefaults=initialBulletinItems(value,previous);
     if(draft.revision===0&&wasPristine){const used=new Set<string>();const items=nextDefaults.map(item=>{const old=draft.items.find(entry=>entry.title===item.title&&entry.kind===item.kind&&!used.has(entry.id));if(old)used.add(old.id);return {...item,id:old?.id??item.id};});initialItems.current=JSON.stringify(items);setDraft({...draft,serviceDate:value,items});markDirty();return;}
-    const items=draft.revision===0?draft.items.map(item=>{const old=oldDefaults.find(entry=>entry.title===item.title),next=nextDefaults.find(entry=>entry.title===item.title);if(!old||!next)return item;const copyingBody=item.body===old.body,updated={...item,body:copyingBody?next.body:item.body,webVisible:copyingBody&&item.webVisible===old.webVisible?next.webVisible:item.webVisible};if(!item.content)return updated;const content={...item.content};
+    const items=draft.revision===0?draft.items.map(item=>{const old=oldDefaults.find(entry=>entry.title===item.title),next=nextDefaults.find(entry=>entry.title===item.title);if(!old||!next)return item;const copyingBody=item.body===old.body,updated={...item,body:copyingBody?next.body:/^좋은 소식\s*[·ㆍ･]\s*예배$/.test(item.title.trim())?worshipNewsBody(item.body,value):item.body,webVisible:copyingBody&&item.webVisible===old.webVisible?next.webVisible:item.webVisible};if(!item.content)return updated;const content={...item.content};
       if(content.rows&&old.content?.rows&&next.content?.rows)content.rows=content.rows.map((row,i)=>row.map((cell,j)=>cell===old.content!.rows?.[i]?.[j]?(next.content!.rows?.[i]?.[j]??cell):cell));
       if(content.month===old.content?.month&&next.content?.month)content.month=next.content.month;
       if(item.kind==='offering'&&content.disabled===old.content?.disabled)content.disabled=next.content?.disabled;
