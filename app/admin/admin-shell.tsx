@@ -13,6 +13,7 @@ const links = [
   { key: 'worship', href: '/admin/worship', label: '예배 영상 관리' },
   { key: 'bulletins', href: '/admin/bulletins', label: '주보 관리' },
   { key: 'community', href: '/admin/community', label: '공지·일정 관리' },
+  { key: 'songs', href: '/admin/songs', label: '찬양 악보' },
 ];
 const publicPaths: Record<string, string> = { worship: '/worship', church: '/church', community: '/notices', bulletins: '/bulletins' };
 
@@ -39,7 +40,7 @@ function TocLinks({ toc, onPick }: { toc: ContentsSection[]; onPick: (id: string
   </div>)}</>;
 }
 
-export default function AdminShell({ children, intro, active, authenticated = false, canLeave = () => true, onLogout, busy = false, sections = [], pages = [] }: { children: ReactNode; intro?: ReactNode; active: 'bulletins' | 'community' | 'church' | 'account' | 'worship' | 'home' | 'guide'; authenticated?: boolean; canLeave?: () => boolean | Promise<boolean>; onLogout?: () => void | Promise<void>; busy?: boolean; sections?: ContentsSection[]; pages?: WorkspacePage[] }) {
+export default function AdminShell({ children, intro, active, authenticated = false, canLeave = () => true, onLogout, busy = false, sections = [], pages = [] }: { children: ReactNode; intro?: ReactNode; active: 'bulletins' | 'community' | 'church' | 'account' | 'worship' | 'home' | 'guide' | 'songs'; authenticated?: boolean; canLeave?: () => boolean | Promise<boolean>; onLogout?: () => void | Promise<void>; busy?: boolean; sections?: ContentsSection[]; pages?: WorkspacePage[] }) {
   const [menu, setMenu] = useState(false);
   // Animate only menus the user opens or closes, not ones that appear or vanish when the window width crosses the mobile breakpoint.
   const [menuMotion, setMenuMotion] = useState(false);
