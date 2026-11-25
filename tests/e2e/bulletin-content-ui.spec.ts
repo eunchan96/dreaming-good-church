@@ -1,3 +1,4 @@
+import {reloadToList} from './bulletin-helpers';
 import {test,expect} from '@playwright/test';
 import {createClient} from '@supabase/supabase-js';
 import {randomUUID} from 'node:crypto';
@@ -18,6 +19,6 @@ test('content settings remain reversible and auto-sizing preserves private flags
   const cell=page.getByRole('textbox',{name:'섬기는 이들 1행 이름',exact:true});await cell.fill('긴 이름\n'.repeat(5));await expect.poll(async()=>(await cell.boundingBox())!.height).toBeGreaterThan(100);await cell.fill('담임');
   for(const width of [1440,768,390,320]){await page.setViewportSize({width,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}expect((await new AxeBuilder({page}).analyze()).violations.map(v=>v.id)).toEqual([]);
   await expect.poll(async()=>(await db.from('bulletin_items').select('body').eq('id',ids[0]).single()).data?.body).toBe('간단한 묵상');const stored=await db.from('bulletin_items').select('web_visible,review_on_copy').eq('bulletin_id',id).order('position');expect(stored.data?.map(item=>item.web_visible)).toEqual([true,false,true]);expect(stored.data?.every(item=>item.review_on_copy)).toBe(true);
-  await page.reload();await page.getByRole('button',{name:/2190-11-19/}).click();await page.getByRole('button',{name:'수정',exact:true}).click();await expect(page.getByLabel('웹에 공개',{exact:true})).toHaveCount(0);await expect(body).toHaveValue('간단한 묵상');
+  await reloadToList(page);await page.getByRole('button',{name:/2190-11-19/}).click();await page.getByRole('button',{name:'수정',exact:true}).click();await expect(page.getByLabel('웹에 공개',{exact:true})).toHaveCount(0);await expect(body).toHaveValue('간단한 묵상');
  }finally{await db.from('bulletins').delete().eq('id',id);await db.auth.admin.deleteUser(user.data.user.id);}
 });

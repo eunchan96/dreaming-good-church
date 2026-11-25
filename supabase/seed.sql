@@ -41,6 +41,6 @@ update public.church_info set body=case key
  when 'phone' then '[샘플] 실제 연락처를 입력하지 않았습니다.'
  when 'worship' then '[샘플] 주일 오전 10:45 / 첫째·셋째 주 오후 1:40'
  when 'introduction' then '[샘플] 함께 예배하고 이웃을 섬기는 공동체입니다.'
- when 'directions' then '[샘플] 오시는 길을 설명하는 영역입니다. 실제 지도는 후속 작업입니다.' end
+ when 'directions' then '[샘플] 오시는 길을 설명하는 영역입니다. 실제 지도는 후속 작업입니다.' else '' end
 where body='';
 commit;

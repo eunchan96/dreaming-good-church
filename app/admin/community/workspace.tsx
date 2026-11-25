@@ -1,5 +1,6 @@
 "use client";
 import ManagementHeading from '../management-heading';
+import { useViewMemory } from '../view-memory';
 import StatusMessage from '../status-message';
 
 import { useEffect, useRef, useState } from "react";
@@ -12,6 +13,7 @@ import SiteIcon from '@/app/site-icon';
 import AdminShell from '../admin-shell';
 import {useConfirm} from '../confirm-dialog';
 import ReauthPanel from '../reauth-panel';
+import {AdminListSkeleton} from '../admin-loading';
 import Link from 'next/link';
 import ui from './workspace.module.css';
 import btn from '../buttons.module.css';
@@ -92,12 +94,17 @@ export default function CommunityWorkspace() {
   function statusLabel(row:CommunityEntry){if(row.status==='draft')return '임시 저장';if(row.status==='archived')return '보관';if(row.sensitive||!row.is_public)return '비공개';if(row.publish_from&&Date.parse(row.publish_from)>now)return '공개 예정';if(row.publish_until&&Date.parse(row.publish_until)<=now)return '게시 종료';return '공개';}
   const filtered=rows.filter(row=>(filter==='all'||row.kind===filter)&&row.title.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
   const intro=<ManagementHeading id="community-heading" eyebrow="CHURCH COMMUNITY" title="공지·일정 관리"/>;
+  // 새로고침해도 보던 소식 편집 화면으로 돌아온다(저장된 소식만).
+  useViewMemory<{view:typeof view;id:string|null}>('church-admin:community',allowed&&!loading,{view,id:view==='editor'?entry?.id??null:null},saved=>{
+    const row=saved.view==='editor'&&saved.id?rows.find(entry=>entry.id===saved.id):undefined;
+    if(row){setView('editor');setShowPeriod(!!(row.publish_from||row.publish_until));setEntry(structuredClone(row));setDirty(false);}
+  });
   const sections=[{id:'community-editor',label:'내용 편집'},...((entry?.kind??'event')==='event'?[{id:'community-schedule',label:'일정 시간'}]:[]),{id:'community-publication',label:'공개 설정'}];
   return <><AdminShell active="community" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} pages={[{id:'list',label:'소식 목록',active:view==='list',onSelect:async()=>{if(view!=='list'&&await mayLeave()){setView('list');setEntry(null);setDirty(false);setMessage('');}},sections:[{id:'community-list',label:'목록·검색'}]},...(view==='editor'?[{id:'editor',label:entry?.revision?'소식 수정':'소식 등록',active:true,onSelect:()=>{},sections}]:[])]}><main id="admin-content" aria-labelledby="community-heading" tabIndex={-1} className={`${styles.page} ${ui.editor}`}>
     {allowed ? <>
       {view==='list'?<section id="community-list" tabIndex={-1} aria-label="소식 목록" className={`${ui.section} ${ui.listSection}`}><div className={ui.sectionHeading}><h2>소식 목록</h2><div className={ui.listActions}><button type="button" className={btn.icon} aria-label="소식 목록 새로고침" title="소식 목록 새로고침" disabled={busy||loading} onClick={async()=>{if(await mayLeave()){setEntry(null);setDirty(false);setReload(value=>value+1);}}}><SiteIcon name="refresh" size={18}/></button><Link className={btn.btn} href="/admin/bulletins" onClick={e=>{if(busy||!mayLeave())e.preventDefault();}}>주보에서 가져오기</Link><button type="button" className={`${btn.btn} ${btn.primary}`} disabled={busy||loading} onClick={async()=>{if(await mayLeave()){setView('editor');setShowPeriod(false);setEntry(newEntry('event'));setDirty(false);setMessage('');}}}><AdminIcon name="plus" size={15}/>소식 등록</button></div></div>
       <div className={ui.listTools}><div className={btn.chips} role="group" aria-label="소식 종류">{([['all','전체'],['notice','공지'],['event','일정']] as const).map(([value,label])=><button key={value} aria-pressed={filter===value} onClick={()=>setFilter(value)}>{label}</button>)}</div><input type="search" aria-label="소식 제목 검색" placeholder="제목 검색" value={query} onChange={e=>setQuery(e.target.value)}/></div>
-      {loading?<p role="status" className={ui.empty}>목록을 불러오고 있습니다.</p>:listError?<div className={ui.empty}><p role="status">목록을 불러오지 못했습니다. 작성 중인 내용은 유지됩니다.</p><button className={ui.refresh} aria-label="목록 다시 불러오기" title="목록 다시 불러오기" onClick={()=>setReload(n=>n+1)}><SiteIcon name="refresh" size={18}/></button></div>:<><ul className={ui.entries}>{filtered.map(row=><li key={row.id}><button disabled={busy} aria-pressed={entry?.id===row.id} onClick={async()=>{if(await mayLeave()){setView('editor');setShowPeriod(!!(row.publish_from||row.publish_until));setEntry(structuredClone(row));setDirty(false);setMessage('');}}}><div><strong>{row.title}</strong><span>{row.kind==='event'?'일정':'공지'}{row.kind==='event'&&row.starts_at?` · ${koreanInput(row.starts_at).replace('T',' ')}`:row.publish_from?` · ${koreanInput(row.publish_from).replace('T',' ')}부터`:''}</span></div><span className={ui.badge} data-state={statusLabel(row)}>{statusLabel(row)}</span></button></li>)}</ul>{!filtered.length?<p className={ui.emptyList}>{rows.length?'검색 조건에 맞는 소식이 없습니다.':'등록된 소식이 없습니다.'}</p>:null}</>}
+      {loading?<AdminListSkeleton label="소식 목록을 불러오는 중"/>:listError?<div className={ui.empty}><p role="status">목록을 불러오지 못했습니다. 작성 중인 내용은 유지됩니다.</p><button className={ui.refresh} aria-label="목록 다시 불러오기" title="목록 다시 불러오기" onClick={()=>setReload(n=>n+1)}><SiteIcon name="refresh" size={18}/></button></div>:<><ul className={ui.entries}>{filtered.map(row=><li key={row.id}><button disabled={busy} aria-pressed={entry?.id===row.id} onClick={async()=>{if(await mayLeave()){setView('editor');setShowPeriod(!!(row.publish_from||row.publish_until));setEntry(structuredClone(row));setDirty(false);setMessage('');}}}><div><strong>{row.title}</strong><span>{row.kind==='event'?'일정':'공지'}{row.kind==='event'&&row.starts_at?` · ${koreanInput(row.starts_at).replace('T',' ')}`:row.publish_from?` · ${koreanInput(row.publish_from).replace('T',' ')}부터`:''}</span></div><span className={ui.badge} data-state={statusLabel(row)}>{statusLabel(row)}</span></button></li>)}</ul>{!filtered.length?<p className={ui.emptyList}>{rows.length?'검색 조건에 맞는 소식이 없습니다.':'등록된 소식이 없습니다.'}</p>:null}</>}
       {rows.length===100?<p className={ui.listNote}>최근 100개에서 찾습니다.</p>:null}
       </section>:null}
       {view==='editor'&&entry?<fieldset disabled={busy||loading} className={`${styles.fields} ${ui.form}`}>

@@ -4,8 +4,8 @@
 
 최신 결과: 사용자 승인 후 ff5cb98의 첫 정상 Production dpl_EMpcY533KjrfQ8M7LE43niidLKqb 배포 및 자동/실제 관리자 검수를 완료했다. 운영 주소의 주보 API는200이며 빈 목록이 정상 표시된다. [첫 배포 결과와 기준점](first-production-release.md)을 따른다. 아래 초기 점검의 변수 부재/503/기준점 부재는 배포 전 이력이다.
 
-- Vercel 프로젝트: `dreaming-good-church`, `prj_1EePlmXl4ZLPoUoYKFhK0OTls86X`, 팀 `eunchan96s-projects`.
-- 기본 주소 `https://dreaming-good-church.vercel.app`는 이 프로젝트에 연결·검증되어 있다. 새 도메인 구입은 필요하지 않다.
+- Vercel 프로젝트: `dreaming-towb-church`, `prj_1EePlmXl4ZLPoUoYKFhK0OTls86X`, 팀 `eunchan96s-projects`.
+- 기본 주소 `https://dreaming-towb-church.vercel.app`는 이 프로젝트에 연결·검증되어 있다. 새 도메인 구입은 필요하지 않다.
 - 환경변수3개는 모두 Preview 전용이다. Production 변수는 없다. 기본 운영 주소의 공개 주보 API는 현재503으로 서비스를 준비 중이라고 응답한다.
 - 현재 정상 Preview는 `dpl_CwgQXrLLHLVCmWuPqzFRgXkDNBeS`, 코드 `9e3f80b`, Node24/서울icn1이다. 고정 검수 별칭은 계속 이 배포를 가리킨다.
 - Production 기록에는 초기 시험 `dpl_GifqnfsSQBcbrkrMbncvHdfuZ8sy` / `f5a4a2a` 1개만 있다. API에 rollback candidate로 나오더라도 현재 기능/설정·정상 검수 기준이 충족된 것은 아니므로 복구 기준점으로 채택하지 않는다.
@@ -13,7 +13,7 @@
 
 ## 적용안 — 사용자 승인 및 변수 등록 완료
 
-기준 주소는 기본 `https://dreaming-good-church.vercel.app`를 제안한다. 보유 도메인을 사용할 경우 도메인 연결·Auth 허용 주소·Origin 허용 목록을 실제 이름으로 다시 검토한다. 도메인을 임의로 구입하거나 DNS를 변경하지 않는다.
+기준 주소는 기본 `https://dreaming-towb-church.vercel.app`를 제안한다. 보유 도메인을 사용할 경우 도메인 연결·Auth 허용 주소·Origin 허용 목록을 실제 이름으로 다시 검토한다. 도메인을 임의로 구입하거나 DNS를 변경하지 않는다.
 
 | Production 변수 | 넣을 값의 출처 | 형식·노출 |
 | --- | --- | --- |
@@ -48,7 +48,7 @@ Hobby의 Instant Rollback은 바로 이전 Production에 한정된다. 이전 �
 
 2026-11-13 사용자가 기본 운영 주소 사용과 Production 변수3개 등록을 명시 승인했다. 기존 로컬 설정의 해당3개를 등록했으며, 복호화하지 않은 메타데이터에서 Production URL/public key는 plain, 서버 키는 sensitive임을 확인했다. 기존 Preview 변수3개도 유지되어 있다. 키 값은 문서에 기록하지 않았다. 출시/병합/보호 설정 변경은 아직 실행하지 않았다. 변수만 등록했으므로 기존503 응답이 해결되었다고 판정하지 않는다.
 
-운영 주소는 `https://dreaming-good-church.vercel.app`로 확정했다. 계정 링크 생성 도구의 허용 목록에 이 HTTPS Origin을 추가했다. invite/recovery 모두 같은 `/admin/account` 경로를 사용하며 토큰은 fragment에만 넣는다. HTTP·다른 포트·유사 도메인·경로·query·fragment·사용자 정보를 넣은 Origin은 거절한다. Preview와 로컬 허용 주소는 유지했다.
+운영 주소는 `https://dreaming-towb-church.vercel.app`로 확정했다. 계정 링크 생성 도구의 허용 목록에 이 HTTPS Origin을 추가했다. invite/recovery 모두 같은 `/admin/account` 경로를 사용하며 토큰은 fragment에만 넣는다. HTTP·다른 포트·유사 도메인·경로·query·fragment·사용자 정보를 넣은 Origin은 거절한다. Preview와 로컬 허용 주소는 유지했다.
 
 ### Supabase Auth redirect 준비 · 2026-11-13
 
@@ -57,7 +57,7 @@ Hobby의 Instant Rollback은 바로 이전 Production에 한정된다. 이전 �
 [Supabase URL 설정](https://supabase.com/dashboard/project/zefnxczgwpsmfcixonpb/auth/url-configuration)에서 **Site URL과 기존 Redirect URLs를 유지**하고 다음 항목만 추가한다.
 
 ```text
-https://dreaming-good-church.vercel.app/admin/account
+https://dreaming-towb-church.vercel.app/admin/account
 ```
 
 운영 Site URL 전환은 첫 정상 Production 배포 확인 뒤에 한다. 현재 운영 API503 상태에서 Site URL부터 바꾸지 않는다. `*.vercel.app` 등의 wildcard 허용도 추가하지 않았다. 운영 Origin의 링크 생성·거절 경계 테스트를 포함한 단위26개, lint, 타입 검사를 통과했다. 실제 운영 링크 사용은 정상 Production 배포 뒤 검수할 항목이다.
@@ -65,7 +65,7 @@ https://dreaming-good-church.vercel.app/admin/account
 첫 정상 Production 배포 전에는 아래 명령을 실행하지 않는다. 배포 검수 후 필요할 때만 실제 계정 링크를 생성하며 자동 메일 발송은 없다. 생성된 HTML은 비밀 링크이므로 저장소·Drive·노션에 올리지 않는다.
 
 ```powershell
-node --env-file=.env.local scripts/invite-editor.mjs taegwon02@gmail.com --origin https://dreaming-good-church.vercel.app --type recovery
+node --env-file=.env.local scripts/invite-editor.mjs taegwon02@gmail.com --origin https://dreaming-towb-church.vercel.app --type recovery
 ```
 
 기존 관리자는 recovery, 새 운영자 추가는 invite를 명시한다. 현재 관리자 비밀번호·세션을 바꾸거나 실계정 링크를 생성하지 않은 상태다.

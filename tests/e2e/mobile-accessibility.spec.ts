@@ -27,6 +27,8 @@ test("keyboard skip, mobile navigation, enlarged text and clipboard fallback rem
   await expect(page.locator("#public-content")).toBeFocused();
   await page.getByRole('button', { name: '전체 메뉴 열기' }).click();
   const tabs = page.getByRole("navigation", { name: "모바일 주 메뉴", exact: true });
+  // 메뉴가 내려오는 동안(움직임 중)에는 소수점 크기가 나오므로 다 열린 뒤에 잰다.
+  await tabs.evaluate(el => Promise.all(el.getAnimations().map(a => a.finished)));
   for (const link of await tabs.getByRole("link").all()) {
     const box = await link.boundingBox(); expect(box!.width).toBeGreaterThanOrEqual(44); expect(box!.height).toBeGreaterThanOrEqual(44);
   }

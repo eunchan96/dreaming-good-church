@@ -32,11 +32,11 @@ test('local encrypted DB/photo backup restores into an isolated DB and restores 
     const restored=await decryptBundle(await readFile(recoverable.path),password);
     const extracted=join(root,'extracted');
     await unpackNewDirectory(restored,extracted);
-    await capture('docker',['cp',join(extracted,'database.dump'),`supabase_db_dreaming-good-church:${dump}`]);
-    await capture('docker',['exec','supabase_db_dreaming-good-church','createdb','-U','supabase_admin','-T','template0',db]); createdDb=true;
-    await capture('docker',['exec','supabase_db_dreaming-good-church','psql','-X','-U','supabase_admin','-d',db,'-v','ON_ERROR_STOP=1','-c','drop schema public']);
-    await capture('docker',['exec','supabase_db_dreaming-good-church','pg_restore','-U','supabase_admin','-d',db,'--exit-on-error','--single-transaction',dump]);
-    const restoredRow=await capture('docker',['exec','supabase_db_dreaming-good-church','psql','-X','-U','supabase_admin','-d',db,'-At','-v','ON_ERROR_STOP=1','-c',`select count(*) from public.bulletin_images where id='${id}' and bytes=${webp.length}`]);
+    await capture('docker',['cp',join(extracted,'database.dump'),`supabase_db_dreaming-towb-church:${dump}`]);
+    await capture('docker',['exec','supabase_db_dreaming-towb-church','createdb','-U','supabase_admin','-T','template0',db]); createdDb=true;
+    await capture('docker',['exec','supabase_db_dreaming-towb-church','psql','-X','-U','supabase_admin','-d',db,'-v','ON_ERROR_STOP=1','-c','drop schema public']);
+    await capture('docker',['exec','supabase_db_dreaming-towb-church','pg_restore','-U','supabase_admin','-d',db,'--exit-on-error','--single-transaction',dump]);
+    const restoredRow=await capture('docker',['exec','supabase_db_dreaming-towb-church','psql','-X','-U','supabase_admin','-d',db,'-At','-v','ON_ERROR_STOP=1','-c',`select count(*) from public.bulletin_images where id='${id}' and bytes=${webp.length}`]);
     assert.equal(restoredRow.toString().trim(),'1');
     // Restore only our own local fixture, never an existing user's object.
     assert.ifError((await admin.storage.from('bulletin-images').remove([`${id}.webp`])).error);
@@ -53,8 +53,8 @@ test('local encrypted DB/photo backup restores into an isolated DB and restores 
     const cleanups=[
       async()=>{ if(imageRow) assert.ifError((await admin.from('bulletin_images').delete().eq('id',id)).error); },
       async()=>{ if(uploaded) assert.ifError((await admin.storage.from('bulletin-images').remove([`${id}.webp`])).error); },
-      async()=>{ if(createdDb) await capture('docker',['exec','supabase_db_dreaming-good-church','dropdb','-U','supabase_admin',db]); },
-      async()=>capture('docker',['exec','supabase_db_dreaming-good-church','rm','-f','--',dump]),
+      async()=>{ if(createdDb) await capture('docker',['exec','supabase_db_dreaming-towb-church','dropdb','-U','supabase_admin',db]); },
+      async()=>capture('docker',['exec','supabase_db_dreaming-towb-church','rm','-f','--',dump]),
       async()=>{ if(createdRoot) await rm(root,{recursive:true}); },
     ];
     const errors=[];

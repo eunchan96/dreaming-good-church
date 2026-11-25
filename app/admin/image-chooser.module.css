@@ -47,3 +47,5 @@
 .folders { display: flex; flex-wrap: wrap; gap: 6px; }
 .folders > button { min-height: 30px; padding: 0 12px; border: 1px solid #e3dbcd; border-radius: 999px; background: #fffdf8; color: #4a3f33; font: inherit; font-size: 12.5px; cursor: pointer; }
 .folders > button[aria-pressed=true] { background: #2f2720; border-color: #2f2720; color: #fff; }
+.skelItem { display: grid; gap: 6px; }
+.skelThumb { height: auto !important; aspect-ratio: 4 / 3; border-radius: 8px; }

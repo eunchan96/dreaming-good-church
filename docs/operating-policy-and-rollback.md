@@ -28,9 +28,9 @@
 
 ## 현재 정상 기준점
 
-- 프로젝트 dreaming-good-church / prj_1EePlmXl4ZLPoUoYKFhK0OTls86X, 팀 eunchan96s-projects.
+- 프로젝트 dreaming-towb-church / prj_1EePlmXl4ZLPoUoYKFhK0OTls86X, 팀 eunchan96s-projects.
 - A = dpl_EMpcY533KjrfQ8M7LE43niidLKqb, 소스 ff5cb986a57ce7184118f17825de695528ca0dbe, Production READY, Node24/서울icn1.
-- 운영 기본 주소 https://dreaming-good-church.vercel.app . 공개 API/PC·모바일/사용자 관리자 로그인 검수 완료. 이번 준비에서 도메인의 현재 대상도 A임을 재확인했다.
+- 운영 기본 주소 https://dreaming-towb-church.vercel.app . 공개 API/PC·모바일/사용자 관리자 로그인 검수 완료. 이번 준비에서 도메인의 현재 대상도 A임을 재확인했다.
 - 초기503 배포와 Preview Cwg는 이번 운영 롤백 대상에서 제외한다.
 
 ## 롤백 훈련 적용안 — 실행 승인 전

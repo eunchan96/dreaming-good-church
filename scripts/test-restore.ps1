@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 # Deliberately has no remote/connection-string parameter. Never restores postgres.
-$container = 'supabase_db_dreaming-good-church'
+$container = 'supabase_db_dreaming-towb-church'
 $suffix = [guid]::NewGuid().ToString('N')
 $restoreDb = "church_restore_$suffix"
 $dumpPath = "/tmp/church_restore_$suffix.dump"

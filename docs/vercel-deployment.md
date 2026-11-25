@@ -15,7 +15,7 @@
 ## 현재 검수 대상
 
 - 팀: eunchan96s-projects
-- 프로젝트: dreaming-good-church (`prj_1EePlmXl4ZLPoUoYKFhK0OTls86X`)
+- 프로젝트: dreaming-towb-church (`prj_1EePlmXl4ZLPoUoYKFhK0OTls86X`)
 - 소스: GitHub codex/bulletin-domain-rules의884fd07
 - 고정 검수URL: https://dreaming-good-church-git-codex-bulle-a36b08-eunchan96s-projects.vercel.app
 - 개별 배포URL: https://dreaming-good-church-7nqjm57jr-eunchan96s-projects.vercel.app

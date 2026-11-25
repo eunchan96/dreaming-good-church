@@ -9,7 +9,7 @@ try {
     if ($testExitCode -eq 0) {
         # psql supports the multi-statement transaction that db query prepares as
         # a single statement. The fixed container is this project's local DB.
-        Get-Content -LiteralPath tests/community-boundaries.sql -Raw | docker exec -i supabase_db_dreaming-good-church psql -U postgres -d postgres -v ON_ERROR_STOP=1 -q
+        Get-Content -LiteralPath tests/community-boundaries.sql -Raw | docker exec -i supabase_db_dreaming-towb-church psql -U postgres -d postgres -v ON_ERROR_STOP=1 -q
         $testExitCode = $LASTEXITCODE
         if ($testExitCode -eq 0) { Write-Output 'Community period RLS: 11 exact boundary/state cases passed (rolled back).' }
     }

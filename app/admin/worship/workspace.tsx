@@ -1,6 +1,7 @@
 'use client';
 
 import {useEffect,useRef,useState} from 'react';
+import { useViewMemory } from '../view-memory';
 import StatusMessage from '../status-message';
 import Image from 'next/image';
 import {makeBrowserClient,errorMessage} from '@/lib/bulletin-store';
@@ -87,6 +88,11 @@ export default function WorshipWorkspace(){
  async function openEditor(){if(view==='editor'||!(await mayLeave()))return;setEntry({id:crypto.randomUUID(),service_type:'sunday',service_date:new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()),video_id:'',title:'',status:'draft',featured:false,revision:0,dawn_kinds:[]});setLink('');setDirty(false);titleEdited.current=false;setMessage('');setView('editor');}
  async function openLibrary(){if(view==='library'||!(await mayLeave()))return;setView('library');setEntry(null);setLink('');setDirty(false);setMessage('');}
  async function openCalendar(){if(view==='calendar'||!(await mayLeave()))return;if(!month)setMonth(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date()).slice(0,7));setView('calendar');setEntry(null);setLink('');setDirty(false);setMessage('');}
+ // 새로고침해도 보던 화면(영상 편집·달력)으로 돌아온다(저장된 영상만).
+ useViewMemory<{view:typeof view;id:string|null}>('church-admin:worship',allowed,{view,id:view==='editor'?entry?.id??null:null},saved=>{
+  const row=saved.view==='editor'&&saved.id?rows.find(item=>item.id===saved.id):undefined;
+  if(row)void openRow(row);else if(saved.view==='calendar')void openCalendar();
+ });
  async function openRow(row:WorshipEntry){if(!(await mayLeave()))return;titleEdited.current=true;setView('editor');setEntry({...row,dawn_kinds:row.dawn_kinds??[]});setLink(`https://www.youtube.com/watch?v=${row.video_id}`);setDirty(false);setMessage('');}
 
  const filtered=rows.filter(row=>(filter==='all'||row.service_type===filter)&&(!dates.start||row.service_date>=dates.start)&&(!dates.end||row.service_date<=dates.end)&&`${row.title} ${row.service_date}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));

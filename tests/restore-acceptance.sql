@@ -4,8 +4,8 @@ do $$ begin
  if current_database() !~ '^church_restore_[a-f0-9]{32}$' then
   raise exception 'Restore acceptance requires an isolated drill database';
  end if;
- if (select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace
-     where n.nspname='public' and c.relkind='r' and c.relrowsecurity) <> 6+(case when to_regclass('public.worship_videos') is null then 0 else 1 end)+(case when to_regclass('public.homepage_content') is null then 0 else 1 end)+(case when to_regclass('public.church_page_settings') is null then 0 else 1 end) then
+ if exists (select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace
+     where n.nspname='public' and c.relkind='r' and not c.relrowsecurity) then
   raise exception 'Expected all application tables to have RLS';
  end if;
 end $$;
