@@ -16,7 +16,9 @@ test('first and third Sundays get the afternoon worship notice', async () => {
   assert.equal(worshipNewsBody('', '2026-12-06'), afternoonNotice);
   assert.equal(worshipNewsBody('', '2026-12-13'), '');
   // 지난주 공지(본문·제목 채움)는 다음 주에 빠지고, 편집자가 쓴 다른 내용은 남는다.
-  assert.equal(worshipNewsBody('1시 오후 찬양예배\n본문 : 요 3:16\n제목 : 사랑\n\n성탄 예배 안내', '2026-12-13'), '성탄 예배 안내');
+  assert.equal(afternoonNotice, '1시 오후 찬양예배 / 본문 : ... / 제목 : ...');
+  assert.equal(worshipNewsBody('1시 오후 찬양예배 / 본문 : 요 3:16 / 제목 : 사랑\n\n성탄 예배 안내', '2026-12-13'), '성탄 예배 안내');
+  assert.equal(worshipNewsBody('1시 오후 찬양예배\n본문 : 요 3:16\n제목 : 사랑\n성탄 예배 안내', '2026-12-13'), '성탄 예배 안내'); // 예전 여러 줄 형식
   assert.equal(worshipNewsBody('성탄 예배 안내', '2026-12-20'), `${afternoonNotice}\n\n성탄 예배 안내`);
   // 이미 공지가 있으면 겹쳐 넣지 않는다(본문·제목은 새 주라 비운다).
   assert.equal(worshipNewsBody(afternoonNotice, '2026-12-20'), afternoonNotice);
