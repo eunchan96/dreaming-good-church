@@ -5,6 +5,7 @@
 .toc a { display: block; padding: 8px 10px; border-radius: 6px; color: #6d6052; text-decoration: none; }
 .toc a:hover { background: #f1ebdd; color: #342b25; }
 .body { max-width: 860px; font-size: 15px; line-height: 1.75; }
+.body h2:focus { outline: none; }
 .body h2 { font-size: 22px; font-weight: 700; margin: 48px 0 14px; padding-top: 18px; border-top: 1px solid #e1d8c6; scroll-margin-top: calc(var(--header-h, 84px) + 16px); }
 .body h2:first-of-type { margin-top: 0; padding-top: 0; border-top: 0; }
 .body h3 { font-size: 17px; font-weight: 700; margin: 32px 0 10px; }

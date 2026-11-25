@@ -81,13 +81,14 @@
 .footerBrand img { display: block; width: auto; height: 30px; }
 .footerBrand:hover { color: #edcd72; }
 .footerActions { display: flex; flex-wrap: wrap; align-items: center; gap: 0 22px; }
-.footerActions > button {
+.footerActions > :is(button, a) {
+  display: inline-flex; align-items: center; text-decoration: none;
   min-height: 44px; padding: 0; border: 0;
   background: transparent; color: #b0a18a; font-size: 12px; white-space: nowrap; cursor: pointer; transition: color .2s;
 }
-.footerActions > button:hover:not(:disabled) { color: #edcd72; }
+.footerActions > :is(button:not(:disabled), a):hover { color: #edcd72; }
 .footerActions > button:disabled { opacity: .5; cursor: not-allowed; }
-.footer :is(.footerBrand, .footerActions > button):focus-visible { outline-color: #f6d98b; outline-offset: -2px; }
+.footer :is(.footerBrand, .footerActions > button, .footerActions > a):focus-visible { outline-color: #f6d98b; outline-offset: -2px; }
 
 
 /* Tablet & mobile */

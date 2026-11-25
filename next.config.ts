@@ -11,7 +11,11 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   // 도메인 연결 전 Vercel 운영 주소로 들어오면 같은 경로의 towbchurch.com으로 보낸다(브랜치 미리보기 주소는 그대로).
   async redirects() {
-    return ['dreaming-towb-church.vercel.app', 'dreaming-good-church.vercel.app'].map(host => ({ source: '/:path*', has: [{ type: 'host' as const, value: host }], destination: 'https://towbchurch.com/:path*', permanent: true }));
+    return [
+      ...['dreaming-towb-church.vercel.app', 'dreaming-good-church.vercel.app'].map(host => ({ source: '/:path*', has: [{ type: 'host' as const, value: host }], destination: 'https://towbchurch.com/:path*', permanent: true })),
+      // 관리자 첫 화면은 주보 관리(나중에 바꿀 수 있게 임시 이동).
+      { source: '/admin', destination: '/admin/bulletins', permanent: false },
+    ];
   },
   async headers() { return [{ source: '/sw.js', headers: [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }] }]; },
   turbopack: {

@@ -29,7 +29,9 @@ function inline(text: string, key = ''): ReactNode[] {
 const isTable = (line: string) => /^\|.*\|$/.test(line.trim());
 const cells = (line: string) => line.trim().replace(/^\||\|$/g, '').split('|').map(cell => cell.trim());
 
-function blocks(lines: string[], key: string, headings: Heading[]): ReactNode[] {
+type Size = (src: string) => { width: number; height: number } | undefined;
+
+function blocks(lines: string[], key: string, headings: Heading[], size: Size): ReactNode[] {
   const out: ReactNode[] = [];
   for (let i = 0; i < lines.length;) {
     const line = lines[i], k = `${key}-${i}`;
@@ -43,15 +45,15 @@ function blocks(lines: string[], key: string, headings: Heading[]): ReactNode[] 
     }
     const image = /^!\[([^\]]*)\]\(([^)]+)\)\s*$/.exec(line.trim());
     if (image) {
-      // 캡처는 원래 크기로 열어 볼 수 있게 링크로 감싼다.
+      // 캡처는 원래 크기로 열어 볼 수 있게 링크로 감싼다. 크기를 미리 주어 늦게 불러와도 페이지가 밀리지 않게(목차 이동이 중간에 멈추지 않게).
       // eslint-disable-next-line @next/next/no-img-element -- 크기가 제각각인 정적 캡처라 그대로 보여 준다.
-      out.push(<figure key={k}><a href={imageSrc(image[2])} target="_blank" rel="noreferrer"><img src={imageSrc(image[2])} alt={image[1]} loading="lazy" /></a></figure>);
+      out.push(<figure key={k}><a href={imageSrc(image[2])} target="_blank" rel="noreferrer"><img src={imageSrc(image[2])} alt={image[1]} loading="lazy" {...size(imageSrc(image[2]))} /></a></figure>);
       i++; continue;
     }
     if (line.startsWith('>')) {
       const quote: string[] = [];
       while (i < lines.length && lines[i].startsWith('>')) quote.push(lines[i++].replace(/^>\s?/, ''));
-      out.push(<blockquote key={k}>{blocks(quote, k, headings)}</blockquote>);
+      out.push(<blockquote key={k}>{blocks(quote, k, headings, size)}</blockquote>);
       continue;
     }
     if (isTable(line)) {
@@ -83,11 +85,11 @@ function blocks(lines: string[], key: string, headings: Heading[]): ReactNode[] 
 }
 
 /** 첫 줄의 `# 제목`은 따로 돌려주고 나머지를 그린다. */
-export function renderGuide(source: string) {
+export function renderGuide(source: string, size: Size = () => undefined) {
   const lines = source.replace(/\r\n/g, '\n').split('\n');
   const titleAt = lines.findIndex(line => /^#\s+/.test(line));
   const title = titleAt >= 0 ? lines[titleAt].replace(/^#\s+/, '').trim() : '사용 안내';
   const headings: Heading[] = [];
-  const body = blocks(lines.filter((_, index) => index !== titleAt), 'g', headings);
+  const body = blocks(lines.filter((_, index) => index !== titleAt), 'g', headings, size);
   return { title, body, headings };
 }

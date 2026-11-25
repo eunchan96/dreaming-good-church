@@ -60,8 +60,6 @@ export default function AdminShell({ children, intro, active, authenticated = fa
         {links.map(link => <Link key={link.key} href={link.href} aria-current={active === link.key || (link.key === 'home' && active === 'church') ? 'page' : undefined} onClick={e => { if (busy) { e.preventDefault(); return; } const answer = canLeave(); if (answer === true) { setMenu(false); return; } e.preventDefault(); void Promise.resolve(answer).then(ok => { if (ok) { setMenu(false); router.push(link.href); } }); }}>{link.label}</Link>)}
       </nav> : null}
       <div className={styles.headerActions}>
-        {/* 쓰던 내용을 잃지 않게 사용 안내는 새 탭으로 연다. */}
-        {active !== 'guide' ? <a href="/admin/guide" target="_blank" rel="noreferrer" aria-label="사용 안내 (새 탭)"><SiteIcon name="book" size={15} /><span>사용 안내</span></a> : null}
         <a href={publicPaths[active] ?? '/'} target="_blank" rel="noreferrer" aria-label="공개 화면 확인"><span>공개 화면 확인</span><SiteIcon name="diagonal" size={14} /></a>
         {signedIn ? <button type="button" ref={menuButton} className={styles.menuToggle} aria-label={menu ? '관리 메뉴 닫기' : '관리 메뉴 열기'} aria-controls="admin-navigation" aria-expanded={menu} onClick={() => { setMenuMotion(true); setMenu(!menu); }}><SiteIcon name={menu ? 'close' : 'menu'} size={24} /></button> : null}
       </div>
@@ -88,6 +86,8 @@ export default function AdminShell({ children, intro, active, authenticated = fa
           <ChurchBrand onDark /><span className={styles.srOnly}> 홈페이지 새 탭에서 열기</span>
         </a>
         <div className={styles.footerActions}>
+          {/* 쓰던 내용을 잃지 않게 사용 안내는 새 탭으로 연다. */}
+          <a href="/admin/guide" target="_blank" rel="noreferrer" aria-label="사용 안내 (새 탭)">사용 안내</a>
           {authenticated ? <AdminInvitation disabled={busy} /> : null}
           {onLogout ? <button type="button" onClick={() => void onLogout()} disabled={busy}>로그아웃</button> : null}
         </div>
