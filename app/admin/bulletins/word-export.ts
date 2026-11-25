@@ -501,14 +501,18 @@ function orderTable(rows: Element[], frame: Frame): Tbl {
             // 점선은 Word의 점선 탭으로 그린다.
             const style = runStyle(kid); style.color = colorOf(getComputedStyle(dots[0]).backgroundColor) ?? '8F8476';
             const text = [...kid.children].filter(c => c.tagName !== 'I' && visible(c));
+            // 가운데 내용이 없는 줄도 탭 두 개와 본문 색 빈칸을 둔다: Word에서 이 빈칸 자리에 글을 쓰면
+            // 점선 가운데에 본문 색으로 들어간다(탭에 붙여 쓰면 점선 색을 따라간다).
             const runs: Run[] = [{ t: 'tab', style }];
-            if (text.length) { for (const t of text) collectRuns(t, runs); runs.push({ t: 'tab', style }); }
+            for (const t of text) collectRuns(t, runs);
+            if (!text.length) runs.push({ ...runStyle(kid), text: ' ' });
+            runs.push({ t: 'tab', style });
             const cs = getComputedStyle(kid), lh = cs.lineHeight === 'normal' ? px(cs.fontSize) * 1.4 : px(cs.lineHeight);
             // 가운데 글자: 점선 사이 가운데면 가운데 탭, 여러 줄이 같은 자리에서 시작하도록 놓였으면 그 자리의 왼쪽 탭.
             const tr = text.length ? text[0].getBoundingClientRect() : undefined, from = tr ? tr.left - edges[i] : 0;
             const centred = !tr || Math.abs(tr.left + tr.width / 2 - (kr.left + kr.width / 2)) < 2;
             const middle = centred ? { type: 'center' as const, pos: width / 2 } : { type: 'left' as const, pos: from };
-            blocks = [{ k: 'p', runs: trimRuns(runs), align: 'left', left: 0, right: 0, line: lh, exact: true, top: kr.top, bottom: kr.bottom, size: px(cs.fontSize), tabs: text.length ? [middle, { type: 'right', pos: width - 1 }] : [{ type: 'right', pos: width - 1 }] }];
+            blocks = [{ k: 'p', runs: trimRuns(runs), align: 'left', left: 0, right: 0, line: lh, exact: true, top: kr.top, bottom: kr.bottom, size: px(cs.fontSize), tabs: [middle, { type: 'right', pos: width - 1 }] }];
           } else blocks = stack(walk(kid, cellFrame), kr.top);
           return { width, pad: [0, 0, 0, Math.max(0, kr.left - edges[i])], vAlign: 'center', border: rowBorder ? { bottom: rowBorder.bottom, top: rowBorder.top } : undefined, blocks };
         }),
