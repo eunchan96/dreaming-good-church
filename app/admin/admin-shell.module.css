@@ -121,7 +121,9 @@
 @media (max-width: 540px) {
   .badge { display: none; }
   .brand img { height: 40px; }
-  .headerActions { gap: 8px; }
+  .headerActions { gap: 4px; }
+  /* 글자를 숨긴 아이콘 링크도 손가락으로 누르기 좋은 크기(40px)로 */
+  .headerActions > a { min-width: 40px; justify-content: center; }
   .headerActions > a > span { display: none; }
 }
 
