@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 
 import { makeBrowserClient } from '@/lib/bulletin-store';
 import btn from './buttons.module.css';
 import { useConfirm } from './confirm-dialog';
+import { AdminListSkeleton } from './admin-loading';
 import styles from './admin-invitation.module.css';
 
 const endpoint = '/api/admin/invitations';
@@ -195,7 +196,7 @@ function InvitationDialog({ inviterId, disabled }: { inviterId: string; disabled
           </span>
           {editor.self || editor.inviter ? null : <button type="button" className={`${btn.btn} ${btn.ghost} ${styles.remove}`} disabled={busy} onClick={() => remove(editor)} aria-label={`${editor.email} ${editor.status === 'pending' ? '초대 취소' : '권한 해제'}`}>{editor.status === 'pending' ? '초대 취소' : '권한 해제'}</button>}
         </li>)}</ul>
-          : <p className={styles.note} role="status">{listFailed ? <>목록을 불러오지 못했습니다. <button type="button" className={styles.inlineButton} onClick={() => void loadEditors()}>다시 불러오기</button></> : '관리자 목록을 불러오고 있습니다…'}</p>}
+          : listFailed ? <p className={styles.note} role="status">목록을 불러오지 못했습니다. <button type="button" className={styles.inlineButton} onClick={() => void loadEditors()}>다시 불러오기</button></p> : <AdminListSkeleton rows={2} label="관리자 목록을 불러오는 중" />}
       </section>
 
       <section className={styles.section} aria-label="새 관리자 초대">

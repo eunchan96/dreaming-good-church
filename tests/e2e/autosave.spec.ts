@@ -1,3 +1,4 @@
+import {reloadToList} from './bulletin-helpers';
 import {saveAndEdit} from './bulletin-helpers';
 import {showBulletinVisibility} from './bulletin-helpers';
 import {calendarControl,selectCalendar} from './calendar-helpers';
@@ -84,7 +85,7 @@ test("autosave preserves edits, pauses on failure, resumes after login and keeps
       const r = await admin.from("bulletin_items").select("content,web_visible").eq("kind", "offering");
       return r.data?.some((item) => item.content.month === "2096-10" && item.web_visible === false);
     }).toBe(true);
-    await page.reload(); await page.getByRole("button", { name: /2096-11-04/ }).click();await page.getByRole("button",{name:"수정",exact:true}).click();
+    await reloadToList(page); await page.getByRole("button", { name: /2096-11-04/ }).click();await page.getByRole("button",{name:"수정",exact:true}).click();
     await expect(page.getByLabel("헌금 내역 1행 금액", { exact: true })).toHaveValue("120000");
     await expect(page.getByLabel("예배 순서 2행 진행 내용", { exact: true })).toHaveValue("369장");
     await page.getByRole("button", { name: "웹 미리보기", exact: true }).click();

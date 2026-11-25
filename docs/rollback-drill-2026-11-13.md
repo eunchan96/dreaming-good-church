@@ -11,7 +11,7 @@
 | A 롤백 | dpl_EMpcY533KjrfQ8M7LE43niidLKqb | 요청13:11:54 / 대상 확인13:12:09 | 운영 별칭 A 및 응답 정상 |
 | B Promote 복귀 | dpl_ASfp6HvCMXUz79hSuyEb6ssPwbAv | 요청13:12:39 / 대상 확인13:12:56 | 운영 별칭 B·매핑 completed·응답 정상 |
 
-위 시간 차이는 요청부터 관찰 시점까지이며 실제 무중단 시간이나 복구 SLA 측정값으로 사용하지 않는다. B 고유 주소는 https://dreaming-good-church-gabvbf4g4-eunchan96s-projects.vercel.app 이다. 운영 주소는 https://dreaming-good-church.vercel.app 이다.
+위 시간 차이는 요청부터 관찰 시점까지이며 실제 무중단 시간이나 복구 SLA 측정값으로 사용하지 않는다. B 고유 주소는 https://dreaming-good-church-gabvbf4g4-eunchan96s-projects.vercel.app 이다. 운영 주소는 https://dreaming-towb-church.vercel.app 이다.
 
 ## 배포 전 백업
 

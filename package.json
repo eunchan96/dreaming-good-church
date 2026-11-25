@@ -1,5 +1,5 @@
 {
-  "name": "dreaming-good-church",
+  "name": "dreaming-towb-church",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -23,11 +23,13 @@
     "@pdf-lib/fontkit": "1.1.1",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.119.0",
+    "docx": "9.16.0",
     "next": "16.4.6",
     "pdf-lib": "1.17.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "sharp": "0.35.5"
+    "sharp": "0.35.5",
+    "subset-font": "2.9.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",

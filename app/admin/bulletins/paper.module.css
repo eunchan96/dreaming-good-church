@@ -30,9 +30,7 @@
 /* 인쇄 표지 사진은 제목·로고와 균형을 맞춰 작게 (웹은 .flow에서 다시 키움) */
 .coverImages img { max-width: 64%; max-height: min(100%, 52mm); width: auto; object-fit: contain; display: block; border-radius: 1.5mm; }
 .coverMark { display: flex; align-items: center; justify-content: center; gap: .5em; margin-top: auto; }
-.coverMark span { display: flex; flex-direction: column; line-height: 1.1; }
-.coverMark small { font-size: .95em; color: #8f6400; letter-spacing: .1em; text-align: right; }
-.coverMark strong { font-family: var(--font-public-serif), serif; font-size: 2.2em; font-weight: 500; color: #3d342b; }
+.coverLogo { display: block; width: auto !important; height: 5em !important; max-width: 100%; }
 
 /* Worship order (2면) */
 .orderTitle { display: flex; align-items: center; justify-content: center; gap: .6em; margin: 0 0 .7em !important; font-size: 1.9em !important; font-weight: 700 !important; letter-spacing: .38em; color: var(--t-accent, #647024); line-height: 1.4 !important; }
@@ -552,8 +550,6 @@ small.churchLine { font-size: .88em; }
 [data-theme^="modern"] .coverLines .coverLine { font-size: 1.45em; line-height: 1.5; letter-spacing: -.01em; }
 [data-theme^="modern"] .coverLines .coverLine:nth-child(2), [data-theme^="modern"] .coverLines article + article .coverLine { color: var(--m-ink); padding-left: 0; }
 [data-theme^="modern"] .coverMeta { color: var(--m-muted); }
-[data-theme^="modern"] .coverMark small { color: var(--m-muted); }
-[data-theme^="modern"] .coverMark strong { color: var(--m-ink); }
 @container (max-width: 560px) {
   [data-theme^="modern"] .orderTitle { font-size: 1.35em !important; }
 }
@@ -608,3 +604,10 @@ small.churchLine { font-size: .88em; }
 /* 인쇄 서식 도구에서 정렬(왼쪽·가운데·오른쪽)을 고른 칸은 배분 정렬 대신 그 정렬로 보인다 */
 .spread[data-aligned] > :first-child { position: static; opacity: 1; white-space: normal; }
 .spread[data-aligned] > .spreadText { display: none; }
+/* 기본 테마 좁은 화면: 기도･안내 표가 옆으로 밀리지 않도록 간격만 줄이고, 완전히 빈 예배 순서 줄은 숨긴다(모양 유지) */
+@container (max-width: 560px) {
+  .flow:not([data-theme^="modern"]) .prayer { font-size: .8em; }
+  .flow:not([data-theme^="modern"]) .prayer td { padding: 0 .2em; }
+  .flow:not([data-theme^="modern"]) .prayer th { padding-right: .15em; }
+  .flow:not([data-theme^="modern"]) .orderRow[data-blank] { display: none; }
+}

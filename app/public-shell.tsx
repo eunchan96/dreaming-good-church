@@ -9,8 +9,13 @@ import SiteIcon from './site-icon';
 import styles from './public-site.module.css';
 import { rememberInstallPrompt, clearInstallPrompt } from '@/lib/install-prompt';
 import ChurchContentProvider,{useChurchContent,publicChurchField} from './church-content';
-export function ChurchBrand() {
-  return <><Image src="/brand/church-logo-140.png" width={46} height={46} alt="" unoptimized /><span className={styles.brandText}><span>꿈꾸는</span><strong>좋은교회</strong></span></>;
+/** 공개 사이트 로고(달·십자가·하트 + 꿈꾸는 좋은교회). 어두운 바탕(푸터)에서는 회색 글자를 밝게 바꾼 그림을 쓴다. */
+export function SiteLogo({ onDark = false }: { onDark?: boolean }) {
+  return <Image className={styles.siteLogo} src={onDark ? '/brand/church-logo-wide-light.png' : '/brand/church-logo-wide.png'} width={720} height={241} alt="꿈꾸는좋은교회" unoptimized priority={!onDark} />;
+}
+/** 관리자 화면 로고(같은 새 로고, 크기는 관리자 화면 CSS가 정한다) */
+export function ChurchBrand({ onDark = false }: { onDark?: boolean }) {
+  return <Image src={onDark ? '/brand/church-logo-wide-light.png' : '/brand/church-logo-wide.png'} width={720} height={241} alt="꿈꾸는좋은교회" unoptimized />;
 }
 export default function PublicShell({ children }: { children: ReactNode }) {
   return <ChurchContentProvider><ShellContent>{children}</ShellContent></ChurchContentProvider>;
@@ -34,13 +39,13 @@ function ShellContent({children}:{children:ReactNode}){
   }, []);
   return <div className={styles.site}><a className={styles.skip} href="#public-content">본문으로 바로가기</a>
     <header ref={header} className={styles.header} onPointerLeave={e => { if (e.pointerType === 'mouse') setOpen(null); }} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) close(); }}><div className={styles.headerInner}>
-      <Link href="/" className={styles.brand} aria-label="꿈꾸는좋은교회 홈" onClick={close}><ChurchBrand /></Link>
+      <Link href="/" className={styles.brand} aria-label="꿈꾸는좋은교회 홈" onClick={close}><SiteLogo /></Link>
       <nav className={styles.desktopNav} aria-label="주 메뉴">{siteNavigation.map((group, index) => <div className={styles.navGroup} key={group.name} onPointerEnter={e => { if (e.pointerType === 'mouse') setOpen(group.name); }} onPointerLeave={e => { if (e.pointerType === 'mouse') setOpen(null); }}><Link href={group.href} aria-expanded={open === group.name} aria-controls={`desktop-menu-${index}`} onFocus={() => setOpen(group.name)} onClick={close}>{group.name}</Link><div id={`desktop-menu-${index}`} className={styles.dropdown} inert={open !== group.name} data-open={open === group.name}>{group.links.map(link => <Link key={link.href} href={link.href} onClick={close} aria-current={pathname === link.href ? 'page' : undefined}>{link.label}</Link>)}</div></div>)}</nav>
       <div className={styles.headerActions}><a className={styles.youtubeLink} href={YOUTUBE_CHANNEL} target="_blank" rel="noreferrer" aria-label="교회 YouTube 채널"><SiteIcon name="youtube" size={22} /><span>YouTube</span></a><button data-menu-trigger className={styles.mobileMenuButton} aria-label={mobile ? '메뉴 닫기' : '전체 메뉴 열기'} aria-expanded={mobile} aria-controls="mobile-site-menu" onClick={() => setMobile(!mobile)}><SiteIcon name={mobile ? 'close' : 'menu'} size={25} /></button></div>
     </div><nav id="mobile-site-menu" className={styles.mobileMenu} aria-label="모바일 주 메뉴" hidden={!mobile}>{siteNavigation.map(group => <div key={group.name}><Link className={styles.mobileGroupTitle} href={group.href} onClick={close}>{group.name}</Link><div className={styles.mobileSublinks}>{group.links.map(link => <Link key={link.href} href={link.href} onClick={close} aria-current={pathname === link.href ? 'page' : undefined}>{link.label}</Link>)}</div></div>)}</nav></header>
     {children}
     <TopButton/>
-    <footer className={styles.footer}><div className={styles.footerTop}><div className={styles.footerIdentity}><Link href="/" className={styles.brand}><ChurchBrand /></Link><a className={styles.footerYoutube} href={YOUTUBE_CHANNEL} target="_blank" rel="noreferrer"><SiteIcon name="youtube" />YouTube<SiteIcon name="diagonal" size={16} /></a></div><nav className={styles.footerNavigation} aria-label="하단 메뉴">{[{ label: '교회 소개', href: '/church' }, { label: '온라인 헌금', href: '/church/offering' }, { label: '예배', href: '/worship' }, { label: '소식', href: '/notices' }, { label: '앱 추가', href: '/install' }].map(link => <Link key={link.href} href={link.href}>{link.label}</Link>)}</nav><div className={styles.footerContact}>{name?<span>{name}</span>:null}{pastor?<span>담임목사 {pastor}</span>:null}{address?<address>{address}</address>:null}{phone?<a href={`tel:${phone.replace(/[^+\d]/g, '')}`}>T. {phone}</a>:null}</div></div>
+    <footer className={styles.footer}><div className={styles.footerTop}><div className={styles.footerIdentity}><Link href="/" className={styles.brand} aria-label="꿈꾸는좋은교회 홈"><SiteLogo onDark /></Link><a className={styles.footerYoutube} href={YOUTUBE_CHANNEL} target="_blank" rel="noreferrer"><SiteIcon name="youtube" />YouTube<SiteIcon name="diagonal" size={16} /></a></div><nav className={styles.footerNavigation} aria-label="하단 메뉴">{[{ label: '교회 소개', href: '/church' }, { label: '온라인 헌금', href: '/church/offering' }, { label: '예배', href: '/worship' }, { label: '소식', href: '/notices' }, { label: '앱 추가', href: '/install' }].map(link => <Link key={link.href} href={link.href}>{link.label}</Link>)}</nav><div className={styles.footerContact}>{name?<span>{name}</span>:null}{pastor?<span>담임목사 {pastor}</span>:null}{address?<address>{address}</address>:null}{phone?<a href={`tel:${phone.replace(/[^+\d]/g, '')}`}>T. {phone}</a>:null}</div></div>
       <div className={styles.footerBottom} data-footer-bottom><small>© 2026 꿈꾸는좋은교회. All rights reserved.</small><div className={styles.footerUtilities}><Link href="/legal/privacy">개인정보처리방침</Link><Link href="/legal/photo">사진 게시정책</Link><Link href="/admin/bulletins">로그인</Link></div></div>
     </footer>
   </div>;

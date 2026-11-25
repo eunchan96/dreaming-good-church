@@ -16,8 +16,8 @@ function Toast({ children, onDone, attrs }: { children: ReactNode; onDone?: () =
 }
 
 /** 성공 안내는 화면 아래에 떴다가 서서히 사라지는 플로팅 메시지로, 그 밖의 안내(오류·확인 요청)는 제자리에 그대로 둔다. */
-export default function StatusMessage({ message, className, onDone, attrs }: { message: string; className?: string; onDone?: () => void; attrs?: Record<string, string | boolean> }) {
+export default function StatusMessage({ message, className, onDone, attrs, toast = false }: { message: string; className?: string; onDone?: () => void; attrs?: Record<string, string | boolean>; toast?: boolean }) {
   if (!message) return null;
-  if (isSuccessMessage(message)) return <Toast key={message} onDone={onDone} attrs={attrs}>{message}</Toast>;
+  if (toast || isSuccessMessage(message)) return <Toast key={message} onDone={onDone} attrs={attrs}>{message}</Toast>;
   return <p role="status" className={className} {...attrs}>{message}</p>;
 }

@@ -1,3 +1,4 @@
+import {reloadToList} from './bulletin-helpers';
 import {bulletinPage} from './bulletin-helpers';
 import {calendarControl,selectCalendar} from './calendar-helpers';
 import {test,expect} from "@playwright/test";
@@ -62,7 +63,7 @@ test("select a bulletin notice, publish separately, include event snapshot and a
 
     await acceptConfirm(manager);await manager.getByRole("button",{name:"공개 목록에서 내리기",exact:true}).click();
     await expect(manager.getByRole("status")).toContainText("보관했습니다");
-    await page.reload();await page.getByRole("button",{name:/2091-11-04/}).click();await page.getByRole("button",{name:"수정",exact:true}).click();
+    await reloadToList(page);await page.getByRole("button",{name:/2091-11-04/}).click();await page.getByRole("button",{name:"수정",exact:true}).click();
     await expect(page.getByRole("button",{name:eventTitle+" 이름 수정",exact:true})).toBeVisible();
     const reader=await context.newPage();await reader.goto("/notices");await expect(reader.getByText("별도 공지에서 수정한 문구",{exact:true})).toBeVisible();
     await bulletinPage(manager,"소식 목록");await manager.getByRole("button",{name:/주보 환영 공지.*공지/}).click();await manager.getByLabel("민감정보 포함",{exact:true}).check();

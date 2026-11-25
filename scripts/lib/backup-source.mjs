@@ -108,10 +108,10 @@ export async function collectBackup({ local, config }) {
   let total = 0;
   const add = (path, bytes) => { total += bytes.length; if (total>MAX_FILE_BYTES) throw new Error('Backup exceeds 64 MiB. No partial archive was saved.'); files.push({path,bytes}); };
   if (local) {
-    const args = ['exec','supabase_db_dreaming-good-church','pg_dump','-U','supabase_admin','-d','postgres','-Fc'];
+    const args = ['exec','supabase_db_dreaming-towb-church','pg_dump','-U','supabase_admin','-d','postgres','-Fc'];
     for (const schema of ['public','private','auth','storage','extensions','supabase_migrations']) args.push('-n',schema);
     add('database.dump',await capture('docker',args));
-    add('roles.sql',await capture('docker',['exec','supabase_db_dreaming-good-church','pg_dumpall','-U','supabase_admin','--roles-only','--no-role-passwords']));
+    add('roles.sql',await capture('docker',['exec','supabase_db_dreaming-towb-church','pg_dumpall','-U','supabase_admin','--roles-only','--no-role-passwords']));
   } else {
     for(const file of await collectSqlDumps(true)) add(file.path,file.bytes);
   }
@@ -126,7 +126,7 @@ export async function collectBackup({ local, config }) {
   const after = await snapshot(client);
   if (JSON.stringify(before)!==JSON.stringify(after)) throw new Error('Church data changed during backup. Pause editing and retry.');
   add('inventory.json',Buffer.from(JSON.stringify(before)));
-  const applied=local?JSON.parse((await capture('docker',['exec','supabase_db_dreaming-good-church','psql','-U','supabase_admin','-d','postgres','-At','-c','select json_agg(version order by version) from supabase_migrations.schema_migrations;'])).toString()):appliedMigrationVersions(files.find(file=>file.path==='history-data.sql').bytes.toString());
+  const applied=local?JSON.parse((await capture('docker',['exec','supabase_db_dreaming-towb-church','psql','-U','supabase_admin','-d','postgres','-At','-c','select json_agg(version order by version) from supabase_migrations.schema_migrations;'])).toString()):appliedMigrationVersions(files.find(file=>file.path==='history-data.sql').bytes.toString());
   const included=[];
   for(const name of (await readdir('supabase/migrations')).sort()) {
     if(!/^\d{14}_[a-z0-9_]+\.sql$/.test(name)) throw new Error('Unexpected migration file.');

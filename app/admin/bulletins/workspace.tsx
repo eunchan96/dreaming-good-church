@@ -1,5 +1,6 @@
 "use client";
 import {bulletinSections,initialBulletinItems,printOnlyItem,sectionFor,presentationItems,renderedItems,type BulletinSection} from '@/lib/bulletin-editor';
+import { useViewMemory } from "../view-memory";
 import StatusMessage from '../status-message';
 import SaveButton from '../save-button';
 import polish from './editor.module.css';
@@ -253,6 +254,13 @@ export default function BulletinWorkspace() {
     if(!(await mayLeave()))return;
     setView('library');setDirty(false);setDraft(null);setSavePaused(false);setMessage('');
   }
+  // 새로고침해도 보던 화면(주보 상세·작성·설정)으로 돌아온다. 아직 한 번도 저장하지 않은 새 주보는 새 작성 화면으로.
+  useViewMemory<{view:typeof view;id:string|null}>('church-admin:bulletins',session==='editor',{view,id:draft?.id??null},saved=>{
+    if(saved.view==='settings'){openSettings();return;}
+    const row=saved.id?rows.find(entry=>entry.id===saved.id):undefined;
+    if(row){void open(row).then(()=>{if((saved.view==='edit'||saved.view==='register')&&row.status==='draft')setView('edit');});return;}
+    if(saved.view==='register')void createNew();
+  });
   const editing=view==='register'||view==='edit';
   const restore=useCallback((next:Pick<SavedBulletin,'serviceDate'|'issueNumber'|'items'>)=>{setDraft(current=>current&&current.status==='draft'?{...current,...next}:current);version.current+=1;setDirty(true);},[]);
   useEditHistory(draft,editing&&!preview&&!printPreview,restore);
@@ -276,7 +284,7 @@ export default function BulletinWorkspace() {
     </section></>:null;
 
   return <><AdminShell active="bulletins" intro={session==='editor'||session==='denied'?<ManagementHeading id="bulletin-heading" eyebrow="WEEKLY BULLETIN" title="주보 관리"/>:undefined} authenticated={session === 'editor'} canLeave={mayLeave} onLogout={session === 'editor' || session === 'denied' ? logout : undefined} busy={locked} pages={pages}><main id="admin-content" tabIndex={-1} aria-labelledby={session==='editor'||session==='denied'?'bulletin-heading':undefined} className={`${styles.page} ${session==='editor'||session==='denied'?`${ui.surface} ${polish.surface} ${view_.view}`:''}`}>
-    {!client ? <section className={styles.card}>서비스 연결 설정이 필요합니다. 관리자에게 문의해 주세요.</section> : session === "loading" ? <AdminLoading/> : session === "login" ?
+    {!client ? <section className={styles.card}>서비스 연결 설정이 필요합니다. 관리자에게 문의해 주세요.</section> : session === "loading" ? <AdminLoading heading/> : session === "login" ?
       <div className={styles.authLayout}><section className={styles.authStory}><span className={styles.eyebrow}>WELCOME TO CHURCH WORKSPACE</span><h1>함께 준비하는 예배,<br /><em>함께 나누는 소식.</em></h1><p>교회의 한 주를 차분히 준비하는 공간입니다.<br />주보와 소식, 교회 안내를 이곳에서 관리하세요.</p><a className={styles.authHome} href="/" target="_blank" rel="noreferrer">교회 홈페이지 보기<span aria-hidden="true">↗</span></a></section><form action={login} className={`${styles.card} ${styles.login}`}><h2>관리자 로그인</h2><p>등록된 편집 계정으로 로그인해 주세요.</p><label>이메일<input name="email" type="email" autoComplete="username" autoCapitalize="none" spellCheck={false} required disabled={locked} /></label><PasswordField label="비밀번호" name="password" autoComplete="current-password" required disabled={locked} /><p role="status" aria-live="polite" className={styles.message}>{message}</p><button className={styles.primary} disabled={locked}>{busy ? "확인 중…" : "로그인"}</button><p className={styles.loginHint}>초대받은 운영자만 사용할 수 있습니다.<br />비밀번호를 잊으셨다면 계정 관리 담당자에게 재설정 링크를 요청해 주세요.</p></form></div>
     : session === "denied" ? <><p role="status" aria-live="polite" className={view_.message}>{message}</p><section className={styles.card}><h2>편집 권한이 필요합니다</h2><p>로그인한 계정이 교회 편집자로 등록되지 않았습니다. 관리자에게 등록을 요청해 주세요.</p></section></>
     : <>

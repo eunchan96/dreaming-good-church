@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Noto_Sans_KR, Noto_Serif_KR } from "next/font/google";
 import "./globals.css";
+import { SITE_DESCRIPTION, SITE_INDEXABLE, SITE_NAME, SITE_URL, SITE_VERIFICATION } from "@/lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,8 +16,15 @@ const publicSans = Noto_Sans_KR({ variable: '--font-public-sans', subsets: ['lat
 const publicSerif = Noto_Serif_KR({ variable: '--font-public-serif', weight: '500', subsets: ['latin'], display: 'swap', preload: false });
 
 export const metadata: Metadata = {
-  title: "꿈꾸는좋은교회",
-  description: "꿈꾸는좋은교회 주보와 소식",
+  metadataBase: new URL(SITE_URL),
+  title: { default: SITE_NAME, template: `%s | ${SITE_NAME}` },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  alternates: { canonical: "./" },
+  openGraph: { type: "website", locale: "ko_KR", siteName: SITE_NAME, title: SITE_NAME, description: SITE_DESCRIPTION, url: "./" },
+  twitter: { card: "summary_large_image", title: SITE_NAME, description: SITE_DESCRIPTION },
+  robots: SITE_INDEXABLE ? { index: true, follow: true } : { index: false, follow: false },
+  verification: { google: SITE_VERIFICATION.google, other: SITE_VERIFICATION.naver ? { "naver-site-verification": SITE_VERIFICATION.naver } : undefined },
   appleWebApp: { capable: true, title: "좋은교회", statusBarStyle: "default" },
   icons: { apple: "/icons/apple-touch-icon.png" },
 };

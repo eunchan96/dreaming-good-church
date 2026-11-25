@@ -13,9 +13,6 @@
 .header{position:sticky;top:0;z-index:60;background:#fbfaf7f5;backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
 .headerInner{max-width:1240px;height:80px;padding:0 40px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:32px}
 .brand{display:inline-flex;align-items:center;gap:9px;flex-shrink:0}
-.brandText{display:flex;flex-direction:column;line-height:1.2}
-.brandText>span{font-size:12px;letter-spacing:.18em;margin-bottom:3px}
-.brandText strong{font-size:23px;font-weight:700;letter-spacing:-.07em}
 .desktopNav{display:flex;align-items:center;gap:55px;margin-left:70px}
 .navGroup{position:relative}
 .navGroup>a{display:flex;align-items:center;min-height:80px;padding:18px 8px;font-size:16px;font-weight:600;position:relative}
@@ -180,14 +177,13 @@ to{opacity:1}
 
 @media(max-width:899px){.headerInner{height:66px;padding:0 30px;gap:15px}
 .subpage{padding-left:30px;padding-right:30px}
-.brand img{width:36px;height:36px}
-.brandText strong{font-size:21px}
-.brandText>span{font-size:10px}
 .desktopNav{display:none}
 .mobileMenuButton{display:grid;place-items:center;border:0;background:transparent;padding:8px}
 .youtubeLink span{display:none}
 .headerActions{gap:15px}
-.mobileMenu:not([hidden]){display:block;border-top:1px solid var(--line);max-height:calc(100dvh - 66px);overflow:auto;padding:15px 28px 25px;background:var(--paper)}
+.mobileMenu{display:block;position:absolute;top:100%;left:0;right:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);box-shadow:0 16px 30px #342b2514;max-height:calc(100dvh - 66px);overflow:auto;overscroll-behavior:contain;padding:15px 28px 25px;background:var(--paper);transform-origin:top;transition:opacity .22s ease,transform .32s cubic-bezier(.22,.8,.3,1),display .32s allow-discrete}
+.mobileMenu[hidden]{display:none;opacity:0;transform:translateY(-10px)}
+@starting-style{.mobileMenu:not([hidden]){opacity:0;transform:translateY(-10px)}}
 .mobileMenu>div+div{border-top:1px solid var(--line);margin-top:15px;padding-top:15px}
 .mobileGroupTitle{display:flex;align-items:center;justify-content:space-between;min-height:48px;font-size:17px;font-weight:600}
 .mobileSublinks{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;padding:5px 0}
@@ -210,9 +206,8 @@ to{opacity:1}
 }
 
 @media(max-width:599px){.headerInner{height:62px;padding:0 22px}
-.brandText strong{font-size:20px}
 .headerActions{gap:10px}
-.mobileMenu:not([hidden]){max-height:calc(100dvh - 62px)}
+.mobileMenu{max-height:calc(100dvh - 62px)}
 .heroInner{display:block;padding:45px 22px 20px;min-height:0}
 .heroCopy{z-index:2}
 .eyebrow{font-size:9px;margin-bottom:22px}
@@ -383,3 +378,10 @@ to{opacity:1}
 /* On the 예배 page both section titles share one size and the display font. */
 .worshipBody .worshipTimes h2{font-size:24px;letter-spacing:-.05em;margin:0}
 .srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+@media(prefers-reduced-motion:reduce){.mobileMenu{transition:none}}
+/* 새 가로 로고: 높이로 크기를 정한다(상단바 높이 80·66·62px에 맞춤) */
+.brand .siteLogo{display:block;width:auto;height:52px}
+.footer .brand .siteLogo{height:56px}
+@media(max-width:1100px){.brand .siteLogo{height:44px}.footer .brand .siteLogo{height:50px}}
+@media(max-width:599px){.brand .siteLogo{height:40px}.footer .brand .siteLogo{height:46px}}
