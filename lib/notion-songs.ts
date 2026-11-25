@@ -21,8 +21,8 @@ export type Song = {
   id: string; title: string; url: string; initial: string; themes: string[]; codes: string[]; tempo: string[];
   bible: string; hymn: string; english: string; memo: string[]; pptCount: number;
 };
-export type SongBlock = { kind: 'text' | 'heading' | 'quote' | 'callout' | 'toggle' | 'item' | 'image' | 'file'; text?: string; url?: string; name?: string; icon?: string; children?: SongBlock[] };
-export type SongDetail = Song & { blocks: SongBlock[]; files: { name: string }[] };
+/** 상세에 필요한 것만: 악보 이미지(페이지 순서), 가사, PPT 파일 이름. 출처·mscz 같은 작업용 자료는 싣지 않는다. */
+export type SongDetail = Song & { sheets: string[]; lyrics: string; files: { name: string }[] };
 
 /** 설정이 없거나 Notion이 응답하지 않을 때. 메시지는 사용자에게 그대로 보여도 되는 문장이다. */
 export class SongsUnavailable extends Error {}
@@ -78,36 +78,41 @@ export async function listSongs(): Promise<Song[]> {
   return listLoading;
 }
 
-function toBlock(block: RawBlock): SongBlock | null {
-  const data = (block[block.type] ?? {}) as Record<string, unknown>;
-  const rich = ((data.rich_text as RichText | undefined) ?? []).map(part => part.plain_text).join('');
-  switch (block.type) {
-    case 'paragraph': return { kind: 'text', text: rich };
-    case 'heading_1': case 'heading_2': case 'heading_3': return { kind: 'heading', text: rich };
-    case 'quote': return { kind: 'quote', text: rich };
-    case 'callout': return { kind: 'callout', text: rich, icon: (data.icon as { emoji?: string } | null)?.emoji };
-    case 'toggle': return { kind: 'toggle', text: rich };
-    case 'bulleted_list_item': case 'numbered_list_item': return { kind: 'item', text: rich };
-    case 'image': { const file = data as unknown as NotionFile; return { kind: 'image', url: fileUrl(file) }; }
-    case 'file': case 'pdf': { const file = data as unknown as NotionFile; return { kind: 'file', url: fileUrl(file), name: file.name || '첨부 파일' }; }
-    default: return null;
+const plain = (data: unknown) => (((data as { rich_text?: RichText }).rich_text) ?? []).map(part => part.plain_text).join('');
+/** 곡 본문 callout 중 가사가 아닌 것: '출처'와 주소만 적은 것. */
+const isSource = (title: string) => /^(출처|https?:\/\/)/i.test(title.trim());
+
+/** callout 하나를 가사 글로: 제목이 첫 줄, 안쪽 문단이 나머지 줄(빈 문단은 연 구분). 가사가 없으면 빈 문자열. */
+async function calloutLyrics(raw: RawBlock): Promise<string> {
+  const title = plain(raw.callout).trim();
+  if (isSource(title)) return '';
+  const lines = title ? [title] : [];
+  if (raw.has_children) {
+    let cursor: string | undefined;
+    do {
+      const result = await notion<List<RawBlock>>(`/blocks/${raw.id}/children?page_size=100${cursor ? `&start_cursor=${cursor}` : ''}`);
+      // 안쪽에 파일(mscz 같은 작업 파일)만 있는 callout은 가사가 아니다.
+      for (const child of result.results) if (['paragraph', 'bulleted_list_item', 'numbered_list_item', 'quote', 'heading_1', 'heading_2', 'heading_3'].includes(child.type)) lines.push(plain(child[child.type]).trimEnd());
+      cursor = result.has_more && result.next_cursor ? result.next_cursor : undefined;
+    } while (cursor);
   }
+  return lines.join('\n').trim();
 }
 
-async function loadBlocks(id: string, depth = 0): Promise<SongBlock[]> {
-  const out: SongBlock[] = [];
+/** 곡 페이지 본문에서 악보 이미지(위에서 아래 순서)와 가사만 뽑는다. */
+async function loadSongBody(id: string): Promise<{ sheets: string[]; lyrics: string }> {
+  const sheets: string[] = [], lyrics: string[] = [];
   let cursor: string | undefined;
   do {
     const result = await notion<List<RawBlock>>(`/blocks/${id}/children?page_size=100${cursor ? `&start_cursor=${cursor}` : ''}`);
     for (const raw of result.results) {
-      const block = toBlock(raw);
-      if (!block) continue;
-      if (raw.has_children && depth < 2) block.children = await loadBlocks(raw.id, depth + 1);
-      out.push(block);
+      if (raw.type === 'image') { const url = fileUrl(raw.image as unknown as NotionFile); if (url) sheets.push(url); }
+      else if (raw.type === 'callout') { const text = await calloutLyrics(raw); if (text) lyrics.push(text); }
     }
     cursor = result.has_more && result.next_cursor ? result.next_cursor : undefined;
   } while (cursor);
-  return out;
+  // 연 구분용 빈 줄은 한 줄로 줄인다.
+  return { sheets, lyrics: lyrics.join('\n\n').replace(/\n{3,}/g, '\n\n') };
 }
 
 /** 곡 DB에 속한 페이지만 읽는다(연결된 다른 페이지를 id로 열어 보지 못하게). */
@@ -118,8 +123,8 @@ async function songPage(id: string): Promise<Page> {
 }
 
 export async function songDetail(id: string): Promise<SongDetail> {
-  const [page, blocks] = await Promise.all([songPage(id), loadBlocks(id)]);
-  return { ...toSong(page), blocks, files: (page.properties['PPT']?.files ?? []).map(file => ({ name: file.name })) };
+  const [page, body] = await Promise.all([songPage(id), loadSongBody(id)]);
+  return { ...toSong(page), ...body, files: (page.properties['PPT']?.files ?? []).map(file => ({ name: file.name })) };
 }
 
 /** PPT 첨부 한 개의 새 다운로드 주소(약 1시간 유효). */

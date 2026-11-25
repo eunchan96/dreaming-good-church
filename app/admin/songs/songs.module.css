@@ -8,11 +8,14 @@
 .chips button { min-width: 44px; padding: 8px 12px !important; }
 
 .rows.rows.rows { max-height: none; overflow: visible; }
-.row { display: flex !important; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 12px 8px !important; text-align: left; min-height: 56px; }
+/* 누르면 상세를 불러오는 동안에도 비활성(금지 커서)으로 바꾸지 않고, 진행 중 표시만 한다. */
+.row { display: flex !important; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 12px 8px !important; text-align: left; min-height: 56px; cursor: pointer; }
+.row[data-opening] { cursor: progress; background: #f6f0e2 !important; }
 .rowMain { display: grid; gap: 3px; min-width: 0; }
 .rowMain strong { font-size: 15px; color: #2f2720; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rowMain small { font-size: 12.5px; color: #6f604a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .badges { flex: none; display: inline-flex; gap: 4px; }
+.opening { font-size: 12.5px; color: #776850; }
 .empty { min-height: 200px; display: grid; place-items: center; text-align: center; color: #776850; font-size: 16px; }
 
 .pager { display: flex; justify-content: center; align-items: center; gap: 4px; margin: 20px 0 4px; flex-wrap: wrap; }
@@ -23,26 +26,38 @@
 .pager button:disabled { color: #c9bda8; }
 .gap { display: inline-grid; place-items: center; min-width: 20px; color: #9a8b74; }
 
-.facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 16px; margin: 8px 0 16px; font-size: 14px; }
+/* 곡 상세: 왼쪽 악보, 오른쪽 정보 */
+.detail { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); gap: 32px; align-items: start; padding-top: 4px; }
+.sheetPane { min-width: 0; }
+.infoPane { min-width: 0; display: grid; gap: 14px; align-content: start; }
+.songTitle { margin: 4px 0 0; font-size: 22px; line-height: 1.4; color: #2f2720; overflow-wrap: anywhere; }
+
+.facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 10px 18px; margin: 0; font-size: 14.5px; align-items: center; }
 .facts dt { color: #776850; }
 .facts dd { margin: 0; color: #2f2720; overflow-wrap: anywhere; }
-.downloads { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-.downloads button { border-radius: 8px !important; text-align: left; }
-.noPpt { color: #776850; font-size: 14px; margin: 4px 0 0; }
+.downloads { display: flex; gap: 8px; flex-wrap: wrap; }
+.downloads button { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px; border-radius: 8px !important; text-align: left; min-height: 44px; }
+.downloads small { font-size: 11.5px; font-weight: 400; opacity: .85; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.sheet { margin: 0 0 16px; }
-.sheet img { display: block; max-width: 100%; height: auto; border: 1px solid #e3dac8; border-radius: 6px; background: #fff; }
-.blockHeading { font-size: 16px; margin: 20px 0 6px; }
-.text { margin: 0 0 8px; white-space: pre-wrap; line-height: 1.7; }
-.item { margin: 0 0 4px; white-space: pre-wrap; }
-.callout { display: flex; gap: 10px; padding: 12px 14px; margin: 0 0 12px; border-radius: 8px; background: #f6f0e2; }
-.callout p { margin: 0; white-space: pre-wrap; line-height: 1.7; }
-.toggle { margin: 0 0 12px; }
-.toggle summary { cursor: pointer; font-weight: 600; min-height: 32px; }
-.nested { margin-top: 6px; }
+.lyricsHeading { margin: 6px 0 0; padding-top: 16px; border-top: 1px solid #e3dac8; font-size: 15px; color: #5d4930; }
+.lyrics { margin: 0; white-space: pre-wrap; line-height: 1.85; font-size: 15px; color: #2f2720; overflow-wrap: anywhere; }
+.noLyrics { margin: 0; color: #776850; font-size: 14px; }
 
+/* 악보 뷰어 */
+.viewer { outline-offset: 4px; border-radius: 8px; }
+.sheet { margin: 0; }
+.sheet img { display: block; width: 100%; height: auto; border: 1px solid #e3dac8; border-radius: 6px; background: #fff; }
+.sheetNav { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 12px; }
+.sheetNav span { min-width: 64px; text-align: center; font-size: 14px; color: #5d4930; font-variant-numeric: tabular-nums; }
+.sheetNav button { width: 44px; height: 44px; border: 1px solid #d9cfbd !important; border-radius: 999px !important; background: #fff !important; color: #342b25; font-size: 24px; line-height: 1; padding: 0 !important; cursor: pointer; }
+.sheetNav button:hover:not(:disabled) { background: #f1ead9 !important; }
+.sheetNav button:disabled { color: #c9bda8; cursor: default; }
+.noSheet { min-height: 240px; display: grid; place-items: center; margin: 0; border: 1px dashed #d9cfbd; border-radius: 8px; color: #776850; font-size: 15px; }
+
+@media (max-width: 860px) {
+  .detail { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+}
 @media (max-width: 560px) {
-  .facts { grid-template-columns: 1fr; gap: 0; }
-  .facts dt { margin-top: 8px; font-size: 12.5px; }
   .rowMain small { white-space: normal; }
+  .songTitle { font-size: 20px; }
 }

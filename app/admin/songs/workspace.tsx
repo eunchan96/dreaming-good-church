@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { makeBrowserClient } from '@/lib/bulletin-store';
 import { firstInitial, matchesSong } from '@/lib/song-search.mjs';
-import type { Song, SongBlock, SongDetail } from '@/lib/notion-songs';
+import type { Song, SongDetail } from '@/lib/notion-songs';
 import SiteIcon from '@/app/site-icon';
 import AdminShell from '../admin-shell';
 import ManagementHeading from '../management-heading';
@@ -18,23 +18,26 @@ const PAGE_SIZE = 30;
 const INITIALS = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
 const SONG_DB_URL = 'https://www.notion.so/1ff61c11cd4d80d2ac4be164e34a5427';
 
-function Blocks({ blocks }: { blocks: SongBlock[] }) {
-  return <>{blocks.map((block, index) => {
-    const children = block.children?.length ? <div className={styles.nested}><Blocks blocks={block.children} /></div> : null;
-    switch (block.kind) {
-      case 'image': return block.url ? <figure key={index} className={styles.sheet}>
-        {/* eslint-disable-next-line @next/next/no-img-element -- Notion 임시 주소라 Next 이미지 최적화를 쓰지 않는다 */}
-        <img src={block.url} alt={`악보 ${index + 1}`} loading="lazy" />
-      </figure> : null;
-      case 'file': return block.url ? <p key={index}><a href={block.url} target="_blank" rel="noreferrer">{block.name}</a></p> : null;
-      case 'heading': return <h3 key={index} className={styles.blockHeading}>{block.text}</h3>;
-      case 'callout': return <div key={index} className={styles.callout}>{block.icon ? <span aria-hidden="true">{block.icon}</span> : null}<div>{block.text ? <p>{block.text}</p> : null}{children}</div></div>;
-      case 'toggle': return <details key={index} className={styles.toggle} open><summary>{block.text || '더 보기'}</summary>{children}</details>;
-      case 'quote': return <blockquote key={index}>{block.text}</blockquote>;
-      case 'item': return <p key={index} className={styles.item}>• {block.text}{children}</p>;
-      default: return block.text ? <p key={index} className={styles.text}>{block.text}{children}</p> : children ? <div key={index}>{children}</div> : null;
-    }
-  })}</>;
+/** 악보를 한 장씩 보여 주고, 여러 장이면 아래 ‹ › 버튼(또는 ← → 키)으로 넘긴다. */
+function SheetViewer({ sheets, title }: { sheets: string[]; title: string }) {
+  const [index, setIndex] = useState(0);
+  const count = sheets.length, at = Math.min(index, Math.max(0, count - 1));
+  const go = (to: number) => setIndex(Math.max(0, Math.min(count - 1, to)));
+  // 다음·이전 장을 미리 받아 두면 넘길 때 바로 나온다.
+  useEffect(() => { for (const url of [sheets[at - 1], sheets[at + 1]]) if (url) new Image().src = url; }, [sheets, at]);
+  if (!count) return <p className={styles.noSheet}>등록된 악보가 없습니다.</p>;
+  return <div className={styles.viewer} role="group" aria-roledescription="악보 보기" aria-label={`${title} 악보`} tabIndex={0}
+    onKeyDown={event => { if (event.key === 'ArrowLeft') { event.preventDefault(); go(at - 1); } else if (event.key === 'ArrowRight') { event.preventDefault(); go(at + 1); } }}>
+    <figure className={styles.sheet}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- Notion 임시 주소라 Next 이미지 최적화를 쓰지 않는다 */}
+      <img src={sheets[at]} alt={`${title} 악보 ${at + 1}/${count}쪽`} />
+    </figure>
+    {count > 1 ? <div className={styles.sheetNav}>
+      <button type="button" aria-label="이전 악보" disabled={at === 0} onClick={() => go(at - 1)}>‹</button>
+      <span role="status" aria-live="polite">{at + 1} / {count}</span>
+      <button type="button" aria-label="다음 악보" disabled={at === count - 1} onClick={() => go(at + 1)}>›</button>
+    </div> : null}
+  </div>;
 }
 
 export default function SongsWorkspace() {
@@ -117,43 +120,43 @@ export default function SongsWorkspace() {
   const intro = <ManagementHeading id="songs-heading" eyebrow="PRAISE ARCHIVE" title="찬양 악보" />;
   const pages_ = [
     { id: 'list', label: '곡 목록', active: !detail, onSelect: () => { setDetail(null); setMessage(''); }, sections: [{ id: 'song-list', label: '목록·검색' }] },
-    ...(detail ? [{ id: 'detail', label: '곡 상세', active: true, onSelect: () => {}, sections: [{ id: 'song-info', label: '곡 정보' }, { id: 'song-sheet', label: '악보·가사' }] }] : []),
+    // 상세는 빠른 이동 패널이 필요 없다(한 화면에 악보와 정보가 같이 보임).
+    ...(detail ? [{ id: 'detail', label: '곡 상세', active: true, onSelect: () => {}, sections: [] }] : []),
   ];
 
   return <AdminShell active="songs" intro={intro} authenticated={allowed} onLogout={allowed ? logout : undefined} busy={busy} pages={pages_}>
     <main id="admin-content" aria-labelledby="songs-heading" tabIndex={-1} className={`${page.page} ${ui.surface}`}>
       {allowed ? <StatusMessage message={message} className={`${page.message} ${ui.feedback}`} onDone={() => setMessage('')} /> : null}
-      {!allowed ? <ReauthPanel message={message} onRetry={() => { setMessage('로그인 상태를 확인하고 있습니다…'); setReload(n => n + 1); }} /> : detail ? <>
-        <section id="song-info" tabIndex={-1} className={ui.flat}>
-          <div className={ui.heading}><h2>{detail.title}</h2><div className={styles.actions}>
+      {!allowed ? <ReauthPanel message={message} onRetry={() => { setMessage('로그인 상태를 확인하고 있습니다…'); setReload(n => n + 1); }} /> : detail ? <section className={styles.detail} aria-labelledby="song-title">
+        <div className={styles.sheetPane}><SheetViewer key={detail.id} sheets={detail.sheets} title={detail.title} /></div>
+        <div className={styles.infoPane}>
+          <div className={styles.actions}>
             <button type="button" className={`${btn.btn} ${btn.ghost}`} onClick={() => { setDetail(null); setMessage(''); }}>← 목록으로</button>
             <a href={detail.url} target="_blank" rel="noreferrer" className={`${btn.btn} ${btn.ghost}`}><span>Notion에서 열기</span><SiteIcon name="diagonal" size={14} /></a>
-          </div></div>
+          </div>
+          <h2 id="song-title" className={styles.songTitle}>{detail.title}</h2>
           <dl className={styles.facts}>
-            {detail.codes.length ? <><dt>코드</dt><dd>{detail.codes.join(' · ')}</dd></> : null}
-            {detail.tempo.length ? <><dt>템포</dt><dd>{detail.tempo.join(' · ')}</dd></> : null}
-            {detail.themes.length ? <><dt>주제</dt><dd>{detail.themes.join(' · ')}</dd></> : null}
-            {detail.bible ? <><dt>성경</dt><dd>{detail.bible}</dd></> : null}
-            {detail.hymn ? <><dt>찬송가</dt><dd>{detail.hymn}</dd></> : null}
-            {detail.english ? <><dt>영어</dt><dd>{detail.english}</dd></> : null}
-            {detail.memo.length ? <><dt>비고</dt><dd>{detail.memo.join(' · ')}</dd></> : null}
+            <dt>코드</dt><dd>{detail.codes.length ? detail.codes.join(' · ') : '-'}</dd>
+            <dt>템포</dt><dd>{detail.tempo.length ? detail.tempo.join(' · ') : '-'}</dd>
+            <dt>주제</dt><dd>{detail.themes.length ? detail.themes.join(' · ') : '-'}</dd>
+            <dt>PPT</dt><dd>{detail.files.length ? <span className={styles.downloads}>{detail.files.map((file, index) => <button key={index} type="button" className={`${btn.btn} ${btn.primary}`} disabled={busy} onClick={() => void download(index)} title={file.name}>다운로드{detail.files.length > 1 ? ` ${index + 1}` : ''}<small>{file.name}</small></button>)}</span> : '없음'}</dd>
           </dl>
-          {detail.files.length ? <div className={styles.downloads}>{detail.files.map((file, index) => <button key={index} type="button" className={`${btn.btn} ${btn.primary}`} disabled={busy} onClick={() => void download(index)}>PPT 다운로드 · {file.name}</button>)}</div> : <p className={styles.noPpt}>등록된 PPT가 없습니다.</p>}
-        </section>
-        <section id="song-sheet" tabIndex={-1} className={ui.flat} aria-label="악보와 가사">{detail.blocks.length ? <Blocks blocks={detail.blocks} /> : <p className={styles.empty}>Notion 곡 페이지에 악보·가사가 아직 없습니다.</p>}</section>
-      </> : <section id="song-list" tabIndex={-1} className={`${ui.flat} ${styles.list}`}>
+          <h3 className={styles.lyricsHeading}>가사</h3>
+          {detail.lyrics ? <p className={styles.lyrics}>{detail.lyrics}</p> : <p className={styles.noLyrics}>등록된 가사가 없습니다.</p>}
+        </div>
+      </section> : <section id="song-list" tabIndex={-1} className={`${ui.flat} ${styles.list}`}>
         <div className={ui.heading}><h2>곡 목록{songs.length ? <small className={styles.count}> {filtered.length === songs.length ? `${songs.length}곡` : `${filtered.length} / ${songs.length}곡`}</small> : null}</h2>
           <div className={styles.actions}><a href={SONG_DB_URL} target="_blank" rel="noreferrer" className={`${btn.btn} ${btn.ghost}`}><span>Notion 바로가기</span><SiteIcon name="diagonal" size={14} /></a></div></div>
-        <div className={styles.search}><input type="search" aria-label="곡 검색" placeholder="제목·초성(ㄱㅅ)·주제·코드·성경으로 검색" value={query} onChange={event => { setQuery(event.target.value); setPageNo(1); }} /></div>
+        <div className={styles.search}><input type="search" aria-label="곡 검색" placeholder="곡 검색" value={query} onChange={event => { setQuery(event.target.value); setPageNo(1); }} /></div>
         <div className={`${btn.chips} ${styles.chips}`} role="group" aria-label="제목 첫 글자 필터">
           <button type="button" aria-pressed={!initial} onClick={() => { setInitial(''); setPageNo(1); }}>전체</button>
           {INITIALS.map(letter => <button type="button" key={letter} aria-pressed={initial === letter} onClick={() => { setInitial(initial === letter ? '' : letter); setPageNo(1); }}>{letter}</button>)}
           <button type="button" aria-pressed={pptOnly} onClick={() => { setPptOnly(!pptOnly); setPageNo(1); }}>PPT 있는 곡</button>
         </div>
         {loading ? <p className={styles.empty} role="status">곡 목록을 불러오고 있습니다…</p> : <>
-          <ul className={`${ui.rowsList} ${styles.rows}`}>{shown.map(song => <li key={song.id}><button type="button" className={styles.row} disabled={!!opening} aria-busy={opening === song.id} onClick={() => void open(song)}>
+          <ul className={`${ui.rowsList} ${styles.rows}`}>{shown.map(song => <li key={song.id}><button type="button" className={styles.row} aria-busy={opening === song.id} data-opening={opening === song.id || undefined} onClick={() => void open(song)}>
             <span className={styles.rowMain}><strong>{song.title}</strong>{meta(song) ? <small>{meta(song)}</small> : null}</span>
-            <span className={styles.badges}>{song.pptCount ? <small className={ui.badge}>PPT{song.pptCount > 1 ? ` ${song.pptCount}` : ''}</small> : null}</span>
+            <span className={styles.badges}>{opening === song.id ? <small className={styles.opening} role="status">여는 중…</small> : song.pptCount ? <small className={ui.badge}>PPT{song.pptCount > 1 ? ` ${song.pptCount}` : ''}</small> : null}</span>
           </button></li>)}</ul>
           {!filtered.length ? <p className={styles.empty}>{songs.length ? '검색 조건에 맞는 곡이 없습니다.' : message || '등록된 곡이 없습니다.'}</p> : null}
           {pages > 1 ? <nav className={styles.pager} aria-label="곡 목록 페이지">
