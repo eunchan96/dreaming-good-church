@@ -1,49 +1,73 @@
-# 꿈꾸는좋은교회
+# 꿈꾸는좋은교회 홈페이지
 
-주보·공지/일정·교회 안내와 관리자 편집 기능을 개발 중입니다.
-[현재 구현 범위와 로컬 실행·검증 방법](docs/bulletin-drafts.md)을 참고하세요.
+작은 교회를 위한 홈페이지입니다. 목사님이 관리자 화면에서 주보를 입력하면 모바일 주보, 인쇄용 주보(PDF·Word)가 함께 만들어지고, 성도는 가입 없이 스마트폰으로 주보·예배 영상·교회 소식을 봅니다.
 
-개인정보 없는 3주 샘플로 확인하려면 [로컬 샘플 실행 안내](docs/local-samples.md)를 참고하세요.
-`npm run dev:local`은 3001번의 로컬 DB에 연결하며, `npm run dev`가 사용하는 운영 DB와 분리됩니다.
+- 운영 주소: <https://towbchurch.com> (관리자: [/admin/bulletins](https://towbchurch.com/admin/bulletins))
+- 기술: Next.js 16 · React 19 · TypeScript · CSS Modules · Supabase(Postgres·Auth·RLS) · Vercel
 
-현재 확인할 화면은 [교회 홈페이지](http://localhost:3000)와 [관리자 주보 편집](http://localhost:3000/admin/bulletins)입니다.
-`npm run dev`는 `.env.local`의 실제 Supabase 프로젝트에 연결합니다.
-새 운영자는 생성된 `.local/admin-invite-UUID.html`에서 계정 링크를 열어 비밀번호를 정합니다.
-이미 설정한 계정은 기존 비밀번호로 로그인합니다. 자세한 [배포 계정·초대/재설정 안내](docs/deployed-accounts.md)를 참고하세요.
+> Next.js 16은 이전 버전과 API가 다릅니다. 코드를 고치기 전에 `node_modules/next/dist/docs/`를 먼저 봅니다([AGENTS.md](AGENTS.md)).
 
-## Getting Started
+## 주요 기능
 
-아래는 Next.js 기본 실행 명령 참고입니다.
+| 구분 | 내용 |
+| --- | --- |
+| 공개 화면 | 홈, 교회 소개(인사말·오시는 길·예배시간·온라인 헌금), 예배 영상 6종, 주보·교회 소식·교회 일정·토라&토브, 앱 추가 안내 |
+| 관리자 | 주보 관리(지난주 복사·자동 저장·인쇄 미리보기·게시/취소·테마 5종·PDF/Word 내려받기), 홈페이지 관리, 예배 영상 관리, 공지·일정 관리, 편집자 초대 |
+| 검색·공유 | sitemap·robots·화면별 설명, 공유 미리보기 이미지, 교회 구조화 데이터 (`lib/site.ts`) |
 
-First, run the development server:
+## 폴더 구성
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+app/            공개 화면 (app/admin = 관리자, app/api = Route Handler)
+lib/            주보·교회 정보·사이트 설정 등 공통 로직, DB 타입(database.types.ts)
+supabase/       마이그레이션, 시드, Edge Function(invite-church-editor)
+scripts/        로컬 실행·테스트·백업·DB 타입 생성
+tests/          단위 테스트(*.test.mjs)와 Playwright e2e(tests/e2e)
+docs/           기능별 구현·운영 기록
+assets/fonts/   PDF·Word에 넣는 글꼴
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 로컬에서 실행하기
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+준비: Node.js 24, Docker(로컬 Supabase), Windows PowerShell
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```powershell
+npm ci
+npx supabase start          # 로컬 Supabase (마이그레이션·시드 적용)
+npm run dev:local           # http://localhost:3001 — 로컬 DB에 연결
+```
 
-## Learn More
+- `npm run dev:local`은 로컬 Supabase에 연결합니다. 개인정보 없는 샘플은 [로컬 샘플 안내](docs/local-samples.md)를 봅니다.
+- `npm run dev`는 `.env.local`의 **운영 Supabase**에 연결하므로 평소 개발에는 쓰지 않습니다.
+- `.env.local`은 저장소에 올리지 않습니다. 필요한 값은 `.env.default`를 참고합니다.
 
-To learn more about Next.js, take a look at the following resources:
+## 검사
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| 명령 | 내용 |
+| --- | --- |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | 경로 타입 생성 후 TypeScript 검사 |
+| `npm test` | 단위 테스트 |
+| `scripts/test-e2e.ps1` | Playwright e2e (로컬 Supabase + 개발 서버 3001 필요) |
+| `scripts/test-db.ps1` | DB·RLS 테스트 |
+| `npm run types:check` | DB 타입이 마이그레이션과 같은지 확인 |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+PR과 main·develop 푸시에서는 GitHub Actions가 lint·타입 검사·단위 테스트·빌드를 돌립니다([CI 안내](docs/ci.md)).
 
-## Deploy on Vercel
+## 브랜치와 배포
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. 작업 브랜치(`feat/내용`, `fix/내용`)에서 작업하고 푸시하면 Vercel 브랜치 미리보기 주소가 생깁니다(검색 엔진 수집 막음).
+2. 전체 e2e·`npm test`·운영 빌드를 통과하면 작업 브랜치를 `develop`에 squash합니다.
+3. `develop`을 `main`에 merge commit으로 합치면 Vercel이 운영(towbchurch.com)에 배포합니다.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 주일(일요일) 오전에는 `main`에 배포하지 않습니다.
+- 운영 Supabase 변경(마이그레이션·Edge Function 배포)은 따로 확인을 받고 합니다.
+- 커밋 메시지는 `타입: 내용`(feat, fix, design, db, test, docs, refactor, chore)을 따릅니다.
+
+## 운영 문서
+
+- **[관리 화면 사용 안내](docs/user-guide.md)** — 목사님·편집자용(주보 작성·인쇄·게시, 공지·영상·홈페이지 관리)
+- [배포 계정·편집자 초대·비밀번호 재설정](docs/deployed-accounts.md)
+- [암호화 백업](docs/encrypted-backups.md) · [운영 준비와 복구](docs/operations-recovery.md) · [운영 정책과 되돌리기](docs/operating-policy-and-rollback.md)
+- [주보 작성](docs/bulletin-drafts.md) · [주보 게시](docs/bulletin-publication.md) · [주보 인쇄](docs/bulletin-printing.md)
+- [홈페이지 콘텐츠 관리](docs/homepage-content-management.md) · [예배 영상 관리](docs/worship-video-management.md) · [공지·일정](docs/community.md)

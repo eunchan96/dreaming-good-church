@@ -19,7 +19,8 @@ test('all management pages share concise headings, mobile layouts and accessible
     if(path==='worship'){await page.getByRole('button',{name:'영상 등록',exact:true}).click();await page.getByLabel('링크',{exact:true}).fill('https://youtu.be/OSfMkv-YWJQ');await page.getByLabel('제목',{exact:true}).fill('관리자 화면 검수용 영상');}
    }
    await expect(page.getByRole('heading',{name:label,level:1,exact:true})).toBeVisible();await expect(page.locator('[data-tip-panel]')).toHaveCount(0);
-   const title=await page.getByRole('region',{name:'페이지 제목'}).boundingBox(),toc=await page.getByRole('navigation',{name:'페이지 목차'}).boundingBox();expect(title!.y+title!.height).toBeLessThanOrEqual(toc!.y);
+   // 화면을 불러오는 동안(자리 표시 → 내용) 배치가 바뀌므로 자리 잡을 때까지 다시 잰다.
+   await expect.poll(async()=>{const title=await page.getByRole('region',{name:'페이지 제목'}).boundingBox(),toc=await page.getByRole('navigation',{name:'페이지 목차'}).boundingBox();return !!title&&!!toc&&title.y+title.height<=toc.y;}).toBe(true);
    for(const width of [1440,768,390,320]){await page.setViewportSize({width,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
    expect((await new AxeBuilder({page}).exclude('iframe').analyze()).violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)}))).toEqual([]);
    await page.screenshot({path:`.local/admin-batch-${path}-mobile.png`,fullPage:true,animations:'disabled'});
