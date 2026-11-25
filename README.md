@@ -66,6 +66,7 @@ PR과 main·develop 푸시에서는 GitHub Actions가 lint·타입 검사·단�
 
 ## 운영 문서
 
+- **[관리 화면 사용 안내](docs/user-guide.md)** — 목사님·편집자용(주보 작성·인쇄·게시, 공지·영상·홈페이지 관리)
 - [배포 계정·편집자 초대·비밀번호 재설정](docs/deployed-accounts.md)
 - [암호화 백업](docs/encrypted-backups.md) · [운영 준비와 복구](docs/operations-recovery.md) · [운영 정책과 되돌리기](docs/operating-policy-and-rollback.md)
 - [주보 작성](docs/bulletin-drafts.md) · [주보 게시](docs/bulletin-publication.md) · [주보 인쇄](docs/bulletin-printing.md)
