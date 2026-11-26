@@ -392,6 +392,44 @@ export type Database = {
                     }
                 ];
             };
+            "special_programs": {
+                Row: {
+                    "content": NonNullable<Json>;
+                    "created_at": string;
+                    "id": string;
+                    "pdf_path": string | null;
+                    "service_date": string;
+                    "slug": string;
+                    "status": string;
+                    "title": string;
+                    "updated_at": string;
+                };
+                ComputedFields: never;
+                Insert: {
+                    "content": NonNullable<Json>;
+                    "created_at"?: string;
+                    "id"?: string;
+                    "pdf_path"?: string | null;
+                    "service_date": string;
+                    "slug": string;
+                    "status"?: string;
+                    "title": string;
+                    "updated_at"?: string;
+                };
+                Update: {
+                    "content"?: NonNullable<Json>;
+                    "created_at"?: string;
+                    "id"?: string;
+                    "pdf_path"?: string | null;
+                    "service_date"?: string;
+                    "slug"?: string;
+                    "status"?: string;
+                    "title"?: string;
+                    "updated_at"?: string;
+                };
+                Relationships: [
+                ];
+            };
             "worship_videos": {
                 Row: {
                     "dawn_kinds": (string)[];
