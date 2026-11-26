@@ -515,6 +515,13 @@ export type Database = {
                     isSetofReturn: false;
                 };
             };
+            "delete_bulletin_draft": {
+                Args: {
+                    "p_id": string;
+                    "p_revision": number;
+                };
+                Returns: undefined;
+            };
             "save_bulletin_draft": {
                 Args: {
                     "p_id": string;
