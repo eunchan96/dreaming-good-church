@@ -11,6 +11,9 @@ import PrintPreview from "./print-preview";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { confirmItem, createBulletin, copyBulletin, createItem, editItem, publicationIssues, type BulletinItem } from "@/lib/bulletins";
 import { applyMonthlyRules, worshipNewsBody } from "@/lib/bulletin-defaults.mjs";
+import { fromKoreaLocal, koreaWhen } from "@/lib/korean-date";
+// 예약 공개 시각이 아직 오지 않은 게시 주보인지(공개 전).
+const isScheduled=(row:{status:string;publishAt?:string|null})=>row.status==='published'&&!!row.publishAt&&new Date(row.publishAt).getTime()>Date.now();
 import { errorMessage, loadBulletins, makeBrowserClient, saveDraft, type SavedBulletin } from "@/lib/bulletin-store";
 import {PaperView} from "./paper";
 import ThemePicker from "./theme-picker";
@@ -52,6 +55,7 @@ export default function BulletinWorkspace() {
   useEffect(() => { if (session === 'login') forgetSignedIn(); }, [session]);
   const [rows, setRows] = useState<SavedBulletin[]>([]);
   const [draft, setDraft] = useState<SavedBulletin | null>(null);
+  const [scheduleAt, setScheduleAt] = useState('');
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -208,7 +212,9 @@ export default function BulletinWorkspace() {
     if(!client||!draft||busy||inFlight.current)return;
     const prepared={...draft,items:draft.items.map(confirmItem)};
     if(publish&&publicationIssues(prepared).length){setMessage(publicationIssues(prepared).join(' '));return;}
-    if(!await confirm(publish?{title:'주보를 웹에 게시할까요?',message:'게시하면 공개 주보에 바로 나타납니다.',confirmLabel:'게시'}:{title:'게시를 취소하고 초안으로 돌릴까요?',message:'공개 주보에서 제외됩니다.',confirmLabel:'게시 취소',tone:'danger'}))return;
+    const scheduledIso=publish&&scheduleAt?fromKoreaLocal(scheduleAt):null;
+    if(publish&&scheduleAt&&(!scheduledIso||new Date(scheduledIso).getTime()<=Date.now())){setMessage('예약 공개 시각은 지금보다 뒤로 정해 주세요. 바로 공개하려면 시각을 비워 주세요.');return;}
+    if(!await confirm(publish?(scheduledIso?{title:'주보를 예약 게시할까요?',message:`${koreaWhen(scheduledIso)}에 공개 주보에 나타납니다.\n그때까지는 공개되지 않으며, 수정하려면 게시를 취소해야 합니다.`,confirmLabel:'예약 게시'}:{title:'주보를 웹에 게시할까요?',message:'게시하면 공개 주보에 바로 나타납니다.',confirmLabel:'게시'}):{title:'게시를 취소하고 초안으로 돌릴까요?',message:'공개 주보에서 제외됩니다.',confirmLabel:'게시 취소',tone:'danger'}))return;
     // 확인 창이 떠 있던 사이 자동 저장이 돌았다면 끝나고 화면에 반영될 때까지 기다린다.
     await new Promise(resolve=>setTimeout(resolve,0));for(let n=0;inFlight.current&&n<100;n++)await new Promise(resolve=>setTimeout(resolve,50));await new Promise(resolve=>setTimeout(resolve,0));
     const fresh=live.current,base=fresh.draft;if(!base)return;
@@ -221,9 +227,9 @@ export default function BulletinWorkspace() {
         setDirty(version.current!==savedVersion);setSavePaused(false);setRows(existing=>[current,...existing.filter(row=>row.id!==current.id)].sort((a,b)=>b.serviceDate.localeCompare(a.serviceDate)));
         if(version.current!==savedVersion){setMessage('추가 입력을 저장한 뒤 다시 게시해 주세요.');return;}
       }
-      const {data,error}=await client.rpc('set_bulletin_publication',{p_id:current.id,p_revision:current.revision,p_publish:publish});if(error)throw error;
-      const updated={...current,status:data.status,revision:data.revision} as SavedBulletin;setDraft(updated);setRows(existing=>existing.map(row=>row.id===updated.id?updated:row));
-      setMessage(publish?'주보를 게시했습니다.':'게시를 취소했습니다. 초안을 수정할 수 있습니다.');if(publish){setView('library');setDraft(null);setPreview(false);setPrintPreview(false);}else{setView('edit');setPreview(false);}
+      const {data,error}=await client.rpc('set_bulletin_publication',{p_id:current.id,p_revision:current.revision,p_publish:publish,...(scheduledIso?{p_publish_at:scheduledIso}:{})});if(error)throw error;
+      const updated={...current,status:data.status,revision:data.revision,publishAt:data.publish_at} as SavedBulletin;setDraft(updated);setRows(existing=>existing.map(row=>row.id===updated.id?updated:row));
+      setMessage(publish?(scheduledIso?`${koreaWhen(scheduledIso)} 공개로 예약했습니다.`:'주보를 게시했습니다.'):'게시를 취소했습니다. 초안을 수정할 수 있습니다.');if(publish){setScheduleAt('');setView('library');setDraft(null);setPreview(false);setPrintPreview(false);}else{setView('edit');setPreview(false);}
     }catch(error){setMessage(errorMessage(error));}finally{setBusy(false);}
   }
 
@@ -284,7 +290,9 @@ export default function BulletinWorkspace() {
   ];
   const filtered=rows.filter(row=>`${row.serviceDate} ${row.issueNumber}`.includes(query.trim()));
   const saveState=!draft?null:draft.status!=='draft'?{state:'saved',text:'게시됨 · 읽기 전용'}:saving?{state:'pending',text:'저장 중…'}:savePaused?{state:'error',text:'자동 저장 중지 · 다시 시도 필요'}:draft.revision===0?{state:'pending',text:'아직 저장하지 않은 새 주보'}:dirty?{state:'pending',text:'변경 사항 저장 대기'}:{state:'saved',text:'모든 변경 사항 저장됨'};
-  const statusPill=(status:SavedBulletin['status'])=><span className={view_.pill} data-status={status}>{status==='draft'?'초안':'게시됨'}</span>;
+  const statusLabel=(row:SavedBulletin)=>row.status==='draft'?'초안':isScheduled(row)?`예약 · ${koreaWhen(row.publishAt as string)}`:'게시됨';
+  const statusPill=(row:SavedBulletin)=><span className={view_.pill} data-status={isScheduled(row)?'scheduled':row.status}>{statusLabel(row)}</span>;
+  const scheduleField=<label className={view_.schedule}><span>예약 공개(선택)</span><input type="datetime-local" value={scheduleAt} disabled={locked} onChange={e=>setScheduleAt(e.target.value)}/></label>;
   const reader=draft?<>
     <section className={`${polish.reader} ${view_.reader}`} aria-label="주보 상세 내용">
       {webItems.some(item=>sectionFor(item)==='표지')?null:<header className={view_.readerHead}><span>꿈꾸는좋은교회 · 주일 주보</span><h3>{draft.issueNumber}호 주보</h3><p>{longDate(draft.serviceDate)}</p></header>}
@@ -300,7 +308,7 @@ export default function BulletinWorkspace() {
 
       {view==='library'?<section aria-labelledby="bulletin-library-title" id="bulletin-library" tabIndex={-1}>
         <div className={view_.cardHead}><h2 id="bulletin-library-title">주보 목록</h2><div className={view_.headActions}><input type="search" className={view_.search} aria-label="주보 검색" placeholder="날짜 또는 호수로 검색" value={query} onChange={e=>setQuery(e.target.value)}/><button type="button" className={`${view_.btn} ${view_.primary}`} disabled={locked} onClick={createNew}>+ 새 주보 작성</button></div></div>
-        {filtered.length?<ul className={view_.list}>{filtered.map(row=><li key={row.id}><button type="button" className={view_.row} aria-pressed={draft?.id===row.id} aria-label={`${longDate(row.serviceDate)} (${row.serviceDate}) · ${row.issueNumber}호 · ${row.status==='draft'?'초안':'게시됨'}`} disabled={locked} onClick={()=>open(row)}><span>{longDate(row.serviceDate)}</span><small>{row.issueNumber}호</small>{statusPill(row.status)}<span className={view_.chev} aria-hidden="true">›</span></button></li>)}</ul>
+        {filtered.length?<ul className={view_.list}>{filtered.map(row=><li key={row.id}><button type="button" className={view_.row} aria-pressed={draft?.id===row.id} aria-label={`${longDate(row.serviceDate)} (${row.serviceDate}) · ${row.issueNumber}호 · ${statusLabel(row)}`} disabled={locked} onClick={()=>open(row)}><span>{longDate(row.serviceDate)}</span><small>{row.issueNumber}호</small>{statusPill(row)}<span className={view_.chev} aria-hidden="true">›</span></button></li>)}</ul>
           :<div className={`${view_.list} ${view_.empty}`}>{rows.length?'검색 결과가 없습니다.':'등록된 주보가 없습니다. 새 주보를 작성해 보세요.'}</div>}
       </section>:null}
 
@@ -312,12 +320,13 @@ export default function BulletinWorkspace() {
         <div id="editor-tools" tabIndex={-1} className={view_.bar}>
           <button type="button" className={`${view_.btn} ${view_.ghost} ${view_.back}`} aria-label="주보 목록 돌아가기" disabled={locked} onClick={library}><AdminIcon name="back" size={16}/>주보 목록</button>
           <div className={view_.titleRow}>
-            <div><div className={view_.titleLine}><h2>{draft.issueNumber}호 주보</h2>{editing&&draft.status==='draft'?<span className={view_.pill} data-status="draft">{draft.revision===0?'새 주보':'편집 중'}</span>:statusPill(draft.status)}</div><p>{longDate(draft.serviceDate)}</p></div>
+            <div><div className={view_.titleLine}><h2>{draft.issueNumber}호 주보</h2>{editing&&draft.status==='draft'?<span className={view_.pill} data-status="draft">{draft.revision===0?'새 주보':'편집 중'}</span>:statusPill(draft)}</div><p>{longDate(draft.serviceDate)}</p></div>
             <div className={view_.actions}>
               <button type="button" className={view_.btn} disabled={locked} onClick={() => setPrintPreview(true)}>인쇄 미리보기</button>
               {view==='detail'?<>
+                {draft.status==='draft'?scheduleField:null}
                 <button type="button" className={view_.btn} disabled={locked} title={draft.status==='published'?'게시를 취소하고 초안으로 돌린 뒤 수정합니다.':undefined} onClick={()=>{if(draft.status==='published'){void changePublication(false);return;}setView('edit');setPreview(false);}}>수정</button>
-                {draft.status==='draft'?<SaveButton className={`${view_.btn} ${view_.primary}`} disabled={locked} disabledHint="처리 중입니다." onClick={()=>void changePublication(true)}>게시하기</SaveButton>:<button type="button" className={`${view_.btn} ${view_.ghost}`} disabled={locked} onClick={()=>void changePublication(false)}>게시 취소</button>}
+                {draft.status==='draft'?<SaveButton className={`${view_.btn} ${view_.primary}`} disabled={locked} disabledHint="처리 중입니다." onClick={()=>void changePublication(true)}>{scheduleAt?'예약 게시':'게시하기'}</SaveButton>:<button type="button" className={`${view_.btn} ${view_.ghost}`} disabled={locked} onClick={()=>void changePublication(false)}>게시 취소</button>}
               </>:null}
             </div>
           </div>
@@ -338,8 +347,9 @@ export default function BulletinWorkspace() {
         {editing?<div id="bulletin-publish" tabIndex={-1} className={view_.footerBar}>
           {saveState?<span className={view_.saveState} data-state={saveState.state} role={savePaused?'alert':undefined}>{saveState.text}</span>:<span/>}
           <div className={view_.actions}>
+            {draft.status==='draft'?scheduleField:null}
             {draft.status!=='draft'?<button type="button" className={view_.btn} disabled={locked} onClick={()=>void changePublication(false)}>게시 취소</button>:<><SaveButton className={view_.btn} disabled={locked} disabledHint={saving?'저장 중입니다.':'현재 최신 상태입니다.'} title={!dirty&&draft.revision>0?"현재 최신 상태입니다.":undefined} onClick={() => { void save(true); }}>{saving ? "저장 중…" : savePaused ? "저장 다시 시도" : "초안 저장"}</SaveButton>
-            <SaveButton className={`${view_.btn} ${view_.primary}`} disabled={locked} disabledHint="처리 중입니다." onClick={()=>void changePublication(true)}>게시하기</SaveButton></>}
+            <SaveButton className={`${view_.btn} ${view_.primary}`} disabled={locked} disabledHint="처리 중입니다." onClick={()=>void changePublication(true)}>{scheduleAt?'예약 게시':'게시하기'}</SaveButton></>}
           </div>
         </div>:null}
       </>:<section className={view_.empty}><p>주보를 선택하거나 새로 작성해 주세요.</p></section>):null}
