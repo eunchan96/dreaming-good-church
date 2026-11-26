@@ -8,6 +8,8 @@ export function longDate(value: string) { const { y, m, d, day } = parts(value);
 export function monthDay(value: string) { const { m, d } = parts(value); return `${m}월 ${d}일`; }
 /** 11월 8일(일) */
 export function monthDayWeek(value: string) { const { m, d, day } = parts(value); return `${m}월 ${d}일(${DAYS[day]})`; }
+/** 2026. 11. 25. — a timestamp (ISO) shown as its Korea calendar date, e.g. a notice's posted date */
+export function koreaDate(iso: string) { const { y, m, d } = parts(new Date(new Date(iso).getTime() + 9 * 3600000).toISOString()); return `${y}. ${m}. ${d}.`; }
 /** 2026년 11월 — used to group lists by month */
 export function yearMonth(value: string) { const { y, m } = parts(value); return `${y}년 ${m}월`; }
 
