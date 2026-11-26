@@ -7,7 +7,9 @@
 .list { display: grid; margin-top: 4px; border-top: 1px solid #9f8d70; }
 .list:empty { border: 0; }
 .card { display: grid; grid-template-columns: 290px minmax(0, 1fr); grid-template-areas: "meta title" "meta body"; column-gap: 36px; align-items: start; min-width: 0; padding: 30px 0 32px; border-bottom: 1px solid #e3dbcd; background: none; scroll-margin-top: 120px; }
-.card:not(:has(.meta)) { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "body"; }
+.card:not(:has(.meta)) { grid-template-columns: minmax(0, 1fr); grid-template-areas: "date" "title" "body"; }
+/* 공지 카드 제목 위의 게시 날짜 */
+.date { grid-area: date; margin: 0 0 8px; font-size: 13.5px; letter-spacing: .02em; color: #8d6d2f; font-variant-numeric: tabular-nums; }
 .card h2 { grid-area: title; margin: 0 0 12px; font-family: var(--font-public-serif), serif; font-size: 22px; font-weight: 500; line-height: 1.5; letter-spacing: -.02em; color: #2f2720; }
 .body { grid-area: body; margin: 0; font-size: 15.5px; line-height: 1.95; color: #4a3f33; white-space: pre-wrap; overflow-wrap: anywhere; word-break: keep-all; }
 .meta { grid-area: meta; display: grid; gap: 10px; margin: 4px 0 0; padding: 0; border: 0; font-size: 14px; }
@@ -59,7 +61,8 @@
 
 @media (max-width: 767px) {
   .page { padding: 28px 20px 40px; }
-  .card, .card:not(:has(.meta)) { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "meta" "body"; padding: 24px 0 26px; }
+  .card { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "meta" "body"; padding: 24px 0 26px; }
+  .card:not(:has(.meta)) { grid-template-columns: minmax(0, 1fr); grid-template-areas: "date" "title" "body"; padding: 24px 0 26px; }
   .card h2 { font-size: 19px; margin-bottom: 10px; }
   .meta { margin: 0 0 12px; gap: 6px; font-size: 14px; }
   .guide { grid-template-columns: minmax(0, 1fr); }
