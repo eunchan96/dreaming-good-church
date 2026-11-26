@@ -37,3 +37,10 @@ export function torahWeek(value: string) {
 
 /** ISO 주차 수(52 또는 53): 12월 28일이 속한 주가 그 해의 마지막 주차다. */
 export function weeksInYear(year: number) { return torahWeek(`${year}-12-28`).week; }
+
+/** ISO 시각 → 한국 시간 "YYYY-MM-DDTHH:mm" (datetime-local 입력용) */
+export function toKoreaLocal(iso: string) { return new Date(new Date(iso).getTime() + 9 * 3600000).toISOString().slice(0, 16); }
+/** 한국 시간 "YYYY-MM-DDTHH:mm" → ISO. 형식이 틀리면 null */
+export function fromKoreaLocal(local: string) { if (!/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(local)) return null; const t = new Date(`${local}:00+09:00`); return Number.isNaN(t.getTime()) ? null : t.toISOString(); }
+/** 11월 30일(일) 오전 9:00 — 예약 공개 시각 표시 */
+export function koreaWhen(iso: string) { const local = toKoreaLocal(iso); return `${monthDayWeek(local)} ${clock(local)}`; }

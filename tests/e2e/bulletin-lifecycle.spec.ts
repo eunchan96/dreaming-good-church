@@ -34,7 +34,7 @@ test("one bulletin travels from published source through copy, print, public PDF
       await page.getByRole("button", { name: "로그인", exact: true }).click();
       await page.getByRole("button", { name: /2086-11-03/ }).click();
       await expect(page.getByLabel("내용", { exact: true })).toHaveCount(0);
-      await page.getByRole('button',{name:'주보 목록',exact:true}).click();await page.getByRole('button',{name:'+ 새 주보 작성',exact:true}).click();await selectCalendar(page,calendarControl(page,'예배 날짜'),'2086-11-10');await page.getByRole('button',{name:'지난 주 정보 가져오기',exact:true}).click();await saveAndEdit(page);const copied=await admin.from('bulletins').select('id').eq('service_date','2086-11-10').single();if(copied.error)throw copied.error;ids.push(copied.data.id);await showBulletinVisibility(page);
+      await page.getByRole('button',{name:'주보 목록',exact:true}).click();await page.getByRole('button',{name:'+ 새 주보 작성',exact:true}).click();await selectCalendar(page,calendarControl(page,'예배 날짜'),'2086-11-10');await page.getByRole('button',{name:'지난 주 가져오기',exact:true}).click();await saveAndEdit(page);const copied=await admin.from('bulletins').select('id').eq('service_date','2086-11-10').single();if(copied.error)throw copied.error;ids.push(copied.data.id);await showBulletinVisibility(page);
       await expect(page.getByLabel("웹에 공개", { exact: true }).first()).toBeChecked();
       await expect(page.getByRole("checkbox", {name:"인쇄 전용 안내 웹에 공개",exact:true})).not.toBeChecked();
       expect((await reader.request.get("/api/bulletins?date=2086-11-10")).status()).toBe(404);

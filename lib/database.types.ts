@@ -144,6 +144,7 @@ export type Database = {
                 Row: {
                     "id": string;
                     "issue_number": number;
+                    "publish_at": string | null;
                     "revision": number;
                     "service_date": string;
                     "status": string;
@@ -154,6 +155,7 @@ export type Database = {
                 Insert: {
                     "id"?: string;
                     "issue_number": number;
+                    "publish_at"?: string | null;
                     "revision"?: number;
                     "service_date": string;
                     "status"?: string;
@@ -163,6 +165,7 @@ export type Database = {
                 Update: {
                     "id"?: string;
                     "issue_number"?: number;
+                    "publish_at"?: string | null;
                     "revision"?: number;
                     "service_date"?: string;
                     "status"?: string;
@@ -444,9 +447,11 @@ export type Database = {
                 Returns: {
                     "id": string;
                     "issue_number": number;
+                    "publish_at": string | null;
                     "revision": number;
                     "service_date": string;
                     "status": string;
+                    "theme": string;
                     "updated_at": string;
                 };
                 SetofOptions: {
@@ -465,9 +470,11 @@ export type Database = {
                 Returns: {
                     "id": string;
                     "issue_number": number;
+                    "publish_at": string | null;
                     "revision": number;
                     "service_date": string;
                     "status": string;
+                    "theme": string;
                     "updated_at": string;
                 };
                 SetofOptions: {
@@ -520,6 +527,7 @@ export type Database = {
                 Returns: {
                     "id": string;
                     "issue_number": number;
+                    "publish_at": string | null;
                     "revision": number;
                     "service_date": string;
                     "status": string;
@@ -661,14 +669,17 @@ export type Database = {
                 Args: {
                     "p_id": string;
                     "p_publish": boolean;
+                    "p_publish_at"?: string;
                     "p_revision": number;
                 };
                 Returns: {
                     "id": string;
                     "issue_number": number;
+                    "publish_at": string | null;
                     "revision": number;
                     "service_date": string;
                     "status": string;
+                    "theme": string;
                     "updated_at": string;
                 };
                 SetofOptions: {

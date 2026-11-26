@@ -4,7 +4,7 @@ import type { Bulletin, BulletinItem, BlockKind, BlockContent } from "./bulletin
 
 export type SavedBulletin = Bulletin & { revision: number };
 type ItemRow = Tables<"bulletin_items">;
-type BulletinRow = Pick<Tables<"bulletins">, "id" | "service_date" | "issue_number" | "status" | "revision"> & { theme?: string; bulletin_items?: ItemRow[] };
+type BulletinRow = Pick<Tables<"bulletins">, "id" | "service_date" | "issue_number" | "status" | "revision" | "publish_at"> & { theme?: string; bulletin_items?: ItemRow[] };
 
 let browserClient: SupabaseClient<Database> | null = null;
 
@@ -22,7 +22,7 @@ export function fromRow(row: BulletinRow): SavedBulletin {
   if (row.status !== "draft" && row.status !== "published") throw new Error("Unknown bulletin status");
   return {
     id: row.id, serviceDate: row.service_date, issueNumber: row.issue_number,
-    status: row.status, revision: row.revision, theme: row.theme ?? "classic",
+    status: row.status, revision: row.revision, publishAt: row.publish_at ?? null, theme: row.theme ?? "classic",
     items: [...(row.bulletin_items ?? [])].sort((a, b) => a.position - b.position)
       .map((item): BulletinItem => ({
         id: item.id, printPage: item.print_page, title: item.title, body: item.body, webVisible: item.web_visible,
@@ -35,7 +35,7 @@ export function fromRow(row: BulletinRow): SavedBulletin {
 
 export async function loadBulletins(client: BrowserClient) {
   const { data, error } = await client.from("bulletins")
-    .select("id,service_date,issue_number,status,revision,theme,bulletin_items(*)")
+    .select("id,service_date,issue_number,status,revision,publish_at,theme,bulletin_items(*)")
     .order("service_date", { ascending: false }).limit(100);
   if (error) throw error;
   return data.map(fromRow);
@@ -52,6 +52,7 @@ export async function saveDraft(client: BrowserClient, draft: SavedBulletin) {
 
 export function errorMessage(error: unknown): string {
   const details = error as { code?: string; message?: string };
+  if (details.message === "SCHEDULE_TOO_FAR") return "예약 공개는 1년 이내로만 정할 수 있습니다.";
   if (details.message === "REVIEW_REQUIRED") return "이번 주 확인이 필요한 항목을 모두 확인해 주세요.";
   if (details.message === "PUBLIC_CONTENT_REQUIRED") return "내용이 있는 공개 항목을 하나 이상 작성해 주세요.";
   if (details.code === "23505") return "같은 날짜의 주보가 이미 있습니다. 날짜를 확인해 주세요.";
