@@ -1,7 +1,8 @@
 'use client';
 
 import {useEffect,useRef,useState} from 'react';
-import { useViewMemory } from '../view-memory';
+import {useRouter} from 'next/navigation';
+import { useViewHistory } from '../url-param';
 import StatusMessage from '../status-message';
 import Image from 'next/image';
 import {makeBrowserClient,errorMessage} from '@/lib/bulletin-store';
@@ -29,6 +30,7 @@ type Client=NonNullable<ReturnType<typeof makeBrowserClient>>;
 /** Loads every video (newest first) in 1000-row batches; the list is paged on screen. */
 async function loadVideos(client:Client){const all:WorshipEntry[]=[];for(let from=0;;from+=1000){const r=await client.from('worship_videos').select('*').order('service_date',{ascending:false}).order('id',{ascending:false}).range(from,from+999);if(r.error)return {data:null,error:r.error};all.push(...r.data);if(r.data.length<1000)return {data:all,error:null};}}
 export default function WorshipWorkspace(){
+ const router=useRouter();
  const [confirm,confirmDialog]=useConfirm();
  const [client]=useState(makeBrowserClient),[allowed,setAllowed]=useState(false),[busy,setBusy]=useState(false);
  const [rows,setRows]=useState<WorshipEntry[]>([]),[entry,setEntry]=useState<Draft|null>(null),[link,setLink]=useState('');
@@ -86,19 +88,21 @@ export default function WorshipWorkspace(){
   return()=>{active=false;clearTimeout(timer);controller.abort();};
  },[id,allowed,client,view]);
  async function openEditor(){if(view==='editor'||!(await mayLeave()))return;setEntry({id:crypto.randomUUID(),service_type:'sunday',service_date:new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()),video_id:'',title:'',status:'draft',featured:false,revision:0,dawn_kinds:[]});setLink('');setDirty(false);titleEdited.current=false;setMessage('');setView('editor');}
- async function openLibrary(){if(view==='library'||!(await mayLeave()))return;setView('library');setEntry(null);setLink('');setDirty(false);setMessage('');}
- async function openCalendar(){if(view==='calendar'||!(await mayLeave()))return;if(!month)setMonth(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date()).slice(0,7));setView('calendar');setEntry(null);setLink('');setDirty(false);setMessage('');}
- // 새로고침해도 보던 화면(영상 편집·달력)으로 돌아온다(저장된 영상만).
- useViewMemory<{view:typeof view;id:string|null}>('church-admin:worship',allowed,{view,id:view==='editor'?entry?.id??null:null},saved=>{
-  const row=saved.view==='editor'&&saved.id?rows.find(item=>item.id===saved.id):undefined;
-  if(row)void openRow(row);else if(saved.view==='calendar')void openCalendar();
- });
- async function openRow(row:WorshipEntry){if(!(await mayLeave()))return;titleEdited.current=true;setView('editor');setEntry({...row,dawn_kinds:row.dawn_kinds??[]});setLink(`https://www.youtube.com/watch?v=${row.video_id}`);setDirty(false);setMessage('');}
+ async function openLibrary(){if(view==='library')return true;if(!(await mayLeave()))return false;setView('library');setEntry(null);setLink('');setDirty(false);setMessage('');return true;}
+ async function openSongs(){if(!(await mayLeave()))return;router.push('/admin/songs');}
+ async function openCalendar(){if(view==='calendar')return true;if(!(await mayLeave()))return false;if(!month)setMonth(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date()).slice(0,7));setView('calendar');setEntry(null);setLink('');setDirty(false);setMessage('');return true;}
+ async function openRow(row:WorshipEntry){if(!(await mayLeave()))return false;titleEdited.current=true;setView('editor');setEntry({...row,dawn_kinds:row.dawn_kinds??[]});setLink(`https://www.youtube.com/watch?v=${row.video_id}`);setDirty(false);setMessage('');return true;}
+ // 보던 화면(영상 목록·달력·영상 편집)을 주소에 기록한다: 뒤로가기는 한 화면씩, 새로고침·링크 공유는 같은 화면으로(저장된 영상만).
+ useViewHistory<{view:typeof view;id:string|null}>({ready:allowed,defaultView:'library',current:{view,id:view==='editor'?entry?.id??null:null},restore:saved=>{
+  if(saved.view==='calendar')return openCalendar();
+  if(saved.view==='editor'){const row=saved.id?rows.find(item=>item.id===saved.id):undefined;return row?openRow(row):false;}
+  return openLibrary();
+ }});
 
  const filtered=rows.filter(row=>(filter==='all'||row.service_type===filter)&&(!dates.start||row.service_date>=dates.start)&&(!dates.end||row.service_date<=dates.end)&&`${row.title} ${row.service_date}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
  const pages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE)),current=Math.min(page,pages),shown=filtered.slice((current-1)*PAGE_SIZE,current*PAGE_SIZE);
  const intro=<ManagementHeading id="worship-heading" eyebrow="WORSHIP & WORD" title="예배 영상 관리"/>;
- return <><AdminShell active="worship" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} pages={[{id:'library',label:'영상 목록',active:view==='library',onSelect:openLibrary,sections:[{id:'video-library',label:'목록·검색'}]},{id:'calendar',label:'캘린더',active:view==='calendar',onSelect:openCalendar,sections:[]},...(view==='editor'?[{id:'editor',label:entry&&entry.revision>0?'영상 수정':'영상 등록',active:true,onSelect:()=>{},sections:[{id:'video-details',label:'영상 정보'},{id:'video-publication',label:'저장'}]}]:[])]}><main id="admin-content" aria-labelledby="worship-heading" tabIndex={-1} className={`${styles.page} ${ui.surface}`}>
+ return <><AdminShell active="worship" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} pages={[{id:'library',label:'영상 목록',active:view==='library',onSelect:openLibrary,sections:[{id:'video-library',label:'목록·검색'}]},{id:'calendar',label:'캘린더',active:view==='calendar',onSelect:openCalendar,sections:[]},{id:'songs',label:'곡 목록',active:false,onSelect:openSongs,sections:[]},...(view==='editor'?[{id:'editor',label:entry&&entry.revision>0?'영상 수정':'영상 등록',active:true,onSelect:()=>{},sections:[{id:'video-details',label:'영상 정보'},{id:'video-publication',label:'저장'}]}]:[])]}><main id="admin-content" aria-labelledby="worship-heading" tabIndex={-1} className={`${styles.page} ${ui.surface}`}>
   {allowed?<StatusMessage message={message} className={`${styles.message} ${ui.feedback}`} onDone={()=>setMessage('')}/>:null}
   {!allowed?<ReauthPanel message={message} hasDraft={dirty} onRetry={()=>{setMessage('로그인 상태를 확인하고 있습니다…');setReload(n=>n+1);}}/>:<>
    {view==='library'?<section id="video-library" tabIndex={-1} className={`${ui.flat} ${video.noRule}`}><div className={ui.heading}><h2>영상 목록</h2><div className={video.actions}><a href={YOUTUBE_CHANNEL} target="_blank" rel="noreferrer" className={`${btn.btn} ${btn.ghost}`} aria-label="교회 YouTube 채널"><SiteIcon name="youtube" size={18}/><span>YouTube</span></a><button type="button" className={`${btn.btn} ${btn.primary}`} disabled={busy} onClick={openEditor}><AdminIcon name="plus" size={15}/>영상 등록</button></div></div>
