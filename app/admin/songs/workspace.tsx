@@ -141,10 +141,9 @@ export default function SongsWorkspace() {
     finally { setBusy(false); }
   }
 
-  // 예배 영상 관리의 하위 탭: 영상 목록·캘린더로 돌아갈 때 그 화면을 열도록 기억시켜 둔다.
+  // 예배 영상 관리의 하위 탭: 영상 목록·캘린더는 주소로 그 화면을 열게 한다.
   function toWorship(view: 'library' | 'calendar') {
-    try { sessionStorage.setItem('church-admin:worship', JSON.stringify({ view, id: null })); } catch { /* 저장소를 못 쓰면 기본 화면 */ }
-    router.push('/admin/worship');
+    router.push(view === 'calendar' ? '/admin/worship?view=calendar' : '/admin/worship');
   }
 
   const intro = <ManagementHeading id="songs-heading" eyebrow="WORSHIP & WORD" title="예배 영상 관리" />;
@@ -170,7 +169,6 @@ export default function SongsWorkspace() {
           <dl className={styles.facts}>
             <dt>코드</dt><dd>{info ? (info.codes.length ? info.codes.join(' · ') : '-') : <Bar width="40%" />}</dd>
             <dt>템포</dt><dd>{info ? (info.tempo.length ? info.tempo.join(' · ') : '-') : <Bar width="50%" />}</dd>
-            <dt>주제</dt><dd>{info ? (info.themes.length ? info.themes.join(' · ') : '-') : <Bar width="65%" />}</dd>
             <dt className={styles.pptLabel}>PPT</dt>
             <dd className={styles.pptValue}>{detail
               ? (detail.files.length

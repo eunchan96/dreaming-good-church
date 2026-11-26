@@ -2,7 +2,7 @@
 
 import {useEffect,useRef,useState} from 'react';
 import {useRouter} from 'next/navigation';
-import { useViewMemory } from '../view-memory';
+import { useViewHistory } from '../url-param';
 import StatusMessage from '../status-message';
 import Image from 'next/image';
 import {makeBrowserClient,errorMessage} from '@/lib/bulletin-store';
@@ -88,15 +88,16 @@ export default function WorshipWorkspace(){
   return()=>{active=false;clearTimeout(timer);controller.abort();};
  },[id,allowed,client,view]);
  async function openEditor(){if(view==='editor'||!(await mayLeave()))return;setEntry({id:crypto.randomUUID(),service_type:'sunday',service_date:new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()),video_id:'',title:'',status:'draft',featured:false,revision:0,dawn_kinds:[]});setLink('');setDirty(false);titleEdited.current=false;setMessage('');setView('editor');}
- async function openLibrary(){if(view==='library'||!(await mayLeave()))return;setView('library');setEntry(null);setLink('');setDirty(false);setMessage('');}
+ async function openLibrary(){if(view==='library')return true;if(!(await mayLeave()))return false;setView('library');setEntry(null);setLink('');setDirty(false);setMessage('');return true;}
  async function openSongs(){if(!(await mayLeave()))return;router.push('/admin/songs');}
- async function openCalendar(){if(view==='calendar'||!(await mayLeave()))return;if(!month)setMonth(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date()).slice(0,7));setView('calendar');setEntry(null);setLink('');setDirty(false);setMessage('');}
- // 새로고침해도 보던 화면(영상 편집·달력)으로 돌아온다(저장된 영상만).
- useViewMemory<{view:typeof view;id:string|null}>('church-admin:worship',allowed,{view,id:view==='editor'?entry?.id??null:null},saved=>{
-  const row=saved.view==='editor'&&saved.id?rows.find(item=>item.id===saved.id):undefined;
-  if(row)void openRow(row);else if(saved.view==='calendar')void openCalendar();
- });
- async function openRow(row:WorshipEntry){if(!(await mayLeave()))return;titleEdited.current=true;setView('editor');setEntry({...row,dawn_kinds:row.dawn_kinds??[]});setLink(`https://www.youtube.com/watch?v=${row.video_id}`);setDirty(false);setMessage('');}
+ async function openCalendar(){if(view==='calendar')return true;if(!(await mayLeave()))return false;if(!month)setMonth(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit'}).format(new Date()).slice(0,7));setView('calendar');setEntry(null);setLink('');setDirty(false);setMessage('');return true;}
+ async function openRow(row:WorshipEntry){if(!(await mayLeave()))return false;titleEdited.current=true;setView('editor');setEntry({...row,dawn_kinds:row.dawn_kinds??[]});setLink(`https://www.youtube.com/watch?v=${row.video_id}`);setDirty(false);setMessage('');return true;}
+ // 보던 화면(영상 목록·달력·영상 편집)을 주소에 기록한다: 뒤로가기는 한 화면씩, 새로고침·링크 공유는 같은 화면으로(저장된 영상만).
+ useViewHistory<{view:typeof view;id:string|null}>({ready:allowed,defaultView:'library',current:{view,id:view==='editor'?entry?.id??null:null},restore:saved=>{
+  if(saved.view==='calendar')return openCalendar();
+  if(saved.view==='editor'){const row=saved.id?rows.find(item=>item.id===saved.id):undefined;return row?openRow(row):false;}
+  return openLibrary();
+ }});
 
  const filtered=rows.filter(row=>(filter==='all'||row.service_type===filter)&&(!dates.start||row.service_date>=dates.start)&&(!dates.end||row.service_date<=dates.end)&&`${row.title} ${row.service_date}`.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
  const pages=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE)),current=Math.min(page,pages),shown=filtered.slice((current-1)*PAGE_SIZE,current*PAGE_SIZE);

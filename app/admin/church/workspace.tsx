@@ -5,6 +5,7 @@ import { makeBrowserClient, errorMessage } from "@/lib/bulletin-store";
 import { churchLabels, type ChurchField, type BulletinImage } from "@/lib/church";
 import ImageLibrary from "./image-library";
 import { homeTabs } from "../home-tabs";
+import { useViewHistory } from "../url-param";
 import PortraitField, { type PortraitDraft } from "./portrait-field";
 import { checkImageFile, updateImage, uploadImage, withFolder } from "@/lib/image-upload";
 import styles from "../bulletins/workspace.module.css";
@@ -67,6 +68,8 @@ export default function ChurchWorkspace() {
   const [confirm,confirmDialog]=useConfirm();
   const unsaved = dirty || !!file || !!title || !!alt;
   const mayLeave = () => !unsaved || confirm({title:'저장하지 않은 입력을 버릴까요?',message:'지금 나가면 입력한 내용이 사라집니다.',confirmLabel:'버리기',tone:'danger'});
+  // 교회 소개 ↔ 이미지 관리 전환을 주소(?view=images)에 기록한다: 뒤로가기는 한 화면씩, 새로고침·링크 공유는 같은 화면으로.
+  useViewHistory<{view:string;id:string|null}>({ready:allowed,defaultView:'info',current:{view,id:null},restore:saved=>{setView(saved.view==='images'?'images':'info');return true;}});
   async function logout() {
     if (!client || busy || !(await mayLeave())) return;
     setBusy(true);
@@ -138,7 +141,7 @@ export default function ChurchWorkspace() {
   async function saveCategory(c:typeof categories[number]){if(c.id==='greeting'&&portraitDirty)await savePortrait();if(fields.some(f=>c.fields.includes(f.key)&&changed(f)))await saveInfo(c.fields);for(const key of c.groups)if(groupDirty(key))await saveGroup(key);}
   async function reloadCategory(c:typeof categories[number]){if(categoryDirty(c)&&!await confirm({title:`${c.title}의 수정 내용을 버릴까요?`,message:'저장된 내용을 불러옵니다.',confirmLabel:'불러오기',tone:'danger'}))return;if(c.id==='greeting'&&portraitDirty)setPortrait(savedPortrait);if(c.fields.length)await reloadInfo(c.fields);for(const key of c.groups)if(groupDirty(key))await reloadGroup(key,true);}
   const intro=<ManagementHeading id="church-heading" eyebrow="HOMEPAGE CONTENT" title="홈페이지 관리"/>;
-  return <><AdminShell active="church" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} pages={homeTabs(view==='images'?'images':'church',view==='images'?[{id:'church-images',label:'이미지 보관함'}]:categories.map(c=>({id:`church-section-${c.id}`,label:c.title})),{canLeave:mayLeave,onSelect:tab=>{if(tab==='home')return false;setView(tab==='images'?'images':'info');history.replaceState(null,'',tab==='images'?'/admin/church?view=images':'/admin/church');return true;}})}><main id="admin-content" aria-labelledby="church-heading" tabIndex={-1} className={`${styles.page} ${ui.surface} ${church.surface}`}>
+  return <><AdminShell active="church" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} pages={homeTabs(view==='images'?'images':'church',view==='images'?[{id:'church-images',label:'이미지 보관함'}]:categories.map(c=>({id:`church-section-${c.id}`,label:c.title})),{canLeave:mayLeave,onSelect:tab=>{if(tab==='home')return false;setView(tab==='images'?'images':'info');return true;}})}><main id="admin-content" aria-labelledby="church-heading" tabIndex={-1} className={`${styles.page} ${ui.surface} ${church.surface}`}>
     {allowed?<StatusMessage message={message} className={`${styles.message} ${ui.feedback}`} attrs={{'data-page-message':true}} onDone={()=>setMessage('')}/>:null}{!allowed ? <ReauthPanel shape="form" message={message} hasDraft={unsaved} onRetry={()=>{setMessage('로그인 상태를 확인하고 있습니다…');setReload(n=>n+1);}}/> : <>
       {view==='info'?<><StatusMessage message={infoMessage} className={`${ui.feedback} ${church.feedback}`} onDone={()=>setInfoMessage('')}/>
       {categories.map(c=><section key={c.id} id={`church-section-${c.id}`} tabIndex={-1} aria-label={c.title} className={church.section}>
