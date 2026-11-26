@@ -8,8 +8,14 @@
 /* 검색 + PPT 필터(칩이 아니라 체크 토글이라 다른 동작임을 드러낸다) */
 .toolbar { display: flex; align-items: center; gap: 16px; margin: 6px 0 12px; }
 .toolbar input[type=search] { flex: 1; min-width: 0; margin: 0 !important; }
-.onlyPpt.onlyPpt.onlyPpt { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin: 0; flex: none; white-space: nowrap; font-size: 14px; color: #5d4930; cursor: pointer; }
-.onlyPpt input { width: 18px !important; height: 18px; min-height: 0 !important; margin: 0 !important; flex: none; accent-color: #342b25; cursor: pointer; }
+/* 작은 스위치: 켜면 PPT 있는 곡만 보인다 */
+.pptSwitch.pptSwitch { display: inline-flex; align-items: center; gap: 8px; flex: none; min-height: 44px; margin: 0; padding: 0 4px !important; border: 0 !important; background: transparent !important; color: #5d4930; font-size: 13px; white-space: nowrap; cursor: pointer; }
+.pptSwitch[aria-checked=true] { color: #2f2720; font-weight: 600; }
+.track { position: relative; width: 30px; height: 18px; flex: none; border-radius: 999px; background: #d9cfbd; transition: background-color .15s; }
+.thumb { position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .25); transition: transform .15s; }
+.pptSwitch[aria-checked=true] .track { background: #342b25; }
+.pptSwitch[aria-checked=true] .thumb { transform: translateX(12px); }
+.pptSwitch:focus-visible { outline: 2px solid #8d6d2f; outline-offset: 2px; border-radius: 8px; }
 .chips { margin: 0 0 8px !important; gap: 6px !important; }
 .chips button { min-width: 44px; padding: 8px 12px !important; }
 
@@ -31,7 +37,7 @@
 .buttonSkeleton { width: 180px; height: 44px; border-radius: 8px; }
 .lyricsSkeleton { display: grid; gap: 12px; padding-top: 4px; }
 @keyframes shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
-@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } .row { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } .row, .track, .thumb { transition: none; } }
 
 .pager { display: flex; justify-content: center; align-items: center; gap: 4px; margin: 20px 0 4px; flex-wrap: wrap; }
 .pager > span { display: contents; }

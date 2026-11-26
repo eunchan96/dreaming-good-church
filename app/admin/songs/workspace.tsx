@@ -1,13 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { makeBrowserClient } from '@/lib/bulletin-store';
 import { firstInitial, matchesSong } from '@/lib/song-search.mjs';
 import type { Song, SongDetail } from '@/lib/notion-songs';
 import SiteIcon from '@/app/site-icon';
 import AdminIcon from '../admin-icons';
-import { useViewMemory } from '../view-memory';
+import { useUrlParam } from '../url-param';
 import AdminShell from '../admin-shell';
 import ManagementHeading from '../management-heading';
 import ReauthPanel from '../reauth-panel';
@@ -52,7 +52,9 @@ export default function SongsWorkspace() {
   const [allowed, setAllowed] = useState(false), [message, setMessage] = useState('로그인을 확인하고 있습니다…'), [reload, setReload] = useState(0), [busy, setBusy] = useState(false);
   const [songs, setSongs] = useState<Song[]>([]), [loading, setLoading] = useState(false);
   const [query, setQuery] = useState(''), [initial, setInitial] = useState(''), [pptOnly, setPptOnly] = useState(false), [pageNo, setPageNo] = useState(1);
-  const [openId, setOpenId] = useState<string | null>(null), [loaded, setLoaded] = useState<SongDetail | null>(null);
+  // 열어 둔 곡은 주소(?song=…)에 둔다: 뒤로가기는 곡 목록으로, 새로고침·링크 공유는 같은 곡으로 돌아온다.
+  const [openId, setOpenId] = useUrlParam('song'), [loaded, setLoaded] = useState<SongDetail | null>(null);
+  const listScroll = useRef(0), wasOpen = useRef(false);
 
   const api = useCallback(async (path: string) => {
     const { data } = await client!.auth.getSession();
@@ -85,11 +87,11 @@ export default function SongsWorkspace() {
     })();
     const { data: { subscription } } = client.auth.onAuthStateChange(event => {
       if (!active) return;
-      if (event === 'SIGNED_OUT') { setAllowed(false); setSongs([]); setOpenId(null); setLoaded(null); setMessage('로그인이 종료되었습니다. 같은 계정으로 다시 로그인해 주세요.'); }
+      if (event === 'SIGNED_OUT') { setAllowed(false); setSongs([]); setOpenId(null, 'replace'); setLoaded(null); setMessage('로그인이 종료되었습니다. 같은 계정으로 다시 로그인해 주세요.'); }
       if (event === 'SIGNED_IN') setReload(n => n + 1);
     });
     return () => { active = false; subscription.unsubscribe(); };
-  }, [client, reload, api]);
+  }, [client, reload, api, setOpenId]);
 
   // 곡을 누르면 바로 상세 화면으로 넘어가고, 악보·가사·PPT는 도착하는 대로 채운다.
   useEffect(() => {
@@ -97,14 +99,11 @@ export default function SongsWorkspace() {
     let active = true;
     api(`/api/songs/${openId}`).then(body => { if (active) setLoaded(body); }).catch((error: Error) => {
       if (!active) return;
-      setOpenId(null);
+      setOpenId(null, 'replace');
       setMessage(error.message === 'login' ? '로그인이 종료되었습니다. 같은 계정으로 다시 로그인해 주세요.' : error.message);
     });
     return () => { active = false; };
-  }, [openId, allowed, api]);
-
-  // 새로고침해도 보던 곡 상세로 돌아온다.
-  useViewMemory<{ id: string | null }>('church-admin:songs', allowed, { id: openId }, saved => { if (saved.id) setOpenId(saved.id); });
+  }, [openId, allowed, api, setOpenId]);
 
   const detail = loaded && loaded.id === openId ? loaded : null;
   const song = openId ? songs.find(item => item.id === openId) : undefined;
@@ -112,9 +111,13 @@ export default function SongsWorkspace() {
   const filtered = useMemo(() => songs.filter(item => (!initial || firstInitial(item.title) === initial) && (!pptOnly || item.pptCount > 0) && matchesSong(item, query)), [songs, query, initial, pptOnly]);
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)), current = Math.min(pageNo, pages), shown = filtered.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
 
-  // 상세가 그려진 뒤 맨 위로(목록을 내려 둔 채 열어도 악보가 위에서 시작하도록).
-  useEffect(() => { if (openId) window.scrollTo({ top: 0 }); }, [openId]);
-  function open(id: string) { setMessage(''); setOpenId(id); }
+  // 상세가 그려진 뒤 맨 위로(목록을 내려 둔 채 열어도 악보가 위에서 시작하도록), 목록으로 돌아오면 보던 자리로.
+  useEffect(() => {
+    if (openId) window.scrollTo({ top: 0 });
+    else if (wasOpen.current) window.scrollTo({ top: listScroll.current });
+    wasOpen.current = !!openId;
+  }, [openId]);
+  function open(id: string) { listScroll.current = window.scrollY; setMessage(''); setOpenId(id); }
   function close() { setOpenId(null); setMessage(''); }
 
   async function download(index: number) {
@@ -186,7 +189,7 @@ export default function SongsWorkspace() {
           <div className={styles.actions}><a href={SONG_DB_URL} target="_blank" rel="noreferrer" className={`${btn.btn} ${btn.ghost}`}><span>Notion 바로가기</span><SiteIcon name="diagonal" size={14} /></a></div></div>
         <div className={styles.toolbar}>
           <input type="search" aria-label="곡 검색" placeholder="곡 검색" value={query} onChange={event => { setQuery(event.target.value); setPageNo(1); }} />
-          <label className={styles.onlyPpt}><input type="checkbox" checked={pptOnly} onChange={event => { setPptOnly(event.target.checked); setPageNo(1); }} /><span>PPT 있는 곡만</span></label>
+          <button type="button" role="switch" aria-checked={pptOnly} aria-label="PPT 있는 곡만 보기" title="PPT 있는 곡만 보기" className={styles.pptSwitch} onClick={() => { setPptOnly(!pptOnly); setPageNo(1); }}><span className={styles.track} aria-hidden="true"><span className={styles.thumb} /></span><span>PPT만</span></button>
         </div>
         <div className={`${btn.chips} ${styles.chips}`} role="group" aria-label="제목 첫 글자 필터">
           <button type="button" aria-pressed={!initial} onClick={() => { setInitial(''); setPageNo(1); }}>전체</button>
