@@ -9,6 +9,7 @@ const paths = {
   remove: <><path d="M6 6l12 12M18 6L6 18" /></>,
   plus: <><path d="M12 5v14M5 12h14" /></>,
   back: <><path d="M15 5l-7 7 7 7" /></>,
+  forward: <><path d="M9 5l7 7-7 7" /></>,
   up: <><path d="M6 15l6-6 6 6" /></>,
   down: <><path d="M6 9l6 6 6-6" /></>,
   image: <><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="1.8" /><path d="M21 16l-5-5-9 9" /></>,

@@ -11,7 +11,7 @@ type RichText = { plain_text: string }[];
 type NotionFile = { name: string; type: 'file' | 'external'; file?: { url: string }; external?: { url: string } };
 type Property = {
   type: string; title?: RichText; rich_text?: RichText; select?: { name: string } | null;
-  multi_select?: { name: string }[]; files?: NotionFile[]; formula?: { type: string; string?: string | null };
+  multi_select?: { name: string }[]; files?: NotionFile[]; formula?: { type: string; string?: string | null }; checkbox?: boolean;
 };
 type Page = { id: string; url: string; parent?: { type: string; database_id?: string }; properties: Record<string, Property> };
 type RawBlock = Record<string, unknown> & { id: string; type: string; has_children?: boolean };
@@ -20,6 +20,8 @@ type List<T> = { results: T[]; has_more: boolean; next_cursor: string | null };
 export type Song = {
   id: string; title: string; url: string; initial: string; themes: string[]; codes: string[]; tempo: string[];
   bible: string; hymn: string; english: string; memo: string[]; pptCount: number;
+  /** 목록 '가사' 칩용. DB의 이름 없는 체크박스가 꺼져 있으면 가사가 있는 곡이다(표본 34곡 모두 일치). 본문을 곡마다 열어 보지 않으려는 추정이다. */
+  hasLyrics: boolean;
 };
 /** 상세에 필요한 것만: 악보 이미지(페이지 순서), 가사, PPT 파일 이름. 출처·mscz 같은 작업용 자료는 싣지 않는다. */
 export type SongDetail = Song & { sheets: string[]; lyrics: string; files: { name: string }[] };
@@ -54,6 +56,7 @@ function toSong(page: Page): Song {
     initial: tags(p['초성'])[0] ?? '', themes: tags(p['주제']), codes: tags(p['코드']), tempo: tags(p['템포']),
     bible: text(p['성경']), hymn: p['찬송가']?.select?.name ?? '', english: p['영어']?.formula?.string?.trim() ?? '', memo: tags(p['비고']),
     pptCount: p['PPT']?.files?.length ?? 0,
+    hasLyrics: p['']?.checkbox === false,
   };
 }
 
