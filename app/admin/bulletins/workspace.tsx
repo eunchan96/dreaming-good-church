@@ -13,6 +13,7 @@ import { confirmItem, createBulletin, copyBulletin, createItem, editItem, public
 import { applyMonthlyRules, worshipNewsBody } from "@/lib/bulletin-defaults.mjs";
 import { koreaWhen } from "@/lib/korean-date";
 import ScheduleDialog from "./schedule-dialog";
+import Select from "../select";
 // 예약 공개 시각이 아직 오지 않은 게시 주보인지(공개 전).
 const isScheduled=(row:{status:string;publishAt?:string|null})=>row.status==='published'&&!!row.publishAt&&new Date(row.publishAt).getTime()>Date.now();
 import { errorMessage, loadBulletins, makeBrowserClient, saveDraft, type SavedBulletin } from "@/lib/bulletin-store";
@@ -322,6 +323,9 @@ export default function BulletinWorkspace() {
           <div className={view_.titleRow}>
             <div><div className={view_.titleLine}><h2>{draft.issueNumber}호 주보</h2>{editing&&draft.status==='draft'?<span className={view_.pill} data-status="draft">{draft.revision===0?'새 주보':'편집 중'}</span>:statusPill(draft)}</div><p>{longDate(draft.serviceDate)}</p></div>
             <div className={view_.actions}>
+              <Select className={view_.themeSelect} aria-label="주보 테마" disabled={locked||draft.status!=='draft'} value={themeOf(draft.theme).key}
+                options={bulletinThemes.map(theme=>({value:theme.key,label:<span className={view_.themeOption}>{theme.layout==='modern'?<i className={view_.themeDot} style={{background:theme.swatch[0]}} aria-hidden="true"/>:null}{theme.key==='classic'?'기본 테마':theme.name}</span>,hint:undefined}))}
+                onChange={key=>{setDraft(current=>current&&({...current,theme:key}));markDirty();}}/>
               <button type="button" className={view_.btn} disabled={locked} onClick={() => setPrintPreview(true)}>인쇄 미리보기</button>
               {view==='detail'?<>
                 <button type="button" className={view_.btn} disabled={locked} title={draft.status==='published'?'게시를 취소하고 초안으로 돌린 뒤 수정합니다.':undefined} onClick={()=>{if(draft.status==='published'){void changePublication(false);return;}setView('edit');setPreview(false);}}>수정</button>
@@ -331,7 +335,7 @@ export default function BulletinWorkspace() {
           </div>
           {editing?<div className={view_.toolRow}>
             <div className={view_.segmented} role="group" aria-label="보기 전환"><button type="button" className={view_.seg} aria-pressed={!preview} disabled={locked} onClick={()=>setPreview(false)}>편집</button><button type="button" className={view_.seg} aria-pressed={preview} disabled={locked} onClick={()=>setPreview(true)}>웹 미리보기</button></div>
-            {!preview?<div className={`${view_.meta} ${view_.meta}`}><div><label htmlFor="bulletin-service-date">예배 날짜</label><DatePicker id="bulletin-service-date" label="예배 날짜" disabled={busy||draft.status!=='draft'} value={draft.serviceDate} onChange={changeDate}/></div><label>호수<input className={view_.issue} type="number" min="1" step="1" disabled={busy||draft.status!=='draft'} value={draft.issueNumber} onChange={e=>{setDraft(current=>current&&({...current,issueNumber:Number(e.target.value)}));markDirty();}}/></label><label>주보 테마<select className={view_.themeSelect} disabled={busy||draft.status!=='draft'} value={themeOf(draft.theme).key} title={themeOf(draft.theme).description} onChange={e=>{const key=e.target.value;setDraft(current=>current&&({...current,theme:key}));markDirty();}}>{bulletinThemes.map(theme=><option key={theme.key} value={theme.key}>{theme.name}</option>)}</select></label>{draft.revision===0?<SaveButton className={`${view_.btn} ${view_.ghost}`} disabled={locked||!rows.some(row=>row.serviceDate<draft.serviceDate)} disabledHint={locked?'처리 중입니다.':'가져올 지난 주 주보가 없습니다.'} onClick={()=>void importPrevious()}>지난 주 정보 가져오기</SaveButton>:null}</div>:null}
+            {!preview?<div className={`${view_.meta} ${view_.meta}`}><div><label htmlFor="bulletin-service-date">예배 날짜</label><DatePicker id="bulletin-service-date" label="예배 날짜" disabled={busy||draft.status!=='draft'} value={draft.serviceDate} onChange={changeDate}/></div><label>호수<input className={view_.issue} type="number" min="1" step="1" disabled={busy||draft.status!=='draft'} value={draft.issueNumber} onChange={e=>{setDraft(current=>current&&({...current,issueNumber:Number(e.target.value)}));markDirty();}}/></label>{draft.revision===0?<SaveButton className={`${view_.btn} ${view_.ghost}`} disabled={locked||!rows.some(row=>row.serviceDate<draft.serviceDate)} disabledHint={locked?'처리 중입니다.':'가져올 지난 주 주보가 없습니다.'} onClick={()=>void importPrevious()}>지난 주 가져오기</SaveButton>:null}</div>:null}
           </div>:null}
         </div>
 
