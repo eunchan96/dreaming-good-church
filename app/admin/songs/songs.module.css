@@ -1,0 +1,98 @@
+.actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.actions a { display: inline-flex; align-items: center; gap: 6px; }
+.count { font-size: 13px; font-weight: 400; color: #776850; margin-left: 6px; }
+
+/* 목록 구역: 아래 구분선은 다음 구역이 없어서 빼고, 마지막 행 선도 없앤다 */
+.list.list.list { border-bottom: 0; margin-bottom: 0; }
+
+/* 검색 + PPT 필터(칩이 아니라 체크 토글이라 다른 동작임을 드러낸다) */
+.toolbar { display: flex; align-items: center; gap: 16px; margin: 6px 0 12px; }
+.toolbar input[type=search] { flex: 1; min-width: 0; margin: 0 !important; }
+/* 작은 스위치: 켜면 PPT 있는 곡만 보인다 */
+.pptSwitch.pptSwitch { display: inline-flex; align-items: center; gap: 8px; flex: none; min-height: 44px; margin: 0; padding: 0 4px !important; border: 0 !important; background: transparent !important; color: #5d4930; font-size: 13px; white-space: nowrap; cursor: pointer; }
+.pptSwitch[aria-checked=true] { color: #2f2720; font-weight: 600; }
+.track { position: relative; width: 30px; height: 18px; flex: none; border-radius: 999px; background: #d9cfbd; transition: background-color .15s; }
+.thumb { position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .25); transition: transform .15s; }
+.pptSwitch[aria-checked=true] .track { background: #342b25; }
+.pptSwitch[aria-checked=true] .thumb { transform: translateX(12px); }
+.pptSwitch:focus-visible { outline: 2px solid #8d6d2f; outline-offset: 2px; border-radius: 8px; }
+.chips { margin: 0 0 8px !important; gap: 6px !important; }
+.chips button { min-width: 44px; padding: 8px 12px !important; }
+
+/* 목록 행: 제목 하나 + 오른쪽 칩 */
+.rows.rows.rows { max-height: none; overflow: visible; }
+.rows > li:last-child { border-bottom: 0; }
+.row { display: flex !important; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 0 10px !important; text-align: left; min-height: 52px; cursor: pointer; transition: background-color .12s; }
+.row:hover { background: #f6f0e2 !important; }
+.row:active { background: #efe5cf !important; }
+.row strong { min-width: 0; font-size: 15px; color: #2f2720; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chipsRow { flex: none; display: inline-flex; gap: 4px; }
+.pptChip { background: #e4ebf3 !important; color: #3d5470 !important; }
+.empty { min-height: 200px; display: grid; place-items: center; text-align: center; color: #776850; font-size: 16px; }
+
+/* 스켈레톤 */
+.skeleton { display: block; max-width: 100%; border-radius: 6px; background: linear-gradient(90deg, #efe8d8 25%, #f8f3e8 37%, #efe8d8 63%); background-size: 400% 100%; animation: shimmer 1.4s ease-in-out infinite; }
+.skeletonRow { display: flex; align-items: center; min-height: 52px; padding: 0 10px; }
+.sheetSkeleton { width: 100%; aspect-ratio: 3 / 4; border-radius: 6px; }
+.buttonSkeleton { width: 180px; height: 44px; border-radius: 8px; }
+.lyricsSkeleton { display: grid; gap: 12px; padding-top: 4px; }
+@keyframes shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } .row, .track, .thumb { transition: none; } }
+
+.pager { display: flex; justify-content: center; align-items: center; gap: 4px; margin: 20px 0 4px; flex-wrap: wrap; }
+.pager > span { display: contents; }
+.pager button { min-width: 36px; min-height: 36px; padding: 0 8px !important; border: 1px solid transparent !important; border-radius: 8px !important; background: transparent !important; color: #5d4930; font-size: 14px; }
+.pager button:hover:not(:disabled) { background: #f1ead9 !important; }
+.pager button[aria-current=page] { border-color: #342b25 !important; background: #342b25 !important; color: #fff; font-weight: 600; }
+.pager button:disabled { color: #c9bda8; }
+.gap { display: inline-grid; place-items: center; min-width: 20px; color: #9a8b74; }
+
+/* 곡 상세: 왼쪽 악보(너무 크지 않게), 오른쪽 정보 */
+.detail { display: grid; grid-template-columns: minmax(0, 460px) minmax(300px, 1fr); gap: 36px; align-items: start; padding-top: 4px; }
+.sheetPane { min-width: 0; }
+.infoPane { min-width: 0; display: grid; gap: 14px; align-content: start; }
+.titleRow { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.songTitle { margin: 4px 0 0; font-size: 22px; line-height: 1.4; color: #2f2720; overflow-wrap: anywhere; min-width: 0; flex: 1; }
+/* Notion 링크: 제목 줄 오른쪽 끝에 작게(주 동작이 아니라서 버튼 모양을 쓰지 않는다) */
+.notionLink { flex: none; display: inline-flex; align-items: center; gap: 4px; margin-top: 7px; min-height: 32px; padding: 0 4px; font-size: 13px; color: #6f604a; text-decoration: none; }
+.notionLink:hover { color: #342b25; text-decoration: underline; }
+
+.facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 18px; margin: 0; font-size: 14.5px; align-items: start; }
+.facts dt, .facts dd { padding: 6px 0; line-height: 1.6; }
+.facts dt { color: #776850; }
+.facts dd { margin: 0; color: #2f2720; overflow-wrap: anywhere; }
+/* PPT 줄: 버튼이 여러 줄로 감겨도 라벨은 첫 줄 버튼과 가운데 맞춘다 */
+.facts dt.pptLabel { padding: 0; line-height: 44px; }
+.facts dd.pptValue { padding: 0; }
+.none { line-height: 44px; color: #776850; }
+.downloads { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.downloads .download.download { display: inline-flex; align-items: center; gap: 10px; width: auto; max-width: 100%; min-height: 44px; padding: 0 14px; border-radius: 8px !important; text-align: left; }
+.download span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.download svg { flex: none; }
+
+.lyricsHeading { margin: 6px 0 0; padding-top: 16px; border-top: 1px solid #e3dac8; font-size: 15px; color: #5d4930; }
+.lyrics { margin: 0; white-space: pre-wrap; line-height: 1.85; font-size: 15px; color: #2f2720; overflow-wrap: anywhere; }
+.noLyrics { margin: 0; color: #776850; font-size: 14px; }
+
+/* 악보 뷰어 */
+.viewer { outline-offset: 4px; border-radius: 8px; }
+.sheet { margin: 0; }
+.sheet img { display: block; width: 100%; height: auto; border: 1px solid #e3dac8; border-radius: 6px; background: #fff; }
+/* 넘김 버튼: 목록 페이지 이동(.pager)과 같은 모양 */
+.sheetNav { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; }
+.sheetNav span { min-width: 64px; text-align: center; font-size: 14px; color: #5d4930; font-variant-numeric: tabular-nums; }
+.sheetNav button { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; padding: 0 !important; border: 1px solid transparent !important; border-radius: 8px !important; background: transparent !important; color: #5d4930; cursor: pointer; }
+.sheetNav button:hover:not(:disabled) { background: #f1ead9 !important; }
+.sheetNav button:focus-visible { outline: 2px solid #8d6d2f; outline-offset: 2px; }
+.sheetNav button:disabled { color: #c9bda8; cursor: default; }
+.noSheet { min-height: 240px; display: grid; place-items: center; margin: 0; border: 1px dashed #d9cfbd; border-radius: 8px; color: #776850; font-size: 15px; }
+
+@media (max-width: 860px) {
+  .detail { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .sheetPane { max-width: 460px; }
+}
+@media (max-width: 560px) {
+  .toolbar { flex-wrap: wrap; gap: 4px 16px; }
+  .toolbar input[type=search] { flex-basis: 100%; }
+  .songTitle { font-size: 20px; }
+}

@@ -30,7 +30,8 @@ test("unregistered account is denied; editor sees duplicate date and can cancel 
     await page.getByLabel("내용", { exact: true }).first().fill("이탈 취소 후 유지할 입력");
     await dismissConfirm(page);
     await page.getByRole("link", { name: "공지·일정 관리", exact: true }).click();
-    await expect(page).toHaveURL(/\/admin\/bulletins$/);
+    // 이동을 취소하면 작성 화면에 그대로 남는다(주소에는 보던 화면이 ?view=…로 남는다).
+    await expect(page).toHaveURL(/\/admin\/bulletins(\?|$)/);
     await expect(page.getByLabel("내용", { exact: true }).first()).toHaveValue("이탈 취소 후 유지할 입력");
     await page.getByRole("button", { name: "초안 저장", exact: true }).click();
     await expect(page.getByRole("status")).toContainText("같은 날짜의 주보가 이미 있습니다");

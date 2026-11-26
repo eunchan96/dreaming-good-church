@@ -1,6 +1,6 @@
 "use client";
 import {bulletinSections,initialBulletinItems,printOnlyItem,sectionFor,presentationItems,renderedItems,type BulletinSection} from '@/lib/bulletin-editor';
-import { useViewMemory } from "../view-memory";
+import { useViewHistory } from "../url-param";
 import StatusMessage from '../status-message';
 import SaveButton from '../save-button';
 import polish from './editor.module.css';
@@ -125,9 +125,9 @@ export default function BulletinWorkspace() {
 
   function mayLeave() { return !(dirty||view==='settings'&&(visibilityDraft!==showVisibility||connectionsDraft!==showConnections)) || confirm({title:'저장하지 않은 변경 사항이 있습니다',message:'변경 내용을 버릴까요?',confirmLabel:'버리기',tone:'danger'}); }
   async function open(row: SavedBulletin) {
-    if (!(await mayLeave())) return;
+    if (!(await mayLeave())) return false;
     setGroups(Object.fromEntries(row.items.map(item=>[item.id,sectionFor(item)])));setView("detail"); setDraft(structuredClone(row)); setDirty(false); setSavePaused(false); setMessage(""); setPreview(false);
-
+    return true;
   }
   function updateItem(id: string, changes: Partial<Pick<BulletinItem, "title" | "body" | "webVisible">>) {
     const item=draft?.items.find(item=>item.id===id);if(item)setGroups(current=>({...current,[id]:current[id]??sectionFor(item)}));
@@ -246,22 +246,29 @@ export default function BulletinWorkspace() {
     if(wasPristine)initialItems.current=JSON.stringify(items);setDraft({...draft,serviceDate:value,items});markDirty();
   }
   async function createNew() {
-    if (!(await mayLeave())) return;
+    if (!(await mayLeave())) return false;
     const issueNumber=rows.length?Math.max(...rows.map(row=>row.issueNumber))+1:1;
     const date=nextSunday(),items=initialBulletinItems(date,previousFor(date));initialItems.current=JSON.stringify(items);setDraft({...createBulletin({id:crypto.randomUUID(),serviceDate:date,issueNumber}),revision:0,items,theme:previousFor(date)?.theme});
     setGroups({});setView('register');markDirty();setSavePaused(false);setMessage('');setPreview(false);
+    return true;
   }
   async function library() {
-    if(!(await mayLeave()))return;
+    if(!(await mayLeave()))return false;
     setView('library');setDirty(false);setDraft(null);setSavePaused(false);setMessage('');
+    return true;
   }
-  // 새로고침해도 보던 화면(주보 상세·작성·설정)으로 돌아온다. 아직 한 번도 저장하지 않은 새 주보는 새 작성 화면으로.
-  useViewMemory<{view:typeof view;id:string|null}>('church-admin:bulletins',session==='editor',{view,id:draft?.id??null},saved=>{
-    if(saved.view==='settings'){openSettings();return;}
+  // 보던 화면(주보 목록·상세·작성·설정)을 주소에 기록한다: 뒤로가기는 한 화면씩, 새로고침·링크 공유는 같은 주보로.
+  // 아직 한 번도 저장하지 않은 새 주보는 새 작성 화면으로.
+  useViewHistory<{view:typeof view;id:string|null}>({ready:session==='editor',defaultView:'library',current:{view,id:draft?.id??null},restore:async saved=>{
+    if(saved.view==='library')return library();
+    if(saved.view==='settings'){openSettings();return true;}
+    // 설정 화면에서 돌아오는 경우: 작성 중인 초안은 그대로 두고 화면만 바꾼다.
+    if(draft&&draft.id===saved.id&&view==='settings'){setView(saved.view as typeof view);return true;}
     const row=saved.id?rows.find(entry=>entry.id===saved.id):undefined;
-    if(row){void open(row).then(()=>{if((saved.view==='edit'||saved.view==='register')&&row.status==='draft')setView('edit');});return;}
-    if(saved.view==='register')void createNew();
-  });
+    if(row){const ok=await open(row);if(ok&&(saved.view==='edit'||saved.view==='register')&&row.status==='draft')setView('edit');return ok;}
+    if(saved.view==='register')return createNew();
+    return false;
+  }});
   const editing=view==='register'||view==='edit';
   const restore=useCallback((next:Pick<SavedBulletin,'serviceDate'|'issueNumber'|'items'>)=>{setDraft(current=>current&&current.status==='draft'?{...current,...next}:current);version.current+=1;setDirty(true);},[]);
   useEditHistory(draft,editing&&!preview&&!printPreview,restore);

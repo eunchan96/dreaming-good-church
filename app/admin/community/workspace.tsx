@@ -1,6 +1,6 @@
 "use client";
 import ManagementHeading from '../management-heading';
-import { useViewMemory } from '../view-memory';
+import { useViewHistory } from '../url-param';
 import StatusMessage from '../status-message';
 
 import { useEffect, useRef, useState } from "react";
@@ -94,11 +94,14 @@ export default function CommunityWorkspace() {
   function statusLabel(row:CommunityEntry){if(row.status==='draft')return '임시 저장';if(row.status==='archived')return '보관';if(row.sensitive||!row.is_public)return '비공개';if(row.publish_from&&Date.parse(row.publish_from)>now)return '공개 예정';if(row.publish_until&&Date.parse(row.publish_until)<=now)return '게시 종료';return '공개';}
   const filtered=rows.filter(row=>(filter==='all'||row.kind===filter)&&row.title.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
   const intro=<ManagementHeading id="community-heading" eyebrow="CHURCH COMMUNITY" title="공지·일정 관리"/>;
-  // 새로고침해도 보던 소식 편집 화면으로 돌아온다(저장된 소식만).
-  useViewMemory<{view:typeof view;id:string|null}>('church-admin:community',allowed&&!loading,{view,id:view==='editor'?entry?.id??null:null},saved=>{
-    const row=saved.view==='editor'&&saved.id?rows.find(entry=>entry.id===saved.id):undefined;
-    if(row){setView('editor');setShowPeriod(!!(row.publish_from||row.publish_until));setEntry(structuredClone(row));setDirty(false);}
-  });
+  async function showList(){if(view==='list')return true;if(!(await mayLeave()))return false;setView('list');setEntry(null);setDirty(false);setMessage('');return true;}
+  async function showEntry(row:CommunityEntry){if(!(await mayLeave()))return false;setView('editor');setShowPeriod(!!(row.publish_from||row.publish_until));setEntry(structuredClone(row));setDirty(false);setMessage('');return true;}
+  // 보던 화면(소식 목록·편집)을 주소에 기록한다: 뒤로가기는 한 화면씩, 새로고침·링크 공유는 같은 소식으로(저장된 소식만).
+  useViewHistory<{view:typeof view;id:string|null}>({ready:allowed&&!loading,defaultView:'list',current:{view,id:view==='editor'?entry?.id??null:null},restore:saved=>{
+    if(saved.view!=='editor')return showList();
+    const row=saved.id?rows.find(item=>item.id===saved.id):undefined;
+    return row?showEntry(row):false;
+  }});
   const sections=[{id:'community-editor',label:'내용 편집'},...((entry?.kind??'event')==='event'?[{id:'community-schedule',label:'일정 시간'}]:[]),{id:'community-publication',label:'공개 설정'}];
   return <><AdminShell active="community" intro={intro} authenticated={allowed} canLeave={mayLeave} onLogout={allowed?logout:undefined} busy={busy} pages={[{id:'list',label:'소식 목록',active:view==='list',onSelect:async()=>{if(view!=='list'&&await mayLeave()){setView('list');setEntry(null);setDirty(false);setMessage('');}},sections:[{id:'community-list',label:'목록·검색'}]},...(view==='editor'?[{id:'editor',label:entry?.revision?'소식 수정':'소식 등록',active:true,onSelect:()=>{},sections}]:[])]}><main id="admin-content" aria-labelledby="community-heading" tabIndex={-1} className={`${styles.page} ${ui.editor}`}>
     {allowed ? <>
