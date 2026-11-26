@@ -1,0 +1,7 @@
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+.fields > div { display: grid; gap: 6px; min-width: 0; }
+.label { font-size: 13px; font-weight: 500; color: #6b5d4b; }
+.summary { margin: 14px 0 0; font-size: 13px; color: #6b5d4b; min-height: 20px; }
+.summary[data-error] { color: #b3382c; }
+@media (max-width: 480px) { .fields { grid-template-columns: 1fr; } }
+.fields button { cursor: pointer; }

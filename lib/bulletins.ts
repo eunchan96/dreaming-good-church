@@ -40,6 +40,8 @@ export type Bulletin = {
   serviceDate: string;
   issueNumber: number;
   status: "draft" | "published";
+  /** 예약 공개 시각(ISO). 미래면 아직 공개 전, 없거나 지났으면 공개 중. */
+  publishAt?: string | null;
   /** 레이아웃·색 구성 키(lib/bulletin-themes.ts). 없으면 classic. */
   theme?: string;
   items: BulletinItem[];
