@@ -98,6 +98,12 @@ function scheduleLabel(label:string){
  return label;
 }
 const timeOnly=(value:string)=>value.match(/(오전|오후|저녁|새벽|밤)\s*\d{1,2}:\d{2}\s*$/)?.[0]??value;
+/** 예배 안내 표(넓은 화면 3열, 좁은 화면 2열). 주간 주보와 특별 순서지가 같은 모양을 쓴다. 각 칸은 [이름, 시각]. */
+export function ScheduleGrid({columns,narrow}:{columns:[string,string][][];narrow:[string,string][][]}){
+ const cells=(column:[string,string][])=>column.map(([label,time],i)=><Fragment key={i}><span className={css.scheduleLabel}>{label}</span><span className={css.scheduleTime}>{time}</span></Fragment>);
+ return <><div className={css.schedule}>{columns.map((column,index)=><div key={index} className={css.scheduleColumn}>{cells(column)}</div>)}</div>
+  <div className={css.scheduleNarrow} style={{'--rows':Math.max(...narrow.map(column=>column.length),1)} as React.CSSProperties}>{narrow.map((column,index)=><div key={index} className={css.scheduleColumn}>{cells(column)}</div>)}</div></>;
+}
 function Schedule({item}:{item:BulletinItem}){
  const {rows}=useEdit(item);
  const columns:{row:string[];i:number}[][]=[[],[],[]];
@@ -108,8 +114,7 @@ function Schedule({item}:{item:BulletinItem}){
  // Narrow web layout: two columns (주일·금요·새벽 | 학생·월삭) with short names.
  const narrow=[[...columns[0],...[...columns[2]].sort((a,b)=>Number(/새벽/.test(a.row[0]))-Number(/새벽/.test(b.row[0])))],columns[1]];
  const shortLabel=(label:string)=>{const name=label.replace(/\s+/g,'');return /주일|하늘보좌/.test(name)&&!/오후/.test(name)?'주일 예배':/월삭/.test(name)?'월삭 예배':/^(새벽|금요)예배$/.test(name)?name.replace('예배',' 예배'):label;};
- const narrowBlock=<div className={css.scheduleNarrow} style={{'--rows':Math.max(...narrow.map(column=>column.length),1)} as React.CSSProperties}>{narrow.map((column,index)=><div key={index} className={css.scheduleColumn}>{column.map(({row,i})=><Fragment key={i}><span className={css.scheduleLabel}>{shortLabel(row[0])}</span><span className={css.scheduleTime}>{timeOnly(row[1]??'')}</span></Fragment>)}</div>)}</div>;
- return <Scope item={item}><Band title="예배 안내" tone="olive"/><div className={css.schedule}>{columns.map((column,index)=><div key={index} className={css.scheduleColumn}>{column.map(({row,i})=><Fragment key={i}><span className={css.scheduleLabel}>{scheduleLabel(row[0])}</span><span className={css.scheduleTime}>{timeOnly(row[1]??'')}</span></Fragment>)}</div>)}</div>{narrowBlock}</Scope>;
+ return <Scope item={item}><Band title="예배 안내" tone="olive"/><ScheduleGrid columns={columns.map(column=>column.map(({row})=>[scheduleLabel(row[0]),timeOnly(row[1]??'')] as [string,string]))} narrow={narrow.map(column=>column.map(({row})=>[shortLabel(row[0]),timeOnly(row[1]??'')] as [string,string]))}/></Scope>;
 }
 function Volunteers({item}:{item:BulletinItem}){
  const {rows,cell}=useEdit(item);

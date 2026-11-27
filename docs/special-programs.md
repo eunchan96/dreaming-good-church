@@ -2,6 +2,13 @@
 
 주간 주보에 없는 구성(1부·2부, 서약문 박스, 임직 대상 표 등)의 행사 순서지를 웹과 인쇄 모양으로 보여 준다. 읽기 전용이며 관리자 편집 화면은 없다.
 
+## 관리자 화면 (주보 관리)
+
+- 주보 목록에 주보와 함께 날짜 순으로 보인다(제목과 상태 표시: 초안·예약·게시됨). 누르면 주보 상세와 같은 틀로 열린다.
+- 본문에는 웹 미리보기, "인쇄 미리보기" 버튼은 올려 둔 PDF를 창으로 보여 준다(공개 전에도 가능).
+- 내용은 수정하지 않는다(수정·삭제 버튼 없음). **예약 공개**(달력·시계), **게시하기**, **게시 취소**는 주보와 같다. 서버 함수 `set_special_program_publication`(마이그레이션 `20261127190000`)이 편집자·상태·시각(1년 이내)을 검사한다.
+- 예약된 순서지는 `status=published`에 `publish_at`이 미래다. 익명 RLS(행과 PDF)가 `publish_at <= now()`를 함께 보므로 시각이 되면 별도 작업 없이 공개된다.
+
 ## 보는 곳
 
 - `/bulletins` 위쪽의 "특별 순서지" 바로가기(공개된 것이 있을 때만 보인다) → `/bulletins/special/<slug>`.
@@ -22,8 +29,7 @@
 1. Word·PDF는 `church-program` 스킬로 만들고, 같은 내용을 `content` JSON으로 만든다(블록 종류: title, band, table, rows, note, schedule, boxes). 포스터는 `public/special/`에 넣는다(성도 이름이 없는 홍보 이미지만).
 2. 행 넣기: `supabase db query --remote=<ref>`로 `insert into special_programs …`(처음에는 `status='draft'`).
 3. PDF 올리기: `supabase storage cp <로컬 pdf> ss:///special-programs/<slug>.pdf --remote=<ref>`.
-4. 주소(`/bulletins/special/<slug>`)를 **편집자로 로그인한 브라우저**에서 열면 공개 전 미리보기(웹·인쇄)가 보인다(로그인하지 않으면 "찾을 수 없음"). 괜찮으면 괜찮으면 `update special_programs set status='published' where slug='…'`.
-5. 내리기는 `status='draft'`로 되돌린다(PDF도 함께 비공개).
+4. 관리자 "주보 관리" 목록에서 열어 미리 보고, 괜찮으면 **게시하기**(또는 예약 공개)를 누른다. 내리기는 **게시 취소**.
 
 ## 검증
 

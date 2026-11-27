@@ -398,6 +398,7 @@ export type Database = {
                     "created_at": string;
                     "id": string;
                     "pdf_path": string | null;
+                    "publish_at": string | null;
                     "service_date": string;
                     "slug": string;
                     "status": string;
@@ -410,6 +411,7 @@ export type Database = {
                     "created_at"?: string;
                     "id"?: string;
                     "pdf_path"?: string | null;
+                    "publish_at"?: string | null;
                     "service_date": string;
                     "slug": string;
                     "status"?: string;
@@ -421,6 +423,7 @@ export type Database = {
                     "created_at"?: string;
                     "id"?: string;
                     "pdf_path"?: string | null;
+                    "publish_at"?: string | null;
                     "service_date"?: string;
                     "slug"?: string;
                     "status"?: string;
@@ -730,6 +733,31 @@ export type Database = {
                 SetofOptions: {
                     from: "*";
                     to: "bulletins";
+                    isOneToOne: true;
+                    isSetofReturn: false;
+                };
+            };
+            "set_special_program_publication": {
+                Args: {
+                    "p_publish": boolean;
+                    "p_publish_at"?: string;
+                    "p_slug": string;
+                };
+                Returns: {
+                    "content": NonNullable<Json>;
+                    "created_at": string;
+                    "id": string;
+                    "pdf_path": string | null;
+                    "publish_at": string | null;
+                    "service_date": string;
+                    "slug": string;
+                    "status": string;
+                    "title": string;
+                    "updated_at": string;
+                };
+                SetofOptions: {
+                    from: "*";
+                    to: "special_programs";
                     isOneToOne: true;
                     isSetofReturn: false;
                 };
