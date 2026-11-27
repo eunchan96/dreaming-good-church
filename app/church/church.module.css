@@ -99,9 +99,11 @@
 .mapActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px 36px; margin-top: 14px; }
 .onlineWorship { display: flex; justify-content: flex-end; margin-top: 28px; }
 /* The site gives every button a 44px touch height; the copy action is a small inline text button. */
-.facts .copyAddress { display: inline-flex; align-items: center; gap: 4px; min-height: 0; margin-left: 10px; padding: 0 0 1px; border: 0; border-bottom: 1px solid #c6bba8; background: none; color: #6f5622; font: inherit; font-size: 12px; line-height: 1.5; vertical-align: 1px; cursor: pointer; transition: color .2s, border-color .2s; }
-.facts .copyAddress:hover { color: #8b713f; border-color: #8b713f; }
-.facts .copyAddress[data-copied=true] { color: #8b713f; border-color: transparent; }
+/* 주소 옆 복사 아이콘: 보이는 크기는 작게, 누르는 영역은 44px. 위아래 음수 여백으로 줄 높이는 그대로 둔다. */
+.facts .copyAddress { display: inline-grid; place-items: center; width: 44px; height: 44px; min-height: 0; margin: -12px -10px -12px -2px; padding: 0; border: 0; border-radius: 50%; background: none; color: #8b713f; vertical-align: middle; cursor: pointer; transition: color .2s, background-color .2s; }
+.facts .copyAddress:hover { color: #6f5622; background: #f1ead9; }
+.facts .copyAddress:focus-visible { outline: 2px solid #8d6d2f; outline-offset: -4px; }
+.facts .copyAddress[data-copied=true] { color: #4f7a45; }
 .liveMap { display: block; width: 100%; height: 280px; border: 0; border-radius: 14px; background: #eee9dc; }
 .sketchDialog { width: min(1100px, calc(100vw - 24px)); max-width: none; max-height: calc(100vh - 24px); margin: auto; padding: 20px; border: 0; border-radius: 14px; background: #fff; }
 .sketchDialog::backdrop { background: rgba(30, 24, 20, .7); }
