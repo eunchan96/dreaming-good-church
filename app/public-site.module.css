@@ -49,6 +49,8 @@
 .archLight{position:absolute;width:130px;height:300px;bottom:-75px;right:-40px;transform:rotate(37deg);background:#f5e5b955;box-shadow:-35px 0 0 #f2ddb621}
 .heroFootnote{max-width:1160px;margin:0 max(40px,calc((100% - 1160px)/2));display:flex;align-items:center;justify-content:space-between;gap:24px;font-size:11px;color:#746654;padding:22px 0 28px;border-top:1px solid #d9d0c2;position:relative;z-index:1}
 .heroFootnote>a{display:flex;align-items:center;gap:22px;font-size:9px;letter-spacing:.15em}
+/* 아래로 이동 화살표: 누르는 영역을 44px로(위아래 음수 여백으로 줄 높이는 그대로) */
+.heroFootnote>a{min-height:44px;margin-block:-13px}
 
 .homeSection{max-width:1240px;margin:auto;padding:110px 40px}
 .sectionHeading{display:flex;align-items:flex-end;justify-content:space-between;gap:35px;margin-bottom:45px}
@@ -222,7 +224,7 @@ to{opacity:1}
 .sunDisc{width:135px;height:135px;top:0;right:30px;box-shadow:0 0 0 15px #eee4c9}
 .heroFootnote{padding:15px 0 20px;margin:0 22px}
 .heroFootnote>span{font-size:9px;max-width:175px}
-.heroFootnote>a{gap:8px}
+.heroFootnote>a{gap:8px;min-width:44px;justify-content:center;margin-right:-13px}
 .heroFootnote>a>span{display:none}
 .homeSection{padding:60px 22px}
 .sectionHeading{align-items:flex-start;flex-direction:column;gap:18px;margin-bottom:28px}

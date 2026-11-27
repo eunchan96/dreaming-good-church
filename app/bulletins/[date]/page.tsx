@@ -18,7 +18,10 @@ export async function generateMetadata({ params }: { params: Promise<{ date: str
     } catch { /* Public metadata stays generic on lookup failure. */ }
   }
   if (issue === undefined) return { title: "주보를 확인해 주세요", description: "현재 공개된 주보를 확인해 주세요.", robots: { index: false, follow: false } };
-  const meta = pageMeta(`${date} · ${issue}호 주보`, "꿈꾸는좋은교회의 예배 순서와 말씀, 공개된 교회 소식을 만나보세요.", `/bulletins/${date}`);
+  // 탭·검색 결과·카카오톡 미리보기에 나오는 제목: "2026년 11월 22일 47호 주보"
+  const [year, month, day] = date.split("-").map(Number);
+  const when = `${year}년 ${month}월 ${day}일`;
+  const meta = pageMeta(`${when} ${issue}호 주보`, `${when} 주일 꿈꾸는좋은교회 주보의 예배 순서와 말씀, 교회 소식입니다.`, `/bulletins/${date}`);
   return { ...meta, openGraph: { ...meta.openGraph, type: "article" } };
 }
 

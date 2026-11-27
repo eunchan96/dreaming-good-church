@@ -45,7 +45,7 @@ test("publish and withdraw expose only reviewed public content in API and reader
     expect(payload).not.toContain("노출되면"); expect(payload).not.toContain("숨겨진"); expect(payload).not.toContain("needs_review");
     expect((await reader.request.get("/api/bulletins?date=2094-11-07")).status()).toBe(200);
     const shareHtml = await (await reader.request.get("/bulletins/2094-11-07")).text();
-    expect(shareHtml).toContain('property="og:title" content="2094-11-07 · 1호 주보 | 꿈꾸는좋은교회"');
+    expect(shareHtml).toContain('property="og:title" content="2094년 11월 7일 1호 주보 | 꿈꾸는좋은교회"');
     expect(shareHtml).not.toContain("숨겨진 제목");
     await reader.goto("/bulletins/2094-11-07");
     await expect(reader.getByText("성도에게 보여줄 내용", { exact: true })).toBeVisible();
