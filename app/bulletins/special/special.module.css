@@ -10,7 +10,7 @@
 .lead { margin: -.3em 0 .1em; text-align: right; font-size: .92em; color: #8a7e70; }
 .lead span { margin-left: .3em; color: #3d342b; }
 .who { display: block; line-height: 1.3; }
-.org { display: block; font-size: .8em; color: #8a7e70; line-height: 1.3; }
+.org { display: block; text-align: center; font-size: .8em; color: #8a7e70; line-height: 1.3; }
 .tableLabel { width: 7.4em; font-weight: 700; }
 .note { background: #fbf3dc; font-size: .95em; line-height: 1.75; color: #4a4036; }
 .note h3 { margin: .5em 0 .15em; font-size: 1em; font-weight: 700; color: #8f6400; }
@@ -42,3 +42,7 @@
 .links small { margin-left: 8px; font-size: 12px; color: #8a7e70; }
 .draftNote { margin: 0 0 24px; padding: 10px 14px; border-radius: 8px; background: #fbf3dc; color: #6b5a42; font-size: 14px; text-align: center; }
 .paper[data-plain] { max-width: none; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; }
+/* 순서 줄: 일어서는 표시(↑) 칸이 없으므로 순서 이름이 왼쪽 끝에서 시작한다(주보의 4칸 배치를 3칸으로). */
+.row.row.row { grid-template-columns: minmax(6.2em, max-content) minmax(0, 1fr) minmax(6.2em, max-content); }
+@media (max-width: 640px) { .row.row.row { grid-template-columns: 5.4em minmax(0, 1fr) 4.6em; } }
+@container (max-width: 560px) { .row.row.row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name who" "what what"; } }

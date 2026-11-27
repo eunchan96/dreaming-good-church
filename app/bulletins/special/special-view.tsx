@@ -17,8 +17,7 @@ function Spread({ value, className }: { value: string; className: string }) {
 }
 
 function Rows({ rows }: { rows: ProgramRow[] }) {
-  return <div className={paper.order}>{rows.map((row, i) => <div key={i} className={paper.orderRow} data-order-row>
-    <span aria-hidden="true" />
+  return <div className={paper.order}>{rows.map((row, i) => <div key={i} className={`${paper.orderRow} ${styles.row}`} data-order-row>
     <Spread value={row.name} className={paper.orderName} />
     <span className={paper.leader}><i />{row.what ? <><span className={paper.orderWhat}>{row.what}</span><i /></> : null}</span>
     <span className={styles.who}><Spread value={row.who} className={paper.orderWho} />{row.org ? <small className={styles.org}>{row.org}</small> : null}</span>
