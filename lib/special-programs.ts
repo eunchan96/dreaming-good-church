@@ -72,6 +72,5 @@ export function specialSections(content: SpecialProgramContent, prefix: string):
     else if (block.type === "boxes" && block.boxes[0]) out.push({ id, label: block.boxes[0].title.replace(/^\d+층\s*/, "") });
   });
   if (content.notice) out.push({ id: specialSectionId(prefix, "notice"), label: content.notice.title });
-  if (content.church) out.push({ id: specialSectionId(prefix, "church"), label: "교회 안내" });
   return out;
 }

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { specialSections } from "@/lib/special-programs";
 import SpecialView from "@/app/bulletins/special/special-view";
 import { koreaWhen, longDate } from "@/lib/korean-date";
 import { setSpecialPublication, specialErrorMessage, type SpecialRow } from "@/lib/special-programs-store";
@@ -24,6 +25,8 @@ export default function SpecialDetail({ program, client, onBack, onChanged, onMe
   const [busy, setBusy] = useState(false), [scheduleOpen, setScheduleOpen] = useState<string | null>(null);
   const [printUrl, setPrintUrl] = useState<string | null>(null), [printing, setPrinting] = useState(false);
   const printDialog = useRef<HTMLDialogElement>(null);
+  const [spacer, setSpacer] = useState(0);
+  const spacerRef = useRef(0);
 
   async function change(publish: boolean, scheduledIso?: string) {
     if (busy) return;
@@ -52,6 +55,24 @@ export default function SpecialDetail({ program, client, onBack, onChanged, onMe
   useEffect(() => () => { if (printUrl) URL.revokeObjectURL(printUrl); }, [printUrl]);
   const closePrint = () => { printDialog.current?.close(); setPrintUrl(null); };
 
+  // 빠른 이동으로 마지막 구역(광고)도 다른 구역처럼 화면 위쪽에 놓이도록, 문서 끝에 모자란 만큼만 빈 칸을 둔다.
+  useEffect(() => {
+    const last = specialSections(program.content, "detail-section").at(-1)?.id;
+    if (!last) return;
+    const measure = () => {
+      const target = document.getElementById(last); if (!target) return;
+      const base = document.documentElement.scrollHeight - spacerRef.current;
+      const top = target.getBoundingClientRect().top + window.scrollY;
+      const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+      const need = Math.max(0, Math.round(window.innerHeight - margin - (base - top)));
+      spacerRef.current = need; setSpacer(need);
+    };
+    measure();
+    const observer = new ResizeObserver(measure); observer.observe(document.body);
+    window.addEventListener("resize", measure);
+    return () => { observer.disconnect(); window.removeEventListener("resize", measure); };
+  }, [program.content]);
+
   const draft = program.status === "draft";
   return <>
     <div id="editor-tools" tabIndex={-1} className={view_.bar}>
@@ -75,6 +96,7 @@ export default function SpecialDetail({ program, client, onBack, onChanged, onMe
     <section className={`${polish.reader} ${view_.reader}`} aria-label="특별 순서지 상세 내용">
       <SpecialView content={program.content} label={program.title} plain sectionIdPrefix="detail-section" />
     </section>
+    <div aria-hidden="true" style={{ height: spacer }} />
     {confirmDialog}
     {scheduleOpen ? <ScheduleDialog defaultDate={scheduleOpen} onCancel={() => setScheduleOpen(null)} onSubmit={iso => { setScheduleOpen(null); void change(true, iso); }} /> : null}
     {printUrl ? <dialog ref={printDialog} className={styles.print} aria-label="인쇄 미리보기" onCancel={event => { event.preventDefault(); closePrint(); }}>

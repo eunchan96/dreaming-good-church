@@ -45,11 +45,11 @@ test('주소 이름(slug)은 소문자·숫자·하이픈만', () => {
   for (const slug of ['', 'a', 'Bad', 'a b', '../x', '-abc', 'a'.repeat(70)]) assert.equal(validProgramSlug(slug), false, slug);
 });
 
-test('관리자 상세의 빠른 이동 목록은 표지·부별 구역·안내·광고·교회 안내 순서로 만든다', async () => {
+test('관리자 상세의 빠른 이동 목록은 표지·부별 구역·안내·광고 순서로 만든다', async () => {
   const { specialSections } = await import('../lib/special-programs.ts');
   const content = { ...base(), church: { name: '좋은교회', address: '주소', phone: '010' } };
   content.blocks.splice(1, 0, { type: 'table', title: '임직 대상', tone: 'green', rows: [['추대', '가나다']] });
-  assert.deepEqual(specialSections(content, 'detail-section').map(s => s.label), ['표지', '임직 대상', '1부 예배', '향기예배 안내', '안내위원', '광고', '교회 안내']);
+  assert.deepEqual(specialSections(content, 'detail-section').map(s => s.label), ['표지', '임직 대상', '1부 예배', '향기예배 안내', '안내위원', '광고']);
   assert.equal(specialSections(content, 'detail-section')[1].id, 'detail-section-b1');
   assert.deepEqual(specialSections({ cover: base().cover, blocks: [] }, 'x').map(s => s.label), ['표지']);
 });
