@@ -73,7 +73,7 @@ export default function SpecialDetail({ program, client, onBack, onChanged, onMe
       </div>
     </div>
     <section className={`${polish.reader} ${view_.reader}`} aria-label="특별 순서지 상세 내용">
-      <SpecialView content={program.content} label={program.title} plain />
+      <SpecialView content={program.content} label={program.title} plain sectionIdPrefix="detail-section" />
     </section>
     {confirmDialog}
     {scheduleOpen ? <ScheduleDialog defaultDate={scheduleOpen} onCancel={() => setScheduleOpen(null)} onSubmit={iso => { setScheduleOpen(null); void change(true, iso); }} /> : null}

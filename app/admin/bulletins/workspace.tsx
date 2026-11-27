@@ -15,6 +15,7 @@ import { koreaWhen } from "@/lib/korean-date";
 import ScheduleDialog from "./schedule-dialog";
 import SpecialDetail, { specialStatus, specialStatusLabel } from "./special-detail";
 import { loadSpecialPrograms, type SpecialRow } from "@/lib/special-programs-store";
+import { specialSections } from "@/lib/special-programs";
 import Select from "../select";
 // 예약 공개 시각이 아직 오지 않은 게시 주보인지(공개 전).
 const isScheduled=(row:{status:string;publishAt?:string|null})=>row.status==='published'&&!!row.publishAt&&new Date(row.publishAt).getTime()>Date.now();
@@ -310,7 +311,7 @@ export default function BulletinWorkspace() {
   const locked=busy||saving;
   function openSettings(){if(view==='settings')return;setVisibilityDraft(showVisibility);setConnectionsDraft(showConnections);setView('settings');}
   const pages=[{id:'library',label:'주보 목록',active:view==='library',onSelect:library,sections:[{id:'bulletin-library',label:'주보 목록'}]},
-    ...(view==='special'?[{id:'detail',label:'주보 상세',active:true,onSelect:()=>{},sections:[]}]:[]),
+    ...(view==='special'?[{id:'detail',label:'주보 상세',active:true,onSelect:()=>{},sections:special?specialSections(special.content,'detail-section'):[]}]:[]),
     ...(view==='detail'?[{id:'detail',label:'주보 상세',active:true,onSelect:()=>{},sections:bulletinSections.flatMap((label,index)=>label==='예배 안내'||renderedItems(webItems).some(item=>sectionFor(item)===label)?[{id:`detail-section-${index}`,label}]:[])}]:[]),
     ...(editing||view==='settings'&&draft?.status==='draft'?[{id:'register',label:'주보 등록',active:editing,onSelect:()=>{if(editing)return;if(view==='settings'&&draft&&draft.status==='draft'){setView(draft.revision===0?'register':'edit');return;}createNew();},sections:[...bulletinSections.map((label,index)=>({id:`bulletin-section-${index}`,label})), {id:"bulletin-publish",label:"저장·게시하기"}]}]:[]),
     {id:'settings',label:'주보 설정',active:view==='settings',onSelect:openSettings,sections:[{id:'bulletin-options',label:'입력 화면 설정'}]},

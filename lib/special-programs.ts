@@ -61,3 +61,17 @@ export function parseProgramContent(value: unknown): SpecialProgramContent | nul
 }
 
 export const validProgramSlug = (slug: string) => /^[a-z0-9][a-z0-9-]{2,60}$/.test(slug);
+
+/** 관리자 상세의 왼쪽 빠른 이동 목록. id는 화면의 각 구역(SpecialView의 sectionIdPrefix)과 같은 규칙이다. */
+export function specialSectionId(prefix: string, key: string) { return `${prefix}-${key}`; }
+export function specialSections(content: SpecialProgramContent, prefix: string): { id: string; label: string }[] {
+  const out: { id: string; label: string }[] = [{ id: specialSectionId(prefix, "cover"), label: "표지" }];
+  content.blocks.forEach((block, i) => {
+    const id = specialSectionId(prefix, `b${i}`);
+    if (block.type === "band" || block.type === "table" || block.type === "schedule") out.push({ id, label: block.title });
+    else if (block.type === "boxes" && block.boxes[0]) out.push({ id, label: block.boxes[0].title.replace(/^\d+층\s*/, "") });
+  });
+  if (content.notice) out.push({ id: specialSectionId(prefix, "notice"), label: content.notice.title });
+  if (content.church) out.push({ id: specialSectionId(prefix, "church"), label: "교회 안내" });
+  return out;
+}
