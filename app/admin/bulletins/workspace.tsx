@@ -13,6 +13,9 @@ import { confirmItem, createBulletin, copyBulletin, createItem, editItem, public
 import { applyMonthlyRules, worshipNewsBody } from "@/lib/bulletin-defaults.mjs";
 import { koreaWhen } from "@/lib/korean-date";
 import ScheduleDialog from "./schedule-dialog";
+import SpecialDetail, { specialStatus, specialStatusLabel } from "./special-detail";
+import { loadSpecialPrograms, type SpecialRow } from "@/lib/special-programs-store";
+import { specialSections } from "@/lib/special-programs";
 import Select from "../select";
 // 예약 공개 시각이 아직 오지 않은 게시 주보인지(공개 전).
 const isScheduled=(row:{status:string;publishAt?:string|null})=>row.status==='published'&&!!row.publishAt&&new Date(row.publishAt).getTime()>Date.now();
@@ -63,7 +66,9 @@ export default function BulletinWorkspace() {
   const [message, setMessage] = useState("");
   const initialItems=useRef('');
   const [query,setQuery]=useState('');
-  const [view,setView]=useState<'library'|'register'|'detail'|'edit'|'settings'>('library');
+  const [view,setView]=useState<'library'|'register'|'detail'|'edit'|'settings'|'special'>('library');
+  // 특별 순서지(임직감사예배 등): 주보 목록에 함께 보이고, 내용은 읽기 전용이며 게시·예약만 한다.
+  const [specials,setSpecials]=useState<SpecialRow[]>([]);const [special,setSpecial]=useState<SpecialRow|null>(null);
   const [visibilityDraft,setVisibilityDraft]=useState(false),[connectionsDraft,setConnectionsDraft]=useState(false);
   const showConnections=useSyncExternalStore(subscribeOptions,connectionsSnapshot,()=>false);
   const showVisibility=useSyncExternalStore(subscribeOptions,visibilitySnapshot,()=>false);
@@ -96,7 +101,8 @@ export default function BulletinWorkspace() {
         if (error) throw error;
         if (!data) { setSession("denied"); return; }
         const bulletins = await loadBulletins(client!);
-        if (active) { setRows(bulletins); setSession("editor"); }
+        const programs = await loadSpecialPrograms(client!);
+        if (active) { setRows(bulletins); setSpecials(programs); setSession("editor"); }
       } catch (error) {
         if (active) { setMessage(errorMessage(error)); setSession("login"); }
       }
@@ -132,7 +138,7 @@ export default function BulletinWorkspace() {
   function mayLeave() { return !(dirty||view==='settings'&&(visibilityDraft!==showVisibility||connectionsDraft!==showConnections)) || confirm({title:'저장하지 않은 변경 사항이 있습니다',message:'변경 내용을 버릴까요?',confirmLabel:'버리기',tone:'danger'}); }
   async function open(row: SavedBulletin) {
     if (!(await mayLeave())) return false;
-    setGroups(Object.fromEntries(row.items.map(item=>[item.id,sectionFor(item)])));setView("detail"); setDraft(structuredClone(row)); setDirty(false); setSavePaused(false); setMessage(""); setPreview(false);
+    setGroups(Object.fromEntries(row.items.map(item=>[item.id,sectionFor(item)])));setView("detail"); setSpecial(null); setDraft(structuredClone(row)); setDirty(false); setSavePaused(false); setMessage(""); setPreview(false);
     return true;
   }
   function updateItem(id: string, changes: Partial<Pick<BulletinItem, "title" | "body" | "webVisible">>) {
@@ -152,7 +158,7 @@ export default function BulletinWorkspace() {
       if (!membership.data) { setSession("denied"); return; }
       if (editorId.current !== data.user.id) { setDraft(null); setDirty(false); }
       editorId.current = data.user.id;
-      setRows(await loadBulletins(client)); setSavePaused(false); setSession("editor");
+      setRows(await loadBulletins(client)); setSpecials(await loadSpecialPrograms(client)); setSavePaused(false); setSession("editor");
     } catch (error) { setMessage(errorMessage(error)); }
     finally { setBusy(false); }
   }
@@ -273,15 +279,21 @@ export default function BulletinWorkspace() {
     setGroups({});setView('register');markDirty();setSavePaused(false);setMessage('');setPreview(false);
     return true;
   }
+  async function openSpecial(row:SpecialRow){
+    if(!(await mayLeave()))return false;
+    setDraft(null);setDirty(false);setSavePaused(false);setMessage('');setPreview(false);setPrintPreview(false);setSpecial(row);setView('special');
+    return true;
+  }
   async function library() {
     if(!(await mayLeave()))return false;
-    setView('library');setDirty(false);setDraft(null);setSavePaused(false);setMessage('');
+    setView('library');setDirty(false);setDraft(null);setSpecial(null);setSavePaused(false);setMessage('');
     return true;
   }
   // 보던 화면(주보 목록·상세·작성·설정)을 주소에 기록한다: 뒤로가기는 한 화면씩, 새로고침·링크 공유는 같은 주보로.
   // 아직 한 번도 저장하지 않은 새 주보는 새 작성 화면으로.
-  useViewHistory<{view:typeof view;id:string|null}>({ready:session==='editor',defaultView:'library',current:{view,id:draft?.id??null},restore:async saved=>{
+  useViewHistory<{view:typeof view;id:string|null}>({ready:session==='editor',defaultView:'library',current:{view,id:draft?.id??special?.slug??null},restore:async saved=>{
     if(saved.view==='library')return library();
+    if(saved.view==='special'){const found=specials.find(entry=>entry.slug===saved.id);return found?openSpecial(found):false;}
     if(saved.view==='settings'){openSettings();return true;}
     // 설정 화면에서 돌아오는 경우: 작성 중인 초안은 그대로 두고 화면만 바꾼다.
     if(draft&&draft.id===saved.id&&view==='settings'){setView(saved.view as typeof view);return true;}
@@ -299,11 +311,16 @@ export default function BulletinWorkspace() {
   const locked=busy||saving;
   function openSettings(){if(view==='settings')return;setVisibilityDraft(showVisibility);setConnectionsDraft(showConnections);setView('settings');}
   const pages=[{id:'library',label:'주보 목록',active:view==='library',onSelect:library,sections:[{id:'bulletin-library',label:'주보 목록'}]},
+    ...(view==='special'?[{id:'detail',label:'주보 상세',active:true,onSelect:()=>{},sections:special?specialSections(special.content,'detail-section'):[]}]:[]),
     ...(view==='detail'?[{id:'detail',label:'주보 상세',active:true,onSelect:()=>{},sections:bulletinSections.flatMap((label,index)=>label==='예배 안내'||renderedItems(webItems).some(item=>sectionFor(item)===label)?[{id:`detail-section-${index}`,label}]:[])}]:[]),
     ...(editing||view==='settings'&&draft?.status==='draft'?[{id:'register',label:'주보 등록',active:editing,onSelect:()=>{if(editing)return;if(view==='settings'&&draft&&draft.status==='draft'){setView(draft.revision===0?'register':'edit');return;}createNew();},sections:[...bulletinSections.map((label,index)=>({id:`bulletin-section-${index}`,label})), {id:"bulletin-publish",label:"저장·게시하기"}]}]:[]),
     {id:'settings',label:'주보 설정',active:view==='settings',onSelect:openSettings,sections:[{id:'bulletin-options',label:'입력 화면 설정'}]},
   ];
-  const filtered=rows.filter(row=>`${row.serviceDate} ${row.issueNumber}`.includes(query.trim()));
+  const needle=query.trim();
+  const filtered=rows.filter(row=>`${row.serviceDate} ${row.issueNumber}`.includes(needle));
+  const filteredSpecials=specials.filter(row=>`${row.serviceDate} ${row.title}`.includes(needle));
+  // 주보와 특별 순서지를 날짜 순(최신 먼저)으로 한 목록에 섞어 보여 준다.
+  const entries=[...filtered.map(row=>({kind:'bulletin' as const,date:row.serviceDate,row})),...filteredSpecials.map(row=>({kind:'special' as const,date:row.serviceDate,row}))].sort((a,b)=>b.date.localeCompare(a.date));
   const saveState=!draft?null:draft.status!=='draft'?{state:'saved',text:'게시됨 · 읽기 전용'}:saving?{state:'pending',text:'저장 중…'}:savePaused?{state:'error',text:'자동 저장 중지 · 다시 시도 필요'}:draft.revision===0?{state:'pending',text:'아직 저장하지 않은 새 주보'}:dirty?{state:'pending',text:'변경 사항 저장 대기'}:{state:'saved',text:'모든 변경 사항 저장됨'};
   const statusLabel=(row:SavedBulletin)=>row.status==='draft'?'초안':isScheduled(row)?`예약 · ${koreaWhen(row.publishAt as string)}`:'게시됨';
   const statusPill=(row:SavedBulletin)=><span className={view_.pill} data-status={isScheduled(row)?'scheduled':row.status}>{statusLabel(row)}</span>;
@@ -325,13 +342,15 @@ export default function BulletinWorkspace() {
 
       {view==='library'?<section aria-labelledby="bulletin-library-title" id="bulletin-library" tabIndex={-1}>
         <div className={view_.cardHead}><h2 id="bulletin-library-title">주보 목록</h2><div className={view_.headActions}><input type="search" className={view_.search} aria-label="주보 검색" placeholder="날짜 또는 호수로 검색" value={query} onChange={e=>setQuery(e.target.value)}/><button type="button" className={`${view_.btn} ${view_.primary}`} disabled={locked} onClick={createNew}>+ 새 주보 작성</button></div></div>
-        {filtered.length?<ul className={view_.list}>{filtered.map(row=><li key={row.id}><button type="button" className={view_.row} aria-pressed={draft?.id===row.id} aria-label={`${longDate(row.serviceDate)} (${row.serviceDate}) · ${row.issueNumber}호 · ${statusLabel(row)}`} disabled={locked} onClick={()=>open(row)}><span>{longDate(row.serviceDate)}</span><small>{row.issueNumber}호</small>{statusPill(row)}<span className={view_.chev} aria-hidden="true">›</span></button></li>)}</ul>
-          :<div className={`${view_.list} ${view_.empty}`}>{rows.length?'검색 결과가 없습니다.':'등록된 주보가 없습니다. 새 주보를 작성해 보세요.'}</div>}
+        {entries.length?<ul className={view_.list}>{entries.map(entry=>entry.kind==='special'?<li key={`special:${entry.row.slug}`}><button type="button" className={view_.row} aria-pressed={special?.slug===entry.row.slug} aria-label={`${longDate(entry.row.serviceDate)} (${entry.row.serviceDate}) · ${entry.row.title} · ${specialStatusLabel(entry.row)}`} disabled={locked} onClick={()=>openSpecial(entry.row)}><span>{longDate(entry.row.serviceDate)}</span><small>{entry.row.title}</small><span className={view_.pill} data-status={specialStatus(entry.row)}>{specialStatusLabel(entry.row)}</span><span className={view_.chev} aria-hidden="true">›</span></button></li>:(row=><li key={row.id}><button type="button" className={view_.row} aria-pressed={draft?.id===row.id} aria-label={`${longDate(row.serviceDate)} (${row.serviceDate}) · ${row.issueNumber}호 · ${statusLabel(row)}`} disabled={locked} onClick={()=>open(row)}><span>{longDate(row.serviceDate)}</span><small>{row.issueNumber}호</small>{statusPill(row)}<span className={view_.chev} aria-hidden="true">›</span></button></li>)(entry.row))}</ul>
+          :<div className={`${view_.list} ${view_.empty}`}>{rows.length||specials.length?'검색 결과가 없습니다.':'등록된 주보가 없습니다. 새 주보를 작성해 보세요.'}</div>}
       </section>:null}
 
       {view==='settings'?<section id="bulletin-options" aria-labelledby="bulletin-options-title"><div className={view_.cardHead}><h2 id="bulletin-options-title">주보 설정</h2><div className={view_.headActions}><SaveButton className={`${view_.btn} ${view_.primary}`} disabled={visibilityDraft===showVisibility&&connectionsDraft===showConnections} disabledHint="현재 최신 상태입니다." onClick={()=>{setVisibilityOption(visibilityDraft);setConnectionsOption(connectionsDraft);setMessage("주보 설정을 저장했습니다.");}}>저장</SaveButton></div></div><div className={view_.settings}><label className={styles.check}><input type="checkbox" checked={visibilityDraft} onChange={e=>setVisibilityDraft(e.target.checked)}/>웹 공개 설정 표시</label><label className={styles.check}><input type="checkbox" checked={connectionsDraft} onChange={e=>setConnectionsDraft(e.target.checked)}/>공지·일정 연결 표시</label></div></section>:null}
 
-      {view!=='library'&&view!=='settings'?(draft?<>
+      {view==='special'&&special?<SpecialDetail key={special.slug} program={special} client={client} onBack={()=>void library()} onMessage={setMessage} onChanged={row=>{setSpecial(row);setSpecials(existing=>existing.map(entry=>entry.slug===row.slug?row:entry));}}/>:null}
+
+      {view!=='library'&&view!=='settings'&&view!=='special'?(draft?<>
         {printPreview ? <PrintPreview onEdit={()=>void changePublication(false)} onReplace={item=>{if(draft.status!=="draft"||busy)return;printEdited.current=true;setDraft(current=>current&&({...current,items:current.items.map(original=>original.id===item.id?item:original)}));markDirty();}} draft={draft} dirty={dirty} onClose={closePrint} pages={Object.fromEntries(draft.items.filter(item => item.printPage != null).map(item => [item.id, item.printPage!]))} onPagesChange={pages => { if (draft.status !== "draft") return; printEdited.current = true; setDraft(current => current && ({ ...current, items: current.items.map(item => ({ ...item, printPage: pages[item.id] ?? null })) })); markDirty(); }} /> : null}
 
         <div id="editor-tools" tabIndex={-1} className={view_.bar}>
