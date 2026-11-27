@@ -9,6 +9,7 @@ import SiteIcon from "../site-icon";
 import { Skel, SkelLines, SkelRegion } from "../skeleton";
 import styles from "./reader.module.css";
 import PublicPdfDownload from "./public-pdf-download";
+import SpecialLinks from "./special/special-links";
 import NewsNavigation from '../news-navigation';
 import site from '../public-site.module.css';
 
@@ -131,6 +132,7 @@ export default function PublicBulletins({ initialDate }: { initialDate?: string 
   return <main id="public-content" tabIndex={-1} className={site.subpage}>
     <header className={site.pageHeading}><p className={site.eyebrow}>WEEKLY BULLETIN</p><h1>주일 주보</h1><p>말씀과 예배 순서, 이번 주 교회 소식을 만나보세요.</p></header><NewsNavigation />
     <div className={site.newsBody}>
+    <SpecialLinks />
     <div className={styles.issueBar}>
       <button type="button" className={styles.step} aria-label="이전 주보" title="이전 주보" disabled={!bulletin || (!older && !nextCursor) || index < 0} onClick={() => void goOlder()}><SiteIcon name="arrow" size={18} style={{ transform: "scaleX(-1)" }} /></button>
       <div className={styles.issueTitle}>{bulletin ? <><strong>{longDate(bulletin.service_date)}</strong></> : <strong>{failed ? "주보" : " "}</strong>}</div>
