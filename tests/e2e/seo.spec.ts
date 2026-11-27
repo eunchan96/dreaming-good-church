@@ -11,6 +11,8 @@ test('search engines get a sitemap, page descriptions, share images and church d
   expect(sitemap).toMatch(/\/bulletins\/\d{4}-\d{2}-\d{2}<\/loc>/);
 
   await page.goto('/');
+  // 홈의 대표 주소는 '/'(예전에 일부 봇 요청에서 '/index'로 나온 적이 있다).
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /^https?:\/\/[^/]+\/?$/);
   await expect(page).toHaveTitle('꿈꾸는좋은교회');
   await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /고양시 덕양구/);
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /opengraph-image\.png/);

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import PublicShell from './public-shell';
 import HomeHeroReader from './home-hero-reader';
@@ -9,6 +10,8 @@ import styles from './public-site.module.css';
 import { churchJsonLd } from '@/lib/site';
 import { CHURCH_ADDRESS, CHURCH_PHONE, YOUTUBE_CHANNEL } from '@/lib/site-content';
 
+// 홈의 대표 주소는 항상 '/'. 레이아웃의 상대 주소('./')에 맡기면 네이버 검색봇처럼 캐시를 거치지 않는 요청에서 '/index'로 계산됐다.
+export const metadata: Metadata = { alternates: { canonical: '/' } };
 const jsonLd = JSON.stringify(churchJsonLd(CHURCH_ADDRESS, CHURCH_PHONE, YOUTUBE_CHANNEL)).replace(/</g, '\\u003c');
 export default function Home() {
   return <PublicShell><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} /><main id="public-content" tabIndex={-1}>
