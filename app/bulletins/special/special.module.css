@@ -46,3 +46,5 @@
 .row.row.row { grid-template-columns: minmax(6.2em, max-content) minmax(0, 1fr) minmax(6.2em, max-content); }
 @media (max-width: 640px) { .row.row.row { grid-template-columns: 5.4em minmax(0, 1fr) 4.6em; } }
 @container (max-width: 560px) { .row.row.row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name who" "what what"; } }
+/* 관리자 빠른 이동: 데스크톱에서는 고정 헤더(84px) 바로 아래에 구역이 붙도록 여백을 줄인다(좁은 화면은 공통 값 유지). */
+@media (min-width: 1101px) { .paper[data-plain] [id][id] { scroll-margin-top: 100px; } }
