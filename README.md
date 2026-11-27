@@ -11,8 +11,8 @@
 
 | 구분 | 내용 |
 | --- | --- |
-| 공개 화면 | 홈, 교회 소개(인사말·오시는 길·예배시간·온라인 헌금), 예배 영상 6종, 주보·교회 소식·교회 일정·토라&토브, 앱 추가 안내 |
-| 관리자 | 주보 관리(지난주 복사·자동 저장·인쇄 미리보기·게시/취소·테마 5종·PDF/Word 내려받기), 홈페이지 관리, 예배 영상 관리, 공지·일정 관리, 편집자 초대 |
+| 공개 화면 | 홈, 교회 소개(인사말·오시는 길·예배시간·온라인 헌금), 예배 영상 6종, 주보·특별 순서지·교회 소식·교회 일정·토라&토브, 앱 추가 안내 |
+| 관리자 | 주보 관리(지난주 복사·자동 저장·인쇄 미리보기·게시/취소·예약 공개·초안 삭제·테마 5종·PDF/Word 내려받기), 특별 순서지 게시·예약, 홈페이지 관리, 예배 영상 관리·곡 목록(Notion), 공지·일정 관리, 편집자 초대, 사용 안내(`/admin/guide`) |
 | 검색·공유 | sitemap·robots·화면별 설명, 공유 미리보기 이미지, 교회 구조화 데이터 (`lib/site.ts`) |
 
 ## 폴더 구성
@@ -56,18 +56,20 @@ PR과 main·develop 푸시에서는 GitHub Actions가 lint·타입 검사·단�
 
 ## 브랜치와 배포
 
-1. 작업 브랜치(`feat/내용`, `fix/내용`)에서 작업하고 푸시하면 Vercel 브랜치 미리보기 주소가 생깁니다(검색 엔진 수집 막음).
+1. `main`에서 작업 브랜치(`feat/내용`, `fix/내용`, `docs/내용`)를 만들어 작업하고 푸시하면 Vercel 브랜치 미리보기 주소가 생깁니다(검색 엔진 수집 막음).
 2. 전체 e2e·`npm test`·운영 빌드를 통과하면 작업 브랜치를 `develop`에 squash합니다.
 3. `develop`을 `main`에 merge commit으로 합치면 Vercel이 운영(towbchurch.com)에 배포합니다.
 
 - 주일(일요일) 오전에는 `main`에 배포하지 않습니다.
+- 브랜치 미리보기도 **운영 DB**에 연결되어 있습니다. 미리보기에서는 게시하기·삭제·예약 공개를 누르지 않습니다.
 - 운영 Supabase 변경(마이그레이션·Edge Function 배포)은 따로 확인을 받고 합니다.
 - 커밋 메시지는 `타입: 내용`(feat, fix, design, db, test, docs, refactor, chore)을 따릅니다.
 
 ## 운영 문서
 
-- **[관리 화면 사용 안내](docs/user-guide.md)** — 목사님·편집자용(주보 작성·인쇄·게시, 공지·영상·홈페이지 관리)
+- **[운영·인수인계 안내](docs/handoff.md)** — 기술 담당자가 먼저 볼 문서(서비스·계정, 정기 점검, 정해진 일정, 장애 때 할 일, 문서 지도)
+- **[관리 화면 사용 안내](docs/user-guide.md)** — 목사님·편집자용(주보 작성·인쇄·게시·예약·삭제, 특별 순서지, 공지·영상·곡 목록·홈페이지 관리). 관리 화면 `/admin/guide`에 그대로 보이며, 캡처는 `public/admin/guide`
 - [배포 계정·편집자 초대·비밀번호 재설정](docs/deployed-accounts.md)
 - [암호화 백업](docs/encrypted-backups.md) · [운영 준비와 복구](docs/operations-recovery.md) · [운영 정책과 되돌리기](docs/operating-policy-and-rollback.md)
-- [주보 작성](docs/bulletin-drafts.md) · [주보 게시](docs/bulletin-publication.md) · [주보 인쇄](docs/bulletin-printing.md)
+- [주보 작성](docs/bulletin-drafts.md) · [주보 게시·예약·삭제](docs/bulletin-publication.md) · [주보 인쇄](docs/bulletin-printing.md) · [특별 순서지](docs/special-programs.md)
 - [홈페이지 콘텐츠 관리](docs/homepage-content-management.md) · [예배 영상 관리](docs/worship-video-management.md) · [공지·일정](docs/community.md)
