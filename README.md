@@ -2,7 +2,7 @@
 
 작은 교회를 위한 홈페이지입니다. 목사님이 관리자 화면에서 주보를 입력하면 모바일 주보, 인쇄용 주보(PDF·Word)가 함께 만들어지고, 성도는 가입 없이 스마트폰으로 주보·예배 영상·교회 소식을 봅니다.
 
-- 운영 주소: <https://towbchurch.com> (관리자: [/admin/bulletins](https://towbchurch.com/admin/bulletins))
+- 운영 주소: <https://towbchurch.com> (관리자: [/admin](https://towbchurch.com/admin))
 - 기술: Next.js 16 · React 19 · TypeScript · CSS Modules · Supabase(Postgres·Auth·RLS) · Vercel
 
 > Next.js 16은 이전 버전과 API가 다릅니다. 코드를 고치기 전에 `node_modules/next/dist/docs/`를 먼저 봅니다([AGENTS.md](AGENTS.md)).

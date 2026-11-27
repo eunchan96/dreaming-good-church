@@ -19,13 +19,6 @@
 
 /* 영상 목록: no inner scroll; paged 20 per page */
 .pagedList.pagedList.pagedList { max-height: none; overflow: visible; }
-.pager { display: flex; justify-content: center; align-items: center; gap: 4px; margin: 20px 0 4px; flex-wrap: wrap; }
-.pager > span { display: contents; }
-.pager button { min-width: 36px; min-height: 36px; padding: 0 8px !important; border: 1px solid transparent !important; border-radius: 8px !important; background: transparent !important; color: #5d4930; font-size: 14px; }
-.pager button:hover:not(:disabled) { background: #f1ead9 !important; }
-.pager button[aria-current=page] { border-color: #342b25 !important; background: #342b25 !important; color: #fff; font-weight: 600; }
-.pager button:disabled { color: #c9bda8; }
-.gap { display: inline-grid; place-items: center; min-width: 20px; color: #9a8b74; }
 
 /* 목록 머리: 필터와 버튼 간격 */
 .filter { margin: 0 0 12px; }

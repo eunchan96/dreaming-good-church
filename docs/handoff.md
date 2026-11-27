@@ -7,7 +7,7 @@
 
 ## 1. 한눈에 보기
 
-- 공개 주소: <https://towbchurch.com> · 관리자: <https://towbchurch.com/admin/bulletins>
+- 공개 주소: <https://towbchurch.com> · 관리자: <https://towbchurch.com/admin>(주보 관리로 이동)
 - 구조: Next.js(Vercel) + Supabase(DB·로그인·파일). 코드는 GitHub 저장소, 배포는 `main`에 합치면 Vercel이 자동으로 한다.
 - 담당·비상 연락·복구 판단: [운영 정책](operating-policy-and-rollback.md)의 '확정한 운영 정책'을 따른다(현재 담당 1명, 대체 담당 미지정).
 
