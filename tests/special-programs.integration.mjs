@@ -38,6 +38,7 @@ test('special programs: anonymous reads only published rows and their pdf; nobod
     // Editors can preview drafts but cannot write; anonymous cannot write.
     const seen = await editor.from('special_programs').select('slug').in('slug', [open, hidden]);
     assert.ifError(seen.error); assert.equal(seen.data.length, 2);
+    assert.equal((await editor.storage.from('special-programs').download(`${hidden}.pdf`)).error, null);
     assert.ok((await editor.from('special_programs').insert({ slug: `t-x-${stamp}`, title: 'x', service_date: '2096-03-01', content })).error);
     assert.ok((await anon.from('special_programs').insert({ slug: `t-y-${stamp}`, title: 'y', service_date: '2096-03-01', content })).error);
     assert.equal((await editor.from('special_programs').update({ status: 'published' }).eq('slug', hidden).select()).data?.length ?? 0, 0);

@@ -21,9 +21,14 @@ test("공개된 특별 순서지는 웹·인쇄 미리보기로 보이고, 초�
     ],
     notice: { title: "광고", tone: "orange", body: "감사합니다." },
   };
+  const email = `${randomUUID()}@example.test`, password = randomUUID();
+  const user = await admin.auth.admin.createUser({ email, password, email_confirm: true });
+  if (user.error) throw user.error;
   const pdf = await PDFDocument.create(); pdf.addPage([595, 842]);
   const bytes = await pdf.save();
   try {
+    const member = await admin.from("church_editors").insert({ user_id: user.data.user.id });
+    if (member.error) throw member.error;
     const inserted = await admin.from("special_programs").insert([
       { slug: open, title: "시험 감사예배", service_date: "2099-01-03", status: "published", content, pdf_path: `${open}.pdf` },
       { slug: hidden, title: "비공개 시험", service_date: "2099-01-10", status: "draft", content, pdf_path: `${hidden}.pdf` },
@@ -66,14 +71,29 @@ test("공개된 특별 순서지는 웹·인쇄 미리보기로 보이고, 초�
     await expect(sheet.getByText("1부 예배")).toBeVisible();
 
     // 초안은 페이지·PDF·목록 어디에도 없다.
-    expect((await request.get(`/bulletins/special/${hidden}`)).status()).toBe(404);
+    await page.goto(`/bulletins/special/${hidden}`);
+    await expect(page.getByText("순서지를 찾을 수 없습니다")).toBeVisible();
+    await expect(page.getByText("1부 예배")).toHaveCount(0);
     expect((await request.get(`/api/special-programs/pdf?slug=${hidden}`)).status()).toBe(404);
     const list = await (await request.get("/api/special-programs")).json();
     expect(list.programs.map((program: { slug: string }) => program.slug)).toContain(open);
     expect(list.programs.map((program: { slug: string }) => program.slug)).not.toContain(hidden);
     expect((await request.get("/bulletins/special/Not_A_Slug")).status()).toBe(404);
+
+    // 편집자는 로그인한 상태에서 공개 전 순서지를 웹·인쇄로 미리 볼 수 있다.
+    await page.goto("/admin/bulletins");
+    await page.getByLabel("이메일", { exact: true }).fill(email);
+    await page.getByLabel("비밀번호", { exact: true }).fill(password);
+    await page.getByRole("button", { name: "로그인", exact: true }).click();
+    await page.getByRole("button", { name: /새 주보 작성/ }).waitFor();
+    await page.goto(`/bulletins/special/${hidden}`);
+    await expect(page.getByText("공개 전 미리보기입니다")).toBeVisible();
+    await expect(page.getByRole("article", { name: "비공개 시험" }).getByText("1부 예배")).toBeVisible();
+    await page.getByRole("button", { name: "인쇄 미리보기" }).click();
+    await expect(page.locator("iframe[title$='인쇄용 PDF']")).toHaveAttribute("src", /^blob:/);
   } finally {
     await admin.storage.from("special-programs").remove([`${open}.pdf`, `${hidden}.pdf`]);
     await admin.from("special_programs").delete().in("slug", [open, hidden]);
+    await admin.auth.admin.deleteUser(user.data.user.id);
   }
 });

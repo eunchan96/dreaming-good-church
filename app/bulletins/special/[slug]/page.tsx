@@ -7,6 +7,7 @@ import PublicShell from "../../../public-shell";
 import NewsNavigation from "../../../news-navigation";
 import site from "../../../public-site.module.css";
 import SpecialReader from "../special-reader";
+import DraftPreview from "../draft-preview";
 
 export const instant = false;
 
@@ -30,8 +31,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   await connection();
   const { slug } = await params;
+  if (!validProgramSlug(slug)) notFound();
   const program = await load(slug);
-  if (!program) notFound();
+  // 공개되지 않은 순서지는 편집자 로그인 상태에서만 브라우저에서 불러와 미리 보여 준다(없으면 안내 문구).
+  if (!program) return <PublicShell><main id="public-content" tabIndex={-1} className={site.subpage}>
+    <header className={site.pageHeading}><p className={site.eyebrow}>SPECIAL PROGRAM</p><h1>특별 순서지</h1></header>
+    <NewsNavigation />
+    <div className={site.newsBody}><DraftPreview slug={slug} /></div>
+  </main></PublicShell>;
   return <PublicShell><main id="public-content" tabIndex={-1} className={site.subpage}>
     <header className={site.pageHeading}><p className={site.eyebrow}>SPECIAL PROGRAM</p><h1>{program.title}</h1><p>{program.service_date.replaceAll("-", ". ")} 순서지를 웹과 인쇄 모양으로 볼 수 있습니다.</p></header>
     <NewsNavigation />
