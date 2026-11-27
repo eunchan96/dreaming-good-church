@@ -57,7 +57,7 @@
 }
 .row.row:hover:not(:disabled) { background: #faf9f6; border: 0; }
 .row small { font-size: 13px; color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; }
-.chev { color: #b3ab9f; font-size: 18px; line-height: 1; }
+.chev { display: inline-grid; place-items: center; color: #b3ab9f; line-height: 1; }
 .empty { padding: 48px 16px; text-align: center; color: var(--muted); font-size: 14px; }
 
 /* Status pill */

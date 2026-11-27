@@ -39,13 +39,6 @@
 @keyframes shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
 @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } .row, .track, .thumb { transition: none; } }
 
-.pager { display: flex; justify-content: center; align-items: center; gap: 4px; margin: 20px 0 4px; flex-wrap: wrap; }
-.pager > span { display: contents; }
-.pager button { min-width: 36px; min-height: 36px; padding: 0 8px !important; border: 1px solid transparent !important; border-radius: 8px !important; background: transparent !important; color: #5d4930; font-size: 14px; }
-.pager button:hover:not(:disabled) { background: #f1ead9 !important; }
-.pager button[aria-current=page] { border-color: #342b25 !important; background: #342b25 !important; color: #fff; font-weight: 600; }
-.pager button:disabled { color: #c9bda8; }
-.gap { display: inline-grid; place-items: center; min-width: 20px; color: #9a8b74; }
 
 /* 곡 상세: 왼쪽 악보(너무 크지 않게), 오른쪽 정보 */
 .detail { display: grid; grid-template-columns: minmax(0, 460px) minmax(300px, 1fr); gap: 36px; align-items: start; padding-top: 4px; }
@@ -78,7 +71,7 @@
 .viewer { outline-offset: 4px; border-radius: 8px; }
 .sheet { margin: 0; }
 .sheet img { display: block; width: 100%; height: auto; border: 1px solid #e3dac8; border-radius: 6px; background: #fff; }
-/* 넘김 버튼: 목록 페이지 이동(.pager)과 같은 모양 */
+/* 넘김 버튼: 목록 페이지 이동(../pager.module.css)과 같은 모양 */
 .sheetNav { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px; }
 .sheetNav span { min-width: 64px; text-align: center; font-size: 14px; color: #5d4930; font-variant-numeric: tabular-nums; }
 .sheetNav button { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; padding: 0 !important; border: 1px solid transparent !important; border-radius: 8px !important; background: transparent !important; color: #5d4930; cursor: pointer; }

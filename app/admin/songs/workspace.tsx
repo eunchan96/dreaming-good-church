@@ -9,6 +9,7 @@ import SiteIcon from '@/app/site-icon';
 import AdminIcon from '../admin-icons';
 import { useUrlParam } from '../url-param';
 import AdminShell from '../admin-shell';
+import Pager from '../pager';
 import ManagementHeading from '../management-heading';
 import ReauthPanel from '../reauth-panel';
 import StatusMessage from '../status-message';
@@ -199,11 +200,7 @@ export default function SongsWorkspace() {
             <span className={styles.chipsRow}>{item.hasLyrics ? <small className={ui.badge}>가사</small> : null}{item.pptCount ? <small className={`${ui.badge} ${styles.pptChip}`}>PPT</small> : null}</span>
           </button></li>)}</ul>
           {!filtered.length ? <p className={styles.empty}>{songs.length ? '검색 조건에 맞는 곡이 없습니다.' : message || '등록된 곡이 없습니다.'}</p> : null}
-          {pages > 1 ? <nav className={styles.pager} aria-label="곡 목록 페이지">
-            <button type="button" aria-label="이전 페이지" disabled={current === 1} onClick={() => setPageNo(current - 1)}>‹</button>
-            {Array.from({ length: pages }, (_, i) => i + 1).filter(n => n === 1 || n === pages || Math.abs(n - current) <= 2).map((n, i, all) => <span key={n}>{i && n - all[i - 1] > 1 ? <span className={styles.gap} aria-hidden="true">…</span> : null}<button type="button" aria-label={`${n}페이지`} aria-current={n === current ? 'page' : undefined} onClick={() => setPageNo(n)}>{n}</button></span>)}
-            <button type="button" aria-label="다음 페이지" disabled={current === pages} onClick={() => setPageNo(current + 1)}>›</button>
-          </nav> : null}
+          <Pager label="곡 목록 페이지" current={current} pages={pages} onPage={setPageNo} />
         </>}
       </section>}
     </main>
